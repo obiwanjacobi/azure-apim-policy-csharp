@@ -16,7 +16,12 @@ public record struct PolicyExpression
 
     public PolicyExpression(string expression) => _expression = expression;
 
-    public static implicit operator PolicyExpression(bool value) => new(value ? "true" : "false");
+    public static implicit operator PolicyExpression(bool value) => From(value);
+    public static implicit operator PolicyExpression(int value) => From(value);
     public static implicit operator PolicyExpression(string expression) => new(expression);
     public static implicit operator string(PolicyExpression expression) => expression._expression;
+
+    public static PolicyExpression From(bool value) => new(value ? "true" : "false");
+    public static PolicyExpression From(int value) => new(value.ToString());
+    public static PolicyExpression From(byte[] bytes) => Convert.ToBase64String(bytes);
 }

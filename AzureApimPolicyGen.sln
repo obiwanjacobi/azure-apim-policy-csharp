@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureApimPolicyGen", "Azure
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureApimPolicyTest", "AzureApimPolicyTest\AzureApimPolicyTest.csproj", "{D44E94FE-640B-4B76-A50F-5C10F828CF71}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureApimPolicy.Tests", "AzureApimPolicy.Tests\AzureApimPolicy.Tests.csproj", "{E51A88E9-5BCD-48D8-9908-82FB3C2E2562}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,10 +19,10 @@ Global
 		{C5360574-46C6-487C-A477-6062A53B6559}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C5360574-46C6-487C-A477-6062A53B6559}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C5360574-46C6-487C-A477-6062A53B6559}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D44E94FE-640B-4B76-A50F-5C10F828CF71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D44E94FE-640B-4B76-A50F-5C10F828CF71}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D44E94FE-640B-4B76-A50F-5C10F828CF71}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D44E94FE-640B-4B76-A50F-5C10F828CF71}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E51A88E9-5BCD-48D8-9908-82FB3C2E2562}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E51A88E9-5BCD-48D8-9908-82FB3C2E2562}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E51A88E9-5BCD-48D8-9908-82FB3C2E2562}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E51A88E9-5BCD-48D8-9908-82FB3C2E2562}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

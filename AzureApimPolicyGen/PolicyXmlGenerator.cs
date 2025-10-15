@@ -46,10 +46,10 @@ public sealed class PolicyXmlGenerator
     public void GenerateXml(PolicyDocument policyDocument)
     {
         var path = Path.Combine(_basePath, $"{policyDocument.GetType().Name}.xml");
-        policyDocument.WriteTo(path);
+        var stream = File.OpenWrite(path);
+        policyDocument.WriteTo(stream);
     }
 }
-
 
 internal static class ReflectionExtensions
 {

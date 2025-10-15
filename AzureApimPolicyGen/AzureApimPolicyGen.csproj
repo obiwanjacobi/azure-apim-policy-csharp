@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="AzureApimPolicy.Tests" />
+  </ItemGroup>
+  
 </Project>
