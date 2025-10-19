@@ -2,8 +2,29 @@
 
 namespace AzureApimPolicyGen;
 
-public abstract class PolicyDocument : IPolicyDocument,
-    IAuthentication, ICache
+public interface IPolicyDocument
+{
+    IAuthentication Authentication { get; }
+    ICache Cache { get; }
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/check-header-policy</summary>
+    IPolicyDocument CheckHeader(PolicyExpression name, PolicyExpression failedCheckHttpCode, PolicyExpression failedCheckErrorMessage, PolicyExpression ignoreCase, Action<ICheckHeaderValues>? values = null);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/choose-policy</summary>
+    IPolicyDocument Choose(Action<IChooseActions> choose);
+
+    IPolicyDocument Cors(Action<ICorsActions> cors, bool? allowCredentials = null, bool? terminateUnmatchedRequests = null);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/emit-metric-policy</summary>
+    IPolicyDocument EmitMetric(string name, string? @namespace, string? value, Action<IEmitMetricDimensions> dimensions);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-body-policy</summary>
+    IPolicyDocument SetBody(PolicyExpression body);
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-body-policy#using-liquid-templates-with-set-body</summary>
+    IPolicyDocument SetBody(LiquidTemplate body);
+}
+
+public abstract partial class PolicyDocument : IPolicyDocument
 {
     private PolicySection _section = PolicySection.None;
     private PolicyScopes _scopes = PolicyScopes.None;
@@ -42,9 +63,6 @@ public abstract class PolicyDocument : IPolicyDocument,
         return this;
     }
 
-    public IAuthentication Authentication => (IAuthentication)this;
-    public ICache Cache => (ICache)this;
-
     // ------------------------------------------------------------------------
 
     internal void WriteTo(Stream stream)
@@ -76,80 +94,6 @@ public abstract class PolicyDocument : IPolicyDocument,
 
     // ------------------------------------------------------------------------
 
-    IPolicyDocument IAuthentication.Basic(string username, string password)
-    {
-        AssertSection(PolicySection.Inbound);
-        AssertScopes(PolicyScopes.All);
-        Writer.AuthenticationBasic(username, password);
-        return this;
-    }
-
-    IPolicyDocument IAuthentication.Certificate(PolicyExpression thumbprint, PolicyExpression certificate, PolicyExpression? body, PolicyExpression? password)
-    {
-        AssertSection(PolicySection.Inbound);
-        AssertScopes(PolicyScopes.All);
-        if (!String.IsNullOrEmpty(thumbprint) && !String.IsNullOrEmpty(certificate))
-            throw new ArgumentException("Specify either a thumbprint or a certificate.  Not both.", $"{nameof(thumbprint)}+{nameof(certificate)}");
-
-        Writer.AuthenticationCertificate(thumbprint, certificate, body, password);
-        return this;
-    }
-
-    IPolicyDocument IAuthentication.ManagedIdentity(PolicyExpression resource, string? clientId, PolicyVariable? outputTokenVariableName, bool ignoreError)
-    {
-        AssertSection(PolicySection.Inbound);
-        AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
-        // TODO: check variable exists
-        Writer.AuthenticationManagedIdentity(resource, clientId, outputTokenVariableName, ignoreError);
-        return this;
-    }
-
-    IPolicyDocument ICache.Lookup(PolicyExpression varyByDeveloper, PolicyExpression varyByDeveloperGroups,
-        PolicyExpression? allowPrivateResponseCaching, CacheType? cacheType, PolicyExpression? downstreamCacheType,
-        PolicyExpression? mustRevalidate, Action<ICacheLookupVaryBy>? varyBy)
-    {
-        AssertSection(PolicySection.Inbound);
-        AssertScopes(PolicyScopes.All);
-        Action? varyByItems = varyBy is null ? null : () => varyBy(new CacheLookupVaryBy(Writer));
-        Writer.CacheLookup(varyByDeveloper, varyByDeveloperGroups, allowPrivateResponseCaching,
-            CacheTypeToString(cacheType), downstreamCacheType, mustRevalidate, varyByItems);
-        return this;
-    }
-
-    IPolicyDocument ICache.LookupValue(string variableName, PolicyExpression key, PolicyExpression? defaultValue, CacheType? cacheType)
-    {
-        // TODO: check variable exists
-        // allowed in all sections
-        AssertScopes(PolicyScopes.All);
-        Writer.CacheLookupValue(variableName, key, defaultValue, CacheTypeToString(cacheType));
-        return this;
-    }
-
-    IPolicyDocument ICache.Store(PolicyExpression duration, PolicyExpression? cacheResponse)
-    {
-        AssertSection(PolicySection.Outbound);
-        AssertScopes(PolicyScopes.All);
-        Writer.CacheStore(duration, cacheResponse);
-        return this;
-    }
-
-    IPolicyDocument ICache.StoreValue(PolicyExpression duration, PolicyExpression key, PolicyExpression value, CacheType? cacheType)
-    {
-        // allowed in all sections
-        AssertScopes(PolicyScopes.All);
-        Writer.CacheStoreValue(duration, key, value, CacheTypeToString(cacheType));
-        return this;
-    }
-
-    IPolicyDocument ICache.RemoveValue(PolicyExpression key, CacheType? cacheType)
-    {
-        // allowed in all sections
-        AssertScopes(PolicyScopes.All);
-        Writer.CacheRemoveValue(key, CacheTypeToString(cacheType));
-        return this;
-    }
-
-
     public IPolicyDocument CheckHeader(PolicyExpression name, PolicyExpression failedCheckHttpCode,
         PolicyExpression failedCheckErrorMessage, PolicyExpression ignoreCase, Action<ICheckHeaderValues>? values = null)
     {
@@ -168,11 +112,11 @@ public abstract class PolicyDocument : IPolicyDocument,
         return this;
     }
 
-    public IPolicyDocument Cors(Action<ICorsActions> actions, bool? allowCredentials = null, bool? terminateUnmatchedRequests = null)
+    public IPolicyDocument EmitMetric(string name, string? @namespace, string? value, Action<IEmitMetricDimensions> dimensions)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.All);
-        Writer.Cors(() => actions(new CorsActions(Writer)), allowCredentials, terminateUnmatchedRequests);
+        Writer.EmitMetric(name, @namespace, value, () => dimensions(new EmitMetricDimensions(Writer)));
         return this;
     }
 
@@ -193,29 +137,7 @@ public abstract class PolicyDocument : IPolicyDocument,
 
     // ------------------------------------------------------------------------
 
-    private sealed class CacheLookupVaryBy : ICacheLookupVaryBy
-    {
-        private readonly PolicyXmlWriter _writer;
-        internal CacheLookupVaryBy(PolicyXmlWriter writer) => _writer = writer;
 
-        public ICacheLookupVaryBy Header(string name)
-        {
-            _writer.CacheLookup_VaryByHeader(name);
-            return this;
-        }
-
-        public ICacheLookupVaryBy QueryParam(string name)
-        {
-            _writer.CacheLookup_VaryByParam(name);
-            return this;
-        }
-
-        public ICacheLookupVaryBy QueryParams(params string[] names)
-        {
-            _writer.CacheLookup_VaryByHeader(String.Join(";", names));
-            return this;
-        }
-    }
 
     private sealed class CheckHeaderValues : ICheckHeaderValues
     {
@@ -252,69 +174,22 @@ public abstract class PolicyDocument : IPolicyDocument,
         }
     }
 
-    private sealed class CorsActions : ICorsActions,
-        ICorsAllowedOrigins, ICorsAllowedMethods, ICorsAllowedHeaders, ICorsExposedHeaders
+
+
+    private sealed class EmitMetricDimensions : IEmitMetricDimensions
     {
         private readonly PolicyXmlWriter _writer;
-        internal CorsActions(PolicyXmlWriter writer) => _writer = writer;
+        internal EmitMetricDimensions(PolicyXmlWriter writer) => _writer = writer;
 
-        public ICorsActions AllowedOrigins(Action<ICorsAllowedOrigins> origins)
-        {
-            _writer.CorsAllowedOrigins(() => origins(this));
-            return this;
-        }
+        private int _count;
 
-        public ICorsActions AllowedMethods(Action<ICorsAllowedMethods> methods, int? preFlightResultMaxAge)
+        public IEmitMetricDimensions Add(string name, string? value)
         {
-            _writer.CorsAllowedMethods(() => methods(this), preFlightResultMaxAge.ToString());
-            return this;
-        }
+            if (_count > 5)
+                throw new ArgumentOutOfRangeException("<dimension>", "A maximum of 5 dimensions can be specified.");
 
-        public ICorsActions AllowedHeaders(Action<ICorsAllowedHeaders> headers)
-        {
-            _writer.CorsAllowedHeaders(() => headers(this));
-            return this;
-        }
-
-        public ICorsActions ExposeHeaders(Action<ICorsExposedHeaders> headers)
-        {
-            _writer.CorsExposedHeaders(() => headers(this));
-            return this;
-        }
-
-        ICorsAllowedOrigins ICorsAllowedOrigins.Any()
-        {
-            _writer.CorsAllowedOrigin("*");
-            return this;
-        }
-
-        ICorsAllowedOrigins ICorsAllowedOrigins.Add(string origin)
-        {
-            _writer.CorsAllowedOrigin(origin);
-            return this;
-        }
-
-        ICorsAllowedMethods ICorsAllowedMethods.Any()
-        {
-            _writer.CorsAllowedMethod("*");
-            return this;
-        }
-
-        ICorsAllowedMethods ICorsAllowedMethods.Add(HttpMethod method)
-        {
-            _writer.CorsAllowedMethod(method.ToString());
-            return this;
-        }
-
-        ICorsAllowedHeaders ICorsAllowedHeaders.Add(string header)
-        {
-            _writer.CorsHeader(header);
-            return this;
-        }
-
-        ICorsExposedHeaders ICorsExposedHeaders.Add(string header)
-        {
-            _writer.CorsHeader(header);
+            _count++;
+            _writer.EmitMetricDimension(name, value);
             return this;
         }
     }

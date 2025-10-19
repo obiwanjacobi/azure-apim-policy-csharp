@@ -16,8 +16,6 @@ public sealed class PolicyXmlGenerator
         Directory.CreateDirectory(_basePath);
     }
 
-    public bool XmlUnescapeCode { get; set; } = true;
-
     public void GenerateAll(string assemblyPath)
     {
         var assembly = Assembly.Load(assemblyPath);
@@ -54,42 +52,37 @@ public sealed class PolicyXmlGenerator
             policyDocument.WriteTo(stream);
         }
 
-        if (XmlUnescapeCode)
+        var unescapedPath = path + ".unescaped";
+        using (var streamUnescaped = File.OpenWrite(unescapedPath))
         {
-            var unescapedPath = path + ".unescaped";
-            using (var streamUnescaped = File.OpenWrite(unescapedPath))
-            {
-                var xml = File.OpenText(path).ReadToEnd();
-                XmlUnescape(xml, streamUnescaped);
-            }
-
-            File.Delete(path);
-            File.Move(unescapedPath, path);
+            var xml = File.OpenText(path).ReadToEnd();
+            XmlUnescape(xml, streamUnescaped);
         }
+
+        File.Delete(path);
+        File.Move(unescapedPath, path);
     }
 
     internal static void XmlUnescape(string xml, Stream streamUnescaped)
     {
         var regexSingle = new Regex(@"""@\((.*?)\)""", RegexOptions.Singleline);
-        //var regexMulti = new Regex(@"@\{(.*?)\}");
-
         xml = regexSingle.Replace(xml, match =>
         {
             var code = match.Groups[1].Value;
             var unescaped = System.Net.WebUtility.HtmlDecode(code);
-            return $"\"@({unescaped})\"";
+            return $"\"@({unescaped.Replace("Context.", "context.")})\"";
         });
 
+        //var regexMulti = new Regex(@"@\{(.*?)\}");
         //xml = regexMulti.Replace(xml, match =>
         //{
         //    var code = match.Groups[1].Value;
         //    var unescaped = System.Net.WebUtility.HtmlDecode(code);
-        //    return $"\"@{{{unescaped})}}";
+        //    return $"\"@{{{unescaped.Replace("Context.", "context.")})}}";
         //});
 
         using var writer = new StreamWriter(streamUnescaped, leaveOpen: true);
         writer.Write(xml);
-
     }
 }
 

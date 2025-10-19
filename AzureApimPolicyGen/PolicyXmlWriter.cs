@@ -252,6 +252,23 @@ internal sealed class PolicyXmlWriter : IDisposable
         _xmlWriter.WriteElementString("header", header);
     }
 
+    public void EmitMetric(string name, string? @namespace, string? value, Action writeDimensions)
+    {
+        _xmlWriter.WriteStartElement("emit-metric");
+        _xmlWriter.WriteAttributeString("name", name);
+        _xmlWriter.WriteAttributeStringOpt("value", value);
+        _xmlWriter.WriteAttributeStringOpt("namespace", @namespace);
+        writeDimensions();
+        _xmlWriter.WriteEndElement();
+    }
+    internal void EmitMetricDimension(string name, string? value)
+    {
+        _xmlWriter.WriteStartElement("dimension");
+        _xmlWriter.WriteAttributeString("name", name);
+        _xmlWriter.WriteAttributeStringOpt("value", value);
+        _xmlWriter.WriteEndElement();
+    }
+
     public void SetBody(string body, bool liquidTemplate = false)
     {
         _xmlWriter.WriteStartElement("set-body");

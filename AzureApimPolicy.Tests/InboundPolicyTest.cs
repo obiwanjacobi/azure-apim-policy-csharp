@@ -35,6 +35,12 @@ internal class InboundPolicy : PolicyDocument
                     .AllowedHeaders(headers => headers.Add("*"))
                     ;
             })
+            .EmitMetric("metricName", null, "metricValue", (dimensions) =>
+            {
+                dimensions
+                    .Add("dim1", "val1")
+                    .Add("dim2", "val2");
+            })
             ;
 
         base.Inbound();
@@ -115,5 +121,17 @@ public class InboundPolicyTest
         var headers = cors.Element("allowed-headers");
         Assert.NotNull(headers);
         Assert.NotNull(headers.Element("header"));
+    }
+
+    [Fact]
+    public void EmitMetric()
+    {
+        var inbound = _document.Descendants("inbound").Single();
+        var emitMetric = inbound.Element("emit-metric");
+        Assert.NotNull(emitMetric);
+        var dimensions = emitMetric.Elements("dimension");
+        Assert.NotNull(dimensions);
+        Assert.Equal("dim1", dimensions.ElementAt(0).Attribute("name").Value);
+        Assert.Equal("dim2", dimensions.ElementAt(1).Attribute("name").Value);
     }
 }
