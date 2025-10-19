@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace AzureApimPolicyGen;
 
@@ -14,6 +15,8 @@ public sealed class PolicyXmlGenerator
         _basePath = basePath;
         Directory.CreateDirectory(_basePath);
     }
+
+    public bool XmlUnescapeCode { get; set; } = true;
 
     public void GenerateAll(string assemblyPath)
     {
@@ -46,8 +49,47 @@ public sealed class PolicyXmlGenerator
     public void GenerateXml(PolicyDocument policyDocument)
     {
         var path = Path.Combine(_basePath, $"{policyDocument.GetType().Name}.xml");
-        var stream = File.OpenWrite(path);
-        policyDocument.WriteTo(stream);
+        using (var stream = File.OpenWrite(path))
+        {
+            policyDocument.WriteTo(stream);
+        }
+
+        if (XmlUnescapeCode)
+        {
+            var unescapedPath = path + ".unescaped";
+            using (var streamUnescaped = File.OpenWrite(unescapedPath))
+            {
+                var xml = File.OpenText(path).ReadToEnd();
+                XmlUnescape(xml, streamUnescaped);
+            }
+
+            File.Delete(path);
+            File.Move(unescapedPath, path);
+        }
+    }
+
+    internal static void XmlUnescape(string xml, Stream streamUnescaped)
+    {
+        var regexSingle = new Regex(@"""@\((.*?)\)""", RegexOptions.Singleline);
+        //var regexMulti = new Regex(@"@\{(.*?)\}");
+
+        xml = regexSingle.Replace(xml, match =>
+        {
+            var code = match.Groups[1].Value;
+            var unescaped = System.Net.WebUtility.HtmlDecode(code);
+            return $"\"@({unescaped})\"";
+        });
+
+        //xml = regexMulti.Replace(xml, match =>
+        //{
+        //    var code = match.Groups[1].Value;
+        //    var unescaped = System.Net.WebUtility.HtmlDecode(code);
+        //    return $"\"@{{{unescaped})}}";
+        //});
+
+        using var writer = new StreamWriter(streamUnescaped, leaveOpen: true);
+        writer.Write(xml);
+
     }
 }
 
@@ -55,5 +97,4 @@ internal static class ReflectionExtensions
 {
     public static bool IsPolicyDocument(this Type type)
         => type.IsAssignableTo(typeof(PolicyDocument));
-
 }

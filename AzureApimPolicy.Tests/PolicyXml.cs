@@ -28,4 +28,15 @@ internal static class PolicyXml
         stream.Position = 0;
         return XDocument.Load(stream);
     }
+
+    public static string ToPolicyXmlString(this XDocument policyDocument)
+    {
+        var xml = policyDocument.ToString();
+        var stream = new MemoryStream();
+        PolicyXmlGenerator.XmlUnescape(xml, stream);
+
+        stream.Position = 0;
+        var reader = new StreamReader(stream);
+        return reader.ReadToEnd();
+    }
 }
