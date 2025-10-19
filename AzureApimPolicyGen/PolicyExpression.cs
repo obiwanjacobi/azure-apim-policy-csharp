@@ -15,6 +15,7 @@ public record struct PolicyExpression
     public static PolicyExpression From(bool value) => new(value ? "true" : "false");
     public static PolicyExpression From(int value) => new(value.ToString());
     public static PolicyExpression From(byte[] bytes) => Convert.ToBase64String(bytes);
+    public static PolicyExpression FromNamedValue(string name) => new($"{{{{{name}}}}}");
     public static PolicyExpression FromCode(string code)
     {
         CSharpCompiler.Verify(code);

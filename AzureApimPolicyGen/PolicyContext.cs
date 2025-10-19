@@ -5,6 +5,7 @@ namespace AzureApimPolicyGen;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor.
 
+//https://learn.microsoft.com/en-us/azure/api-management/api-management-policy-expressions#ContextVariables
 public static class Context
 {
     public static TimeSpan Elapsed { get; }

@@ -10,6 +10,13 @@ public interface IPolicyDocument
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/choose-policy</summary>
     IPolicyDocument Choose(Action<IChooseActions> choose);
+
+    IPolicyDocument Cors(Action<ICorsActions> cors, bool? allowCredentials = null, bool? terminateUnmatchedRequests = null);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-body-policy</summary>
+    IPolicyDocument SetBody(PolicyExpression body);
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-body-policy#using-liquid-templates-with-set-body</summary>
+    IPolicyDocument SetBody(LiquidTemplate body);
 }
 
 public interface IAuthentication
@@ -73,3 +80,33 @@ public interface IChooseActions
     IChooseActions Otherwise(Action<IPolicyDocument> otherwiseActions);
 }
 
+public interface ICorsActions
+{
+    ICorsActions AllowedOrigins(Action<ICorsAllowedOrigins> origins);
+    ICorsActions AllowedMethods(Action<ICorsAllowedMethods> methods, int? preFlightResultMaxAge = null);
+    ICorsActions AllowedHeaders(Action<ICorsAllowedHeaders> headers);
+    ICorsActions ExposeHeaders(Action<ICorsExposedHeaders> headers);
+}
+
+public interface ICorsAllowedOrigins
+{
+    ICorsAllowedOrigins Any();
+    // TODO: url templates?
+    ICorsAllowedOrigins Add(string origin);
+}
+
+public interface ICorsAllowedMethods
+{
+    ICorsAllowedMethods Any();
+    ICorsAllowedMethods Add(HttpMethod method);
+}
+
+public interface ICorsAllowedHeaders
+{
+    ICorsAllowedHeaders Add(string header);
+}
+
+public interface ICorsExposedHeaders
+{
+    ICorsExposedHeaders Add(string header);
+}

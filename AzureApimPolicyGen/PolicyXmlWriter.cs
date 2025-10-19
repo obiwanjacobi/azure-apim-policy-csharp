@@ -75,6 +75,13 @@ internal sealed class PolicyXmlWriter : IDisposable
         _xmlWriter.WriteStartElement(name);
     }
 
+    private static string? BoolValue(bool? value)
+    {
+        if (value.HasValue)
+            return value.Value ? "true" : "false";
+        return null;
+    }
+
     // Authentication
 
     public void AuthenticationBasic(string username, string password)
@@ -101,7 +108,7 @@ internal sealed class PolicyXmlWriter : IDisposable
         _xmlWriter.WriteAttributeString("resource", resource);
         _xmlWriter.WriteAttributeStringOpt("client-id", clientId);
         _xmlWriter.WriteAttributeStringOpt("output-token-variable-name", outputTokenVariableName);
-        _xmlWriter.WriteAttributeString("ignore-error", ignoreError ? "true" : "false");
+        _xmlWriter.WriteAttributeString("ignore-error", BoolValue(ignoreError));
         _xmlWriter.WriteEndElement();
     }
 
@@ -196,6 +203,61 @@ internal sealed class PolicyXmlWriter : IDisposable
     {
         _xmlWriter.WriteStartElement("otherwise");
         actions();
+        _xmlWriter.WriteEndElement();
+    }
+
+    public void Cors(Action writeValues, bool? allowCredentials, bool? terminateUnmatchedRequests)
+    {
+        _xmlWriter.WriteStartElement("cors");
+        _xmlWriter.WriteAttributeStringOpt("allow-credentials", BoolValue(allowCredentials));
+        _xmlWriter.WriteAttributeStringOpt("terminate-unmatched-request", BoolValue(terminateUnmatchedRequests));
+        writeValues();
+        _xmlWriter.WriteEndElement();
+    }
+    internal void CorsAllowedOrigins(Action origins)
+    {
+        _xmlWriter.WriteStartElement("allowed-origins");
+        origins();
+        _xmlWriter.WriteEndElement();
+    }
+    internal void CorsAllowedOrigin(string origin)
+    {
+        _xmlWriter.WriteElementString("origin", origin);
+    }
+    internal void CorsAllowedMethods(Action methods, string? preflightResultMaxAge)
+    {
+        _xmlWriter.WriteStartElement("allowed-methods");
+        _xmlWriter.WriteAttributeStringOpt("pre-flight-max-age", preflightResultMaxAge);
+        methods();
+        _xmlWriter.WriteEndElement();
+    }
+    internal void CorsAllowedMethod(string method)
+    {
+        _xmlWriter.WriteElementString("method", method);
+    }
+    internal void CorsAllowedHeaders(Action headers)
+    {
+        _xmlWriter.WriteStartElement("allowed-headers");
+        headers();
+        _xmlWriter.WriteEndElement();
+    }
+    internal void CorsExposedHeaders(Action headers)
+    {
+        _xmlWriter.WriteStartElement("exposed-headers");
+        headers();
+        _xmlWriter.WriteEndElement();
+    }
+    internal void CorsHeader(string header)
+    {
+        _xmlWriter.WriteElementString("header", header);
+    }
+
+    public void SetBody(string body, bool liquidTemplate = false)
+    {
+        _xmlWriter.WriteStartElement("set-body");
+        if (liquidTemplate)
+            _xmlWriter.WriteAttributeString("template", "liquid");
+        _xmlWriter.WriteString(body);
         _xmlWriter.WriteEndElement();
     }
 }

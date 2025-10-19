@@ -162,7 +162,32 @@ public abstract class PolicyDocument : IPolicyDocument,
 
     public IPolicyDocument Choose(Action<IChooseActions> choose)
     {
+        // allowed in all sections
+        AssertScopes(PolicyScopes.All);
         Writer.Choose(() => choose(new ChooseActions(this)));
+        return this;
+    }
+
+    public IPolicyDocument Cors(Action<ICorsActions> actions, bool? allowCredentials = null, bool? terminateUnmatchedRequests = null)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        Writer.Cors(() => actions(new CorsActions(Writer)), allowCredentials, terminateUnmatchedRequests);
+        return this;
+    }
+
+    public IPolicyDocument SetBody(PolicyExpression body)
+    {
+        AssertSection([PolicySection.Inbound, PolicySection.Outbound, PolicySection.Backend]);
+        AssertScopes(PolicyScopes.All);
+        Writer.SetBody(body);
+        return this;
+    }
+    public IPolicyDocument SetBody(LiquidTemplate body)
+    {
+        AssertSection([PolicySection.Inbound, PolicySection.Outbound, PolicySection.Backend]);
+        AssertScopes(PolicyScopes.All);
+        Writer.SetBody(body, liquidTemplate: true);
         return this;
     }
 
@@ -227,9 +252,89 @@ public abstract class PolicyDocument : IPolicyDocument,
         }
     }
 
+    private sealed class CorsActions : ICorsActions,
+        ICorsAllowedOrigins, ICorsAllowedMethods, ICorsAllowedHeaders, ICorsExposedHeaders
+    {
+        private readonly PolicyXmlWriter _writer;
+        internal CorsActions(PolicyXmlWriter writer) => _writer = writer;
+
+        public ICorsActions AllowedOrigins(Action<ICorsAllowedOrigins> origins)
+        {
+            _writer.CorsAllowedOrigins(() => origins(this));
+            return this;
+        }
+
+        public ICorsActions AllowedMethods(Action<ICorsAllowedMethods> methods, int? preFlightResultMaxAge)
+        {
+            _writer.CorsAllowedMethods(() => methods(this), preFlightResultMaxAge.ToString());
+            return this;
+        }
+
+        public ICorsActions AllowedHeaders(Action<ICorsAllowedHeaders> headers)
+        {
+            _writer.CorsAllowedHeaders(() => headers(this));
+            return this;
+        }
+
+        public ICorsActions ExposeHeaders(Action<ICorsExposedHeaders> headers)
+        {
+            _writer.CorsExposedHeaders(() => headers(this));
+            return this;
+        }
+
+        private bool _originGroup;
+        ICorsAllowedOrigins ICorsAllowedOrigins.Any()
+        {
+            _writer.CorsAllowedOrigin("*");
+            return this;
+        }
+
+        ICorsAllowedOrigins ICorsAllowedOrigins.Add(string origin)
+        {
+            _writer.CorsAllowedOrigin(origin);
+            return this;
+        }
+
+        private bool _methodGroup;
+        ICorsAllowedMethods ICorsAllowedMethods.Any()
+        {
+            _writer.CorsAllowedMethod("*");
+            return this;
+        }
+
+        ICorsAllowedMethods ICorsAllowedMethods.Add(HttpMethod method)
+        {
+            _writer.CorsAllowedMethod(method.ToString());
+            return this;
+        }
+
+        private bool _headerGroup;
+        ICorsAllowedHeaders ICorsAllowedHeaders.Add(string header)
+        {
+            _writer.CorsHeader(header);
+            return this;
+        }
+
+        private bool _exposedGroup;
+        ICorsExposedHeaders ICorsExposedHeaders.Add(string header)
+        {
+            _writer.CorsHeader(header);
+            return this;
+        }
+
+        // --------------------------------------------------------------------
+
+
+    }
+
     private void AssertSection(PolicySection expected, [CallerMemberName] string callerName = "")
     {
         if (_section != expected)
+            throw new InvalidOperationException($"Function '{callerName}' cannot be called in section {_section.ToString()}.");
+    }
+    private void AssertSection(PolicySection[] expected, [CallerMemberName] string callerName = "")
+    {
+        if (!expected.Contains(_section))
             throw new InvalidOperationException($"Function '{callerName}' cannot be called in section {_section.ToString()}.");
     }
     private void AssertScopes(PolicyScopes policyScopes, [CallerMemberName] string callerName = "")
