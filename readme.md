@@ -1,0 +1,76 @@
+# Azure APIM Policy CSharp
+
+## Policies Implemented
+
+- [x] `authentication-basic` https://learn.microsoft.com/en-us/azure/api-management/authentication-basic-policy
+- [x] `authentication-certificate` https://learn.microsoft.com/en-us/azure/api-management/authentication-certificate-policy
+- [x] `authentication-managed-identity` https://learn.microsoft.com/en-us/azure/api-management/authentication-managed-identity-policy
+- [ ] `azure-openai-emit-token-metric` https://learn.microsoft.com/en-us/azure/api-management/azure-openai-emit-token-metric-policy
+- [ ] `azure-openai-semantic-cache-lookup` https://learn.microsoft.com/en-us/azure/api-management/azure-openai-semantic-cache-lookup-policy
+- [ ] `azure-openai-semantic-cache-store` https://learn.microsoft.com/en-us/azure/api-management/azure-openai-semantic-cache-store-policy
+- [ ] `azure-openai-token-limit` https://learn.microsoft.com/en-us/azure/api-management/azure-openai-token-limit-policy
+- [x] `cache-lookup` https://learn.microsoft.com/en-us/azure/api-management/cache-lookup-policy
+- [x] `cache-lookup-value` https://learn.microsoft.com/en-us/azure/api-management/cache-lookup-value-policy
+- [x] `cache-store` https://learn.microsoft.com/en-us/azure/api-management/cache-store-policy
+- [x] `cache-store-value` https://learn.microsoft.com/en-us/azure/api-management/cache-store-value-policy
+- [x] `cache-remove-value` https://learn.microsoft.com/en-us/azure/api-management/cache-remove-value-policy
+- [x] `check-header` https://learn.microsoft.com/en-us/azure/api-management/check-header-policy
+- [x] `choose` https://learn.microsoft.com/en-us/azure/api-management/choose-policy
+- [x] `cors` https://learn.microsoft.com/en-us/azure/api-management/cors-policy
+- [ ] `cosmosdb-data-source` https://learn.microsoft.com/en-us/azure/api-management/cosmosdb-data-source-policy
+- [ ] `cross-domain` https://learn.microsoft.com/en-us/azure/api-management/cross-domain-policy
+- [ ] `emit-metric` https://learn.microsoft.com/en-us/azure/api-management/emit-metric-policy
+- [ ] `find-and-replace` https://learn.microsoft.com/en-us/azure/api-management/find-and-replace-policy
+- [ ] `forward-request` https://learn.microsoft.com/en-us/azure/api-management/forward-request-policy
+- [ ] `get-authorization-context` https://learn.microsoft.com/en-us/azure/api-management/get-authorization-context-policy
+- [ ] `http-data-source` https://learn.microsoft.com/en-us/azure/api-management/http-data-source-policy
+- [ ] `include-fragment` https://learn.microsoft.com/en-us/azure/api-management/include-fragment-policy
+- [ ] `invoke-dapr-binding` https://learn.microsoft.com/en-us/azure/api-management/invoke-dapr-binding-policy
+- [ ] `ip-filter` https://learn.microsoft.com/en-us/azure/api-management/ip-filter-policy
+- [ ] `jsonp` https://learn.microsoft.com/en-us/azure/api-management/jsonp-policy
+- [ ] `json-to-xml` https://learn.microsoft.com/en-us/azure/api-management/json-to-xml-policy
+- [ ] `limit-concurrency` https://learn.microsoft.com/en-us/azure/api-management/limit-concurrency-policy
+- [ ] `llm-content-safety` https://learn.microsoft.com/en-us/azure/api-management/llm-content-safety-policy
+- [ ] `llm-emit-token-metric` https://learn.microsoft.com/en-us/azure/api-management/llm-emit-token-metric-policy
+- [ ] `llm-semantic-cache-lookup` https://learn.microsoft.com/en-us/azure/api-management/llm-semantic-cache-lookup-policy
+- [ ] `llm-semantic-cache-store` https://learn.microsoft.com/en-us/azure/api-management/llm-semantic-cache-store-policy
+- [ ] `llm-token-limit` https://learn.microsoft.com/en-us/azure/api-management/llm-token-limit-policy
+- [ ] `log-to-eventhub` https://learn.microsoft.com/en-us/azure/api-management/log-to-eventhub-policy
+- [ ] `mock-response` https://learn.microsoft.com/en-us/azure/api-management/mock-response-policy
+- [ ] `proxy` https://learn.microsoft.com/en-us/azure/api-management/proxy-policy
+- [ ] `publish-event` https://learn.microsoft.com/en-us/azure/api-management/publish-event-policy
+- [ ] `publish-to-dapr` https://learn.microsoft.com/en-us/azure/api-management/publish-to-dapr-policy
+- [ ] `quota` https://learn.microsoft.com/en-us/azure/api-management/quota-policy
+- [ ] `quota-by-key` https://learn.microsoft.com/en-us/azure/api-management/quota-by-key-policy
+- [ ] `rate-limit` https://learn.microsoft.com/en-us/azure/api-management/rate-limit-policy
+- [ ] `rate-limit-by-key` https://learn.microsoft.com/en-us/azure/api-management/rate-limit-by-key-policy
+- [ ] `redirect-content-urls` https://learn.microsoft.com/en-us/azure/api-management/redirect-content-urls-policy
+- [ ] `retry` https://learn.microsoft.com/en-us/azure/api-management/retry-policy
+- [ ] `return-response` https://learn.microsoft.com/en-us/azure/api-management/return-response-policy
+- [ ] `rewrite-uri` https://learn.microsoft.com/en-us/azure/api-management/rewrite-uri-policy
+- [ ] `send-one-way-request` https://learn.microsoft.com/en-us/azure/api-management/send-one-way-request-policy
+- [ ] `send-service-bus-message` https://learn.microsoft.com/en-us/azure/api-management/send-service-bus-message-policy
+- [ ] `send-request` https://learn.microsoft.com/en-us/azure/api-management/send-request-policy
+- [ ] `set-backend-service` https://learn.microsoft.com/en-us/azure/api-management/set-backend-service-policy
+- [ ] `set-backend-service-dapr` https://learn.microsoft.com/en-us/azure/api-management/set-backend-service-dapr-policy
+- [x] `set-body` https://learn.microsoft.com/en-us/azure/api-management/set-body-policy
+- [ ] `set-header` https://learn.microsoft.com/en-us/azure/api-management/set-header-policy
+- [ ] `set-method` https://learn.microsoft.com/en-us/azure/api-management/set-method-policy
+- [ ] `set-query-parameter` https://learn.microsoft.com/en-us/azure/api-management/set-query-parameter-policy
+- [ ] `set-status` https://learn.microsoft.com/en-us/azure/api-management/set-status-policy
+- [ ] `set-variable` https://learn.microsoft.com/en-us/azure/api-management/set-variable-policy
+- [ ] `sql-data-source` https://learn.microsoft.com/en-us/azure/api-management/sql-data-source-policy
+- [ ] `trace` https://learn.microsoft.com/en-us/azure/api-management/trace-policy
+- [ ] `validate-azure-ad-token` https://learn.microsoft.com/en-us/azure/api-management/validate-azure-ad-token-policy
+- [ ] `validate-client-certificate` https://learn.microsoft.com/en-us/azure/api-management/validate-client-certificate-policy
+- [ ] `validate-content` https://learn.microsoft.com/en-us/azure/api-management/validate-content-policy
+- [ ] `validate-graphql-request` https://learn.microsoft.com/en-us/azure/api-management/validate-graphql-request-policy
+- [ ] `validate-headers` https://learn.microsoft.com/en-us/azure/api-management/validate-headers-policy
+- [ ] `validate-jwt` https://learn.microsoft.com/en-us/azure/api-management/validate-jwt-policy
+- [ ] `validate-odata-request` https://learn.microsoft.com/en-us/azure/api-management/validate-odata-request-policy
+- [ ] `validate-parameters` https://learn.microsoft.com/en-us/azure/api-management/validate-parameters-policy
+- [ ] `validate-status-code` https://learn.microsoft.com/en-us/azure/api-management/validate-status-code-policy
+- [ ] `wait` https://learn.microsoft.com/en-us/azure/api-management/wait-policy
+- [ ] `xml-to-json` https://learn.microsoft.com/en-us/azure/api-management/xml-to-json-policy
+- [ ] `xsl-transform` https://learn.microsoft.com/en-us/azure/api-management/xsl-transform-policy
+

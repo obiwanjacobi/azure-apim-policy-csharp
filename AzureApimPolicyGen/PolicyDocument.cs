@@ -282,7 +282,6 @@ public abstract class PolicyDocument : IPolicyDocument,
             return this;
         }
 
-        private bool _originGroup;
         ICorsAllowedOrigins ICorsAllowedOrigins.Any()
         {
             _writer.CorsAllowedOrigin("*");
@@ -295,7 +294,6 @@ public abstract class PolicyDocument : IPolicyDocument,
             return this;
         }
 
-        private bool _methodGroup;
         ICorsAllowedMethods ICorsAllowedMethods.Any()
         {
             _writer.CorsAllowedMethod("*");
@@ -308,23 +306,17 @@ public abstract class PolicyDocument : IPolicyDocument,
             return this;
         }
 
-        private bool _headerGroup;
         ICorsAllowedHeaders ICorsAllowedHeaders.Add(string header)
         {
             _writer.CorsHeader(header);
             return this;
         }
 
-        private bool _exposedGroup;
         ICorsExposedHeaders ICorsExposedHeaders.Add(string header)
         {
             _writer.CorsHeader(header);
             return this;
         }
-
-        // --------------------------------------------------------------------
-
-
     }
 
     private void AssertSection(PolicySection expected, [CallerMemberName] string callerName = "")
