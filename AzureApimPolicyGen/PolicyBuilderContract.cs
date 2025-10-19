@@ -1,17 +1,29 @@
 ﻿namespace AzureApimPolicyGen;
 
+public interface IPolicyDocument
+{
+    IAuthentication Authentication { get; }
+    ICache Cache { get; }
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/check-header-policy</summary>
+    IPolicyDocument CheckHeader(PolicyExpression name, PolicyExpression failedCheckHttpCode, PolicyExpression failedCheckErrorMessage, PolicyExpression ignoreCase, Action<ICheckHeaderValues>? values = null);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/choose-policy</summary>
+    IPolicyDocument Choose(Action<IChooseActions> choose);
+}
+
 public interface IAuthentication
 {
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/authentication-basic-policy</summary>
-    PolicyDocument Basic(string username, string password);
+    IPolicyDocument Basic(string username, string password);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/authentication-certificate-policy</summary>
-    PolicyDocument Certificate(PolicyExpression thumbprint, PolicyExpression certificate, PolicyExpression? body = null, PolicyExpression? password = null);
+    IPolicyDocument Certificate(PolicyExpression thumbprint, PolicyExpression certificate, PolicyExpression? body = null, PolicyExpression? password = null);
 
     // TODO: use in 'send-request'
     // https://learn.microsoft.com/en-us/azure/api-management/authentication-managed-identity-policy#use-managed-identity-in-send-request-policy
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/authentication-managed-identity-policy</summary>
-    PolicyDocument ManagedIdentity(PolicyExpression resource, string? clientId = null, PolicyVariable? outputTokenVariableName = null, bool ignoreError = false);
+    IPolicyDocument ManagedIdentity(PolicyExpression resource, string? clientId = null, PolicyVariable? outputTokenVariableName = null, bool ignoreError = false);
 }
 
 public enum CacheType
@@ -24,21 +36,23 @@ public enum CacheType
 public interface ICache
 {
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/cache-lookup-policy</summary>
-    PolicyDocument Lookup(PolicyExpression varyByDeveloper, PolicyExpression VarByDeveloperGroup,
+    IPolicyDocument Lookup(PolicyExpression varyByDeveloper, PolicyExpression VarByDeveloperGroup,
         PolicyExpression? allowPrivateResponseCaching = null,
         CacheType? cacheType = null,
         PolicyExpression? downstreamCacheType = null, PolicyExpression? mustRevalidate = null,
         Action<ICacheLookupVaryBy>? varyBy = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/cache-lookup-value-policy</summary>
-    PolicyDocument LookupValue(string variableName, PolicyExpression key, PolicyExpression? defaultValue = null, CacheType? cacheType = null);
+    IPolicyDocument LookupValue(string variableName, PolicyExpression key, PolicyExpression? defaultValue = null, CacheType? cacheType = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/cache-store-policy</summary>
-    PolicyDocument Store(PolicyExpression duration, PolicyExpression? cacheResponse = null);
+    IPolicyDocument Store(PolicyExpression duration, PolicyExpression? cacheResponse = null);
+
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/cache-store-value-policy</summary>
-    PolicyDocument StoreValue(PolicyExpression duration, PolicyExpression key, PolicyExpression value, CacheType? cacheType = null);
+    IPolicyDocument StoreValue(PolicyExpression duration, PolicyExpression key, PolicyExpression value, CacheType? cacheType = null);
+
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/cache-remove-value-policy</summary>
-    PolicyDocument RemoveValue(PolicyExpression key, CacheType? cacheType = null);
+    IPolicyDocument RemoveValue(PolicyExpression key, CacheType? cacheType = null);
 }
 
 public interface ICacheLookupVaryBy
@@ -52,3 +66,10 @@ public interface ICheckHeaderValues
 {
     ICheckHeaderValues Add(string value);
 }
+
+public interface IChooseActions
+{
+    IChooseActions When(PolicyExpression condition, Action<IPolicyDocument> whenActions);
+    IChooseActions Otherwise(Action<IPolicyDocument> otherwiseActions);
+}
+

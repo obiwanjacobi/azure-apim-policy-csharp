@@ -17,7 +17,16 @@ internal class InboundPolicy : PolicyDocument
             .CheckHeader("Content-Type", 400, "Invalid media type", true, (values) =>
             {
                 values.Add("application/json");
-            });
+            })
+            .Choose(choose =>
+            {
+                choose.When(PolicyExpression.FromCode("""Context.Variables.GetValueOrDefault<bool>("myvar", true)"""),
+                    actions =>
+                    {
+                        actions.Cache.Lookup(false, false);
+                    });
+            })
+            ;
 
         base.Inbound();
     }

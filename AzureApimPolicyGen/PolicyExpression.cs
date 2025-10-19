@@ -1,15 +1,6 @@
 ﻿namespace AzureApimPolicyGen;
 
-public record struct PolicyVariable
-{
-    private string _name;
-
-    public PolicyVariable(string name) => _name = name;
-
-    public static implicit operator PolicyVariable(string name) => new(name);
-    public static implicit operator string(PolicyVariable variable) => variable._name;
-}
-
+/// <summary>https://learn.microsoft.com/en-us/azure/api-management/api-management-policy-expressions</summary>
 public record struct PolicyExpression
 {
     private string _expression;
@@ -24,4 +15,15 @@ public record struct PolicyExpression
     public static PolicyExpression From(bool value) => new(value ? "true" : "false");
     public static PolicyExpression From(int value) => new(value.ToString());
     public static PolicyExpression From(byte[] bytes) => Convert.ToBase64String(bytes);
+    public static PolicyExpression FromCode(string code)
+    {
+        CSharpCompiler.Verify(code);
+        return new($"@({code})");
+    }
+    public static PolicyExpression FromCodeMultiline(string code)
+    {
+        CSharpCompiler.Verify(code);
+        return new($"@{{{code}}}");
+    }
 }
+

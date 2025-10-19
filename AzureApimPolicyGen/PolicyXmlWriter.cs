@@ -176,6 +176,28 @@ internal sealed class PolicyXmlWriter : IDisposable
     {
         _xmlWriter.WriteElementString("value", value);
     }
+
+    internal void Choose(Action actions)
+    {
+        _xmlWriter.WriteStartElement("choose");
+        actions();
+        _xmlWriter.WriteEndElement();
+    }
+
+    internal void ChooseWhen(string condition, Action actions)
+    {
+        _xmlWriter.WriteStartElement("when");
+        _xmlWriter.WriteAttributeString("condition", condition);
+        actions();
+        _xmlWriter.WriteEndElement();
+    }
+
+    internal void ChooseOtherwise(Action actions)
+    {
+        _xmlWriter.WriteStartElement("otherwise");
+        actions();
+        _xmlWriter.WriteEndElement();
+    }
 }
 
 internal static class XmlWriterExtensions

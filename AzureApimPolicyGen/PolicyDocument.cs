@@ -2,9 +2,8 @@
 
 namespace AzureApimPolicyGen;
 
-public abstract class PolicyDocument :
-    IAuthentication,
-    ICache
+public abstract class PolicyDocument : IPolicyDocument,
+    IAuthentication, ICache
 {
     private PolicySection _section = PolicySection.None;
     private PolicyScopes _scopes = PolicyScopes.None;
@@ -37,7 +36,7 @@ public abstract class PolicyDocument :
 
     // ------------------------------------------------------------------------
 
-    protected PolicyDocument Base()
+    protected IPolicyDocument Base()
     {
         Writer.Base();
         return this;
@@ -77,7 +76,7 @@ public abstract class PolicyDocument :
 
     // ------------------------------------------------------------------------
 
-    PolicyDocument IAuthentication.Basic(string username, string password)
+    IPolicyDocument IAuthentication.Basic(string username, string password)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.All);
@@ -85,7 +84,7 @@ public abstract class PolicyDocument :
         return this;
     }
 
-    PolicyDocument IAuthentication.Certificate(PolicyExpression thumbprint, PolicyExpression certificate, PolicyExpression? body, PolicyExpression? password)
+    IPolicyDocument IAuthentication.Certificate(PolicyExpression thumbprint, PolicyExpression certificate, PolicyExpression? body, PolicyExpression? password)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.All);
@@ -96,7 +95,7 @@ public abstract class PolicyDocument :
         return this;
     }
 
-    PolicyDocument IAuthentication.ManagedIdentity(PolicyExpression resource, string? clientId, PolicyVariable? outputTokenVariableName, bool ignoreError)
+    IPolicyDocument IAuthentication.ManagedIdentity(PolicyExpression resource, string? clientId, PolicyVariable? outputTokenVariableName, bool ignoreError)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
@@ -105,7 +104,7 @@ public abstract class PolicyDocument :
         return this;
     }
 
-    PolicyDocument ICache.Lookup(PolicyExpression varyByDeveloper, PolicyExpression varyByDeveloperGroups,
+    IPolicyDocument ICache.Lookup(PolicyExpression varyByDeveloper, PolicyExpression varyByDeveloperGroups,
         PolicyExpression? allowPrivateResponseCaching, CacheType? cacheType, PolicyExpression? downstreamCacheType,
         PolicyExpression? mustRevalidate, Action<ICacheLookupVaryBy>? varyBy)
     {
@@ -117,15 +116,16 @@ public abstract class PolicyDocument :
         return this;
     }
 
-    PolicyDocument ICache.LookupValue(string variableName, PolicyExpression key, PolicyExpression? defaultValue, CacheType? cacheType)
+    IPolicyDocument ICache.LookupValue(string variableName, PolicyExpression key, PolicyExpression? defaultValue, CacheType? cacheType)
     {
+        // TODO: check variable exists
         // allowed in all sections
         AssertScopes(PolicyScopes.All);
         Writer.CacheLookupValue(variableName, key, defaultValue, CacheTypeToString(cacheType));
         return this;
     }
 
-    PolicyDocument ICache.Store(PolicyExpression duration, PolicyExpression? cacheResponse)
+    IPolicyDocument ICache.Store(PolicyExpression duration, PolicyExpression? cacheResponse)
     {
         AssertSection(PolicySection.Outbound);
         AssertScopes(PolicyScopes.All);
@@ -133,7 +133,7 @@ public abstract class PolicyDocument :
         return this;
     }
 
-    PolicyDocument ICache.StoreValue(PolicyExpression duration, PolicyExpression key, PolicyExpression value, CacheType? cacheType)
+    IPolicyDocument ICache.StoreValue(PolicyExpression duration, PolicyExpression key, PolicyExpression value, CacheType? cacheType)
     {
         // allowed in all sections
         AssertScopes(PolicyScopes.All);
@@ -141,7 +141,7 @@ public abstract class PolicyDocument :
         return this;
     }
 
-    PolicyDocument ICache.RemoveValue(PolicyExpression key, CacheType? cacheType)
+    IPolicyDocument ICache.RemoveValue(PolicyExpression key, CacheType? cacheType)
     {
         // allowed in all sections
         AssertScopes(PolicyScopes.All);
@@ -149,13 +149,20 @@ public abstract class PolicyDocument :
         return this;
     }
 
-    public PolicyDocument CheckHeader(PolicyExpression name, PolicyExpression failedCheckHttpCode,
+
+    public IPolicyDocument CheckHeader(PolicyExpression name, PolicyExpression failedCheckHttpCode,
         PolicyExpression failedCheckErrorMessage, PolicyExpression ignoreCase, Action<ICheckHeaderValues>? values = null)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.All);
         Action? writeValues = values is null ? null : () => values(new CheckHeaderValues(Writer));
         Writer.CheckHeader(name, failedCheckHttpCode, failedCheckErrorMessage, ignoreCase, writeValues);
+        return this;
+    }
+
+    public IPolicyDocument Choose(Action<IChooseActions> choose)
+    {
+        Writer.Choose(() => choose(new ChooseActions(this)));
         return this;
     }
 
@@ -193,6 +200,29 @@ public abstract class PolicyDocument :
         public ICheckHeaderValues Add(string value)
         {
             _writer.CheckHeaderValue(value);
+            return this;
+        }
+    }
+
+    private sealed class ChooseActions : IChooseActions
+    {
+        private bool _otherwiseCalled = false;
+        private readonly PolicyDocument _document;
+        internal ChooseActions(PolicyDocument document) => _document = document;
+
+        public IChooseActions When(PolicyExpression condition, Action<IPolicyDocument> whenActions)
+        {
+            _document.Writer.ChooseWhen(condition, () => whenActions(_document));
+            return this;
+        }
+
+        public IChooseActions Otherwise(Action<IPolicyDocument> otherwiseActions)
+        {
+            if (_otherwiseCalled)
+                throw new InvalidOperationException("Otherwise can only be called once.");
+
+            _document.Writer.ChooseOtherwise(() => otherwiseActions(_document));
+            _otherwiseCalled = true;
             return this;
         }
     }
