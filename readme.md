@@ -21,7 +21,7 @@
 - [ ] `cross-domain` https://learn.microsoft.com/en-us/azure/api-management/cross-domain-policy
 - [x] `emit-metric` https://learn.microsoft.com/en-us/azure/api-management/emit-metric-policy
 - [x] `find-and-replace` https://learn.microsoft.com/en-us/azure/api-management/find-and-replace-policy
-- [ ] `forward-request` https://learn.microsoft.com/en-us/azure/api-management/forward-request-policy
+- [x] `forward-request` https://learn.microsoft.com/en-us/azure/api-management/forward-request-policy
 - [ ] `get-authorization-context` https://learn.microsoft.com/en-us/azure/api-management/get-authorization-context-policy
 - [ ] `http-data-source` https://learn.microsoft.com/en-us/azure/api-management/http-data-source-policy
 - [ ] `include-fragment` https://learn.microsoft.com/en-us/azure/api-management/include-fragment-policy

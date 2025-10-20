@@ -45,7 +45,12 @@ public interface IPolicyDocument
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/emit-metric-policy</summary>
     IPolicyDocument EmitMetric(string name, string? @namespace, string? value, Action<IEmitMetricDimensions> dimensions);
 
+    IPolicyDocument FindAndReplace(PolicyExpression from, PolicyExpression to);
 
+    ///https://learn.microsoft.com/en-us/azure/api-management/forward-request-policy
+    IPolicyDocument ForwardRequest(HttpVersion? httpVersion = null,
+        PolicyExpression? timeoutSeconds = null, PolicyExpression? timeoutMilliseconds = null, PolicyExpression? continueTimeout = null,
+        bool? followRedirects = null, bool? bufferRequestBody = null, bool? bufferResponse = null, bool? failOnErrorStatusCode = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-body-policy</summary>
     IPolicyDocument SetBody(PolicyExpression body);
