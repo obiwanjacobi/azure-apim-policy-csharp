@@ -4,6 +4,14 @@
 
 partial class PolicyDocument
 {
+    public IPolicyDocument FindAndReplace(PolicyExpression from, PolicyExpression to)
+    {
+        // allowed in all sections
+        AssertScopes(PolicyScopes.All);
+        Writer.FindAndReplace(from, to);
+        return this;
+    }
+
     public IPolicyDocument SetBody(PolicyExpression body)
     {
         AssertSection([PolicySection.Inbound, PolicySection.Outbound, PolicySection.Backend]);
@@ -22,6 +30,14 @@ partial class PolicyDocument
 
 partial class PolicyXmlWriter
 {
+    public void FindAndReplace(string from, string to)
+    {
+        _xmlWriter.WriteStartElement("find-and-replace");
+        _xmlWriter.WriteAttributeString("from", from);
+        _xmlWriter.WriteAttributeString("to", to);
+        _xmlWriter.WriteEndElement();
+    }
+
     public void SetBody(string body, bool liquidTemplate = false)
     {
         _xmlWriter.WriteStartElement("set-body");
