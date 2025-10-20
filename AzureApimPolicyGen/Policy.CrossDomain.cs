@@ -1,6 +1,6 @@
 ﻿namespace AzureApimPolicyGen;
 
-
+// https://learn.microsoft.com/en-us/azure/api-management/api-management-policies#cross-domain
 public interface ICorsActions
 {
     ICorsActions AllowedOrigins(Action<ICorsAllowedOrigins> origins);
@@ -107,5 +107,54 @@ partial class PolicyDocument
             _writer.CorsHeader(header);
             return this;
         }
+    }
+}
+
+partial class PolicyXmlWriter
+{
+    public void Cors(Action writeValues, bool? allowCredentials, bool? terminateUnmatchedRequests)
+    {
+        _xmlWriter.WriteStartElement("cors");
+        _xmlWriter.WriteAttributeStringOpt("allow-credentials", BoolValue(allowCredentials));
+        _xmlWriter.WriteAttributeStringOpt("terminate-unmatched-request", BoolValue(terminateUnmatchedRequests));
+        writeValues();
+        _xmlWriter.WriteEndElement();
+    }
+    internal void CorsAllowedOrigins(Action origins)
+    {
+        _xmlWriter.WriteStartElement("allowed-origins");
+        origins();
+        _xmlWriter.WriteEndElement();
+    }
+    internal void CorsAllowedOrigin(string origin)
+    {
+        _xmlWriter.WriteElementString("origin", origin);
+    }
+    internal void CorsAllowedMethods(Action methods, string? preflightResultMaxAge)
+    {
+        _xmlWriter.WriteStartElement("allowed-methods");
+        _xmlWriter.WriteAttributeStringOpt("pre-flight-max-age", preflightResultMaxAge);
+        methods();
+        _xmlWriter.WriteEndElement();
+    }
+    internal void CorsAllowedMethod(string method)
+    {
+        _xmlWriter.WriteElementString("method", method);
+    }
+    internal void CorsAllowedHeaders(Action headers)
+    {
+        _xmlWriter.WriteStartElement("allowed-headers");
+        headers();
+        _xmlWriter.WriteEndElement();
+    }
+    internal void CorsExposedHeaders(Action headers)
+    {
+        _xmlWriter.WriteStartElement("exposed-headers");
+        headers();
+        _xmlWriter.WriteEndElement();
+    }
+    internal void CorsHeader(string header)
+    {
+        _xmlWriter.WriteElementString("header", header);
     }
 }

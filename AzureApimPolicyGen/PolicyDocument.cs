@@ -4,8 +4,35 @@ namespace AzureApimPolicyGen;
 
 public interface IPolicyDocument
 {
-    IAuthentication Authentication { get; }
-    ICache Cache { get; }
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/authentication-basic-policy</summary>
+    IPolicyDocument AuthenticationBasic(PolicyExpression username, PolicyExpression password);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/authentication-certificate-policy</summary>
+    IPolicyDocument AuthenticationCertificate(PolicyExpression thumbprint, PolicyExpression certificate, PolicyExpression? body = null, PolicyExpression? password = null);
+
+    // TODO: use in 'send-request'
+    // https://learn.microsoft.com/en-us/azure/api-management/authentication-managed-identity-policy#use-managed-identity-in-send-request-policy
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/authentication-managed-identity-policy</summary>
+    IPolicyDocument AuthenticationManagedIdentity(PolicyExpression resource, string? clientId = null, PolicyVariable? outputTokenVariableName = null, bool? ignoreError = false);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/cache-lookup-policy</summary>
+    IPolicyDocument CacheLookup(PolicyExpression varyByDeveloper, PolicyExpression VarByDeveloperGroup,
+        PolicyExpression? allowPrivateResponseCaching = null,
+        CacheType? cacheType = null,
+        PolicyExpression? downstreamCacheType = null, PolicyExpression? mustRevalidate = null,
+        Action<ICacheLookupVaryBy>? varyBy = null);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/cache-lookup-value-policy</summary>
+    IPolicyDocument CacheLookupValue(string variableName, PolicyExpression key, PolicyExpression? defaultValue = null, CacheType? cacheType = null);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/cache-store-policy</summary>
+    IPolicyDocument CacheStore(PolicyExpression duration, PolicyExpression? cacheResponse = null);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/cache-store-value-policy</summary>
+    IPolicyDocument CacheStoreValue(PolicyExpression duration, PolicyExpression key, PolicyExpression value, CacheType? cacheType = null);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/cache-remove-value-policy</summary>
+    IPolicyDocument CacheRemoveValue(PolicyExpression key, CacheType? cacheType = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/check-header-policy</summary>
     IPolicyDocument CheckHeader(PolicyExpression name, PolicyExpression failedCheckHttpCode, PolicyExpression failedCheckErrorMessage, PolicyExpression ignoreCase, Action<ICheckHeaderValues>? values = null);
@@ -18,6 +45,8 @@ public interface IPolicyDocument
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/emit-metric-policy</summary>
     IPolicyDocument EmitMetric(string name, string? @namespace, string? value, Action<IEmitMetricDimensions> dimensions);
 
+
+
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-body-policy</summary>
     IPolicyDocument SetBody(PolicyExpression body);
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-body-policy#using-liquid-templates-with-set-body</summary>
@@ -27,7 +56,7 @@ public interface IPolicyDocument
 public abstract partial class PolicyDocument : IPolicyDocument
 {
     private PolicySection _section = PolicySection.None;
-    private PolicyScopes _scopes = PolicyScopes.None;
+    private PolicyScopes _scopes;
     private PolicyXmlWriter? _writer;
     private PolicyXmlWriter Writer => _writer
         ?? throw new InvalidOperationException("PolicyXmlWriter was not initialized.");
@@ -70,129 +99,24 @@ public abstract partial class PolicyDocument : IPolicyDocument
         _writer = new PolicyXmlWriter(stream);
 
         _section = PolicySection.Inbound;
-        Writer.Inbound();
-        Inbound();
-        Writer.EndElement();
+        _writer.Inbound(Inbound);
 
         _section = PolicySection.Backend;
-        Writer.Backend();
-        Backend();
-        Writer.EndElement();
+        _writer.Backend(Backend);
 
         _section = PolicySection.Outbound;
-        Writer.Outbound();
-        Outbound();
-        Writer.EndElement();
+        _writer.Outbound(Outbound);
 
         _section = PolicySection.OnError;
-        Writer.OnError();
-        OnError();
-        Writer.EndElement();
+        _writer.OnError(OnError);
 
-        Writer.Close();
+        _writer.Close();
+
+        _writer = null;
+        _section = PolicySection.None;
     }
 
     // ------------------------------------------------------------------------
-
-    public IPolicyDocument CheckHeader(PolicyExpression name, PolicyExpression failedCheckHttpCode,
-        PolicyExpression failedCheckErrorMessage, PolicyExpression ignoreCase, Action<ICheckHeaderValues>? values = null)
-    {
-        AssertSection(PolicySection.Inbound);
-        AssertScopes(PolicyScopes.All);
-        Action? writeValues = values is null ? null : () => values(new CheckHeaderValues(Writer));
-        Writer.CheckHeader(name, failedCheckHttpCode, failedCheckErrorMessage, ignoreCase, writeValues);
-        return this;
-    }
-
-    public IPolicyDocument Choose(Action<IChooseActions> choose)
-    {
-        // allowed in all sections
-        AssertScopes(PolicyScopes.All);
-        Writer.Choose(() => choose(new ChooseActions(this)));
-        return this;
-    }
-
-    public IPolicyDocument EmitMetric(string name, string? @namespace, string? value, Action<IEmitMetricDimensions> dimensions)
-    {
-        AssertSection(PolicySection.Inbound);
-        AssertScopes(PolicyScopes.All);
-        Writer.EmitMetric(name, @namespace, value, () => dimensions(new EmitMetricDimensions(Writer)));
-        return this;
-    }
-
-    public IPolicyDocument SetBody(PolicyExpression body)
-    {
-        AssertSection([PolicySection.Inbound, PolicySection.Outbound, PolicySection.Backend]);
-        AssertScopes(PolicyScopes.All);
-        Writer.SetBody(body);
-        return this;
-    }
-    public IPolicyDocument SetBody(LiquidTemplate body)
-    {
-        AssertSection([PolicySection.Inbound, PolicySection.Outbound, PolicySection.Backend]);
-        AssertScopes(PolicyScopes.All);
-        Writer.SetBody(body, liquidTemplate: true);
-        return this;
-    }
-
-    // ------------------------------------------------------------------------
-
-
-
-    private sealed class CheckHeaderValues : ICheckHeaderValues
-    {
-        private readonly PolicyXmlWriter _writer;
-        internal CheckHeaderValues(PolicyXmlWriter writer) => _writer = writer;
-
-        public ICheckHeaderValues Add(string value)
-        {
-            _writer.CheckHeaderValue(value);
-            return this;
-        }
-    }
-
-    private sealed class ChooseActions : IChooseActions
-    {
-        private bool _otherwiseCalled = false;
-        private readonly PolicyDocument _document;
-        internal ChooseActions(PolicyDocument document) => _document = document;
-
-        public IChooseActions When(PolicyExpression condition, Action<IPolicyDocument> whenActions)
-        {
-            _document.Writer.ChooseWhen(condition, () => whenActions(_document));
-            return this;
-        }
-
-        public IChooseActions Otherwise(Action<IPolicyDocument> otherwiseActions)
-        {
-            if (_otherwiseCalled)
-                throw new InvalidOperationException("Otherwise can only be called once.");
-
-            _document.Writer.ChooseOtherwise(() => otherwiseActions(_document));
-            _otherwiseCalled = true;
-            return this;
-        }
-    }
-
-
-
-    private sealed class EmitMetricDimensions : IEmitMetricDimensions
-    {
-        private readonly PolicyXmlWriter _writer;
-        internal EmitMetricDimensions(PolicyXmlWriter writer) => _writer = writer;
-
-        private int _count;
-
-        public IEmitMetricDimensions Add(string name, string? value)
-        {
-            if (_count > 5)
-                throw new ArgumentOutOfRangeException("<dimension>", "A maximum of 5 dimensions can be specified.");
-
-            _count++;
-            _writer.EmitMetricDimension(name, value);
-            return this;
-        }
-    }
 
     private void AssertSection(PolicySection expected, [CallerMemberName] string callerName = "")
     {

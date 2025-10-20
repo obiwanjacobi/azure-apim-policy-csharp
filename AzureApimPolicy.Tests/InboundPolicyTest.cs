@@ -9,43 +9,27 @@ internal class InboundPolicy : PolicyDocument
     protected override void Inbound()
     {
         this
-            .Authentication.Basic("username", "password")
-            .Cache.Lookup(false, false, varyBy: varyBy =>
-            {
-                varyBy.Header("Content-Type");
-                varyBy.QueryParam("page");
-            })
-            .CheckHeader("Content-Type", 400, "Invalid media type", true, (values) =>
-            {
-                values.Add("application/json");
-            })
+            .AuthenticationBasic("username", "password")
+            .CacheLookup(false, false,
+                varyBy: varyBy => varyBy.Header("Content-Type").QueryParam("page"))
+            .CheckHeader("Content-Type", 400, "Invalid media type", ignoreCase: true,
+                values => values.Add("application/json"))
             .Choose(choose =>
-            {
                 choose.When(PolicyExpression.FromCode("""Context.Variables.GetValueOrDefault<bool>("myvar", true)"""),
-                    actions =>
-                    {
-                        actions.SetBody(LiquidTemplate.From(""" """));
-                    });
-            })
-            .Cors((cors) =>
-            {
-                cors
+                    actions => actions.SetBody(LiquidTemplate.From(""" body """))))
+            .Cors((cors) => cors
                     .AllowedOrigins(origin => origin.Any())
                     .AllowedMethods(methods => methods.Any())
-                    .AllowedHeaders(headers => headers.Add("*"))
-                    ;
-            })
-            .EmitMetric("metricName", null, "metricValue", (dimensions) =>
-            {
-                dimensions
-                    .Add("dim1", "val1")
-                    .Add("dim2", "val2");
-            })
+                    .AllowedHeaders(headers => headers.Add("*")))
+            .EmitMetric("metricName", null, "metricValue",
+                dimensions => dimensions.Add("dim1", "val1").Add("dim2", "val2"))
             ;
 
         base.Inbound();
     }
 }
+
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
 
 public class InboundPolicyTest
 {
@@ -135,3 +119,5 @@ public class InboundPolicyTest
         Assert.Equal("dim2", dimensions.ElementAt(1).Attribute("name").Value);
     }
 }
+
+#pragma warning restore CS8602 // Dereference of a possibly null reference.

@@ -19,7 +19,7 @@
 - [x] `cors` https://learn.microsoft.com/en-us/azure/api-management/cors-policy
 - [ ] `cosmosdb-data-source` https://learn.microsoft.com/en-us/azure/api-management/cosmosdb-data-source-policy
 - [ ] `cross-domain` https://learn.microsoft.com/en-us/azure/api-management/cross-domain-policy
-- [ ] `emit-metric` https://learn.microsoft.com/en-us/azure/api-management/emit-metric-policy
+- [x] `emit-metric` https://learn.microsoft.com/en-us/azure/api-management/emit-metric-policy
 - [ ] `find-and-replace` https://learn.microsoft.com/en-us/azure/api-management/find-and-replace-policy
 - [ ] `forward-request` https://learn.microsoft.com/en-us/azure/api-management/forward-request-policy
 - [ ] `get-authorization-context` https://learn.microsoft.com/en-us/azure/api-management/get-authorization-context-policy
