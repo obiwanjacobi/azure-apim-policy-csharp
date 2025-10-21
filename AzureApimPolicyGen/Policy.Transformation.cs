@@ -11,6 +11,9 @@ public interface ITransformation
     IPolicyDocument JsonToXml(PolicyExpression apply, PolicyExpression? considerAcceptHeader = null, bool? parseDate = null,
         PolicyExpression? namespaceSeparator = null, PolicyExpression? namespacePrefix = null, PolicyExpression? attributeBlockName = null);
 
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/mock-response-policy</summary>
+    IPolicyDocument MockResponse(int? statusCode = null, string? contentType = null);
+
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-body-policy</summary>
     IPolicyDocument SetBody(PolicyExpression body);
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-body-policy#using-liquid-templates-with-set-body</summary>
@@ -33,6 +36,14 @@ partial class PolicyDocument
         AssertSection([PolicySection.Inbound, PolicySection.Outbound, PolicySection.OnError]);
         AssertScopes(PolicyScopes.All);
         Writer.JsonToXml(apply, considerAcceptHeader, parseDate, namespaceSeparator, namespacePrefix, attributeBlockName);
+        return this;
+    }
+
+    public IPolicyDocument MockResponse(int? statusCode = null, string? contentType = null)
+    {
+        AssertSection([PolicySection.Inbound, PolicySection.Outbound, PolicySection.OnError]);
+        AssertScopes(PolicyScopes.All);
+        Writer.MockResponse(statusCode.ToString(), contentType);
         return this;
     }
 
@@ -72,6 +83,14 @@ partial class PolicyXmlWriter
         _xmlWriter.WriteAttributeStringOpt("namespace-separator", namespaceSeparator);
         _xmlWriter.WriteAttributeStringOpt("namespace-prefix", namespacePrefix);
         _xmlWriter.WriteAttributeStringOpt("attribute-block-name", attributeBlockName);
+        _xmlWriter.WriteEndElement();
+    }
+
+    public void MockResponse(string? statusCode, string? contentType)
+    {
+        _xmlWriter.WriteStartElement("mock-response");
+        _xmlWriter.WriteAttributeStringOpt("status-code", statusCode);
+        _xmlWriter.WriteAttributeStringOpt("content-type", contentType);
         _xmlWriter.WriteEndElement();
     }
 

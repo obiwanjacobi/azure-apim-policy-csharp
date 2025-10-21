@@ -1,4 +1,5 @@
-﻿using System.Xml.Linq;
+﻿using System.Net.Mime;
+using System.Xml.Linq;
 using AzureApimPolicyGen;
 using Xunit.Abstractions;
 
@@ -11,6 +12,7 @@ internal class OutboundPolicy : PolicyDocument
         this
             .JsonToXml("always", considerAcceptHeader: false, parseDate: false,
                 namespaceSeparator: ":", namespacePrefix: "xmlns", attributeBlockName: "#attrs")
+            .MockResponse(200, MediaTypeNames.Application.Json);
         ;
 
         base.Outbound();
@@ -40,6 +42,16 @@ public class OutboundPolicyTest
         Assert.Equal(":", jsonToXml.Attribute("namespace-separator").Value);
         Assert.Equal("xmlns", jsonToXml.Attribute("namespace-prefix").Value);
         Assert.Equal("#attrs", jsonToXml.Attribute("attribute-block-name").Value);
+    }
+
+    [Fact]
+    public void MockResponse()
+    {
+        var outbound = _document.Descendants("outbound").Single();
+        var mockResponse = outbound.Element("mock-response");
+        Assert.NotNull(mockResponse);
+        Assert.Equal("200", mockResponse.Attribute("status-code").Value);
+        Assert.Equal("application/json", mockResponse.Attribute("content-type").Value);
     }
 }
 

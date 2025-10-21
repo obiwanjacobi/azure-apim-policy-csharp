@@ -36,7 +36,7 @@
 - [ ] `llm-semantic-cache-store` https://learn.microsoft.com/en-us/azure/api-management/llm-semantic-cache-store-policy
 - [ ] `llm-token-limit` https://learn.microsoft.com/en-us/azure/api-management/llm-token-limit-policy
 - [x] `log-to-eventhub` https://learn.microsoft.com/en-us/azure/api-management/log-to-eventhub-policy
-- [ ] `mock-response` https://learn.microsoft.com/en-us/azure/api-management/mock-response-policy
+- [x] `mock-response` https://learn.microsoft.com/en-us/azure/api-management/mock-response-policy
 - [ ] `proxy` https://learn.microsoft.com/en-us/azure/api-management/proxy-policy
 - [ ] `publish-event` https://learn.microsoft.com/en-us/azure/api-management/publish-event-policy
 - [ ] `publish-to-dapr` https://learn.microsoft.com/en-us/azure/api-management/publish-to-dapr-policy
