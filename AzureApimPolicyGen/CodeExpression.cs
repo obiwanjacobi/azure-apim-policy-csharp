@@ -12,7 +12,7 @@ internal sealed class CSharpCompiler
 
     public static void Verify(string code)
     {
-        var codeTemplate = WrapTemplate(code);
+        var codeTemplate = WrapCode(code);
         var syntaxTree = CSharpSyntaxTree.ParseText(codeTemplate);
         var diagnostics = syntaxTree.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error);
         if (diagnostics.Any())
@@ -26,14 +26,15 @@ internal sealed class CSharpCompiler
         );
 
         diagnostics = compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error);
-        if (diagnostics.Any())
+        // CS0201 statement expression error - happens a lot with the code snippets
+        if (diagnostics.Where(d => d.Id != "CS0201").Any())
             throw new Exception("Compilation Error(s) at " + String.Join(Environment.NewLine, diagnostics));
 
         //var semanticModel = compilation.GetSemanticModel(syntaxTree, ignoreAccessibility: false);
         //semanticModel.LookupNamespacesAndTypes()
     }
 
-    private static string WrapTemplate(string code)
+    private static string WrapCode(string code)
     {
         return $"""
             {_usings}

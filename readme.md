@@ -29,7 +29,7 @@
 - [x] `ip-filter` https://learn.microsoft.com/en-us/azure/api-management/ip-filter-policy
 - [ ] `jsonp` https://learn.microsoft.com/en-us/azure/api-management/jsonp-policy
 - [x] `json-to-xml` https://learn.microsoft.com/en-us/azure/api-management/json-to-xml-policy
-- [ ] `limit-concurrency` https://learn.microsoft.com/en-us/azure/api-management/limit-concurrency-policy
+- [x] `limit-concurrency` https://learn.microsoft.com/en-us/azure/api-management/limit-concurrency-policy
 - [ ] `llm-content-safety` https://learn.microsoft.com/en-us/azure/api-management/llm-content-safety-policy
 - [ ] `llm-emit-token-metric` https://learn.microsoft.com/en-us/azure/api-management/llm-emit-token-metric-policy
 - [ ] `llm-semantic-cache-lookup` https://learn.microsoft.com/en-us/azure/api-management/llm-semantic-cache-lookup-policy
@@ -81,3 +81,4 @@
 - [ ] Variables: Typed - to check the 'structure' of variables
 - [ ] PolicyExpression: TypeHint to document expected (result) type of literal or code expression
 - [ ] CodeExpression: `{{named-value}}` in code. Compiler will fail.
+- [ ] CodeExpression Compiler: `(string)Context.Variables["connectionId"]` error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement

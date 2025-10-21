@@ -11,6 +11,8 @@ internal class BackendPolicy : PolicyDocument
         this
             .ForwardRequest(timeoutSeconds: 30)
             .IncludeFragment("myFragment")
+            .LimitConcurrency(PolicyExpression.FromCode("""(string)Context.Variables["connectionId"]"""), 120,
+                actions => actions.ForwardRequest(timeoutSeconds: 120))
             ;
 
         base.Backend();
@@ -45,6 +47,18 @@ public class BackendPolicyTest
         var includeFragment = backend.Element("include-fragment");
         Assert.NotNull(includeFragment);
         Assert.Equal("myFragment", includeFragment.Attribute("fragment-id").Value);
+    }
+
+    [Fact]
+    public void LimitConcurrency()
+    {
+        var backend = _document.Descendants("backend").Single();
+        var limitConcurrency = backend.Element("limit-concurrency");
+        Assert.NotNull(limitConcurrency);
+        Assert.Equal("""@((string)Context.Variables["connectionId"])""", limitConcurrency.Attribute("key").Value);
+        Assert.Equal("120", limitConcurrency.Attribute("max-count").Value);
+        var forwardRequest = limitConcurrency.Element("forward-request");
+        Assert.NotNull(forwardRequest);
     }
 }
 
