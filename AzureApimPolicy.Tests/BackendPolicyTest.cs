@@ -10,6 +10,7 @@ internal class BackendPolicy : PolicyDocument
     {
         this
             .ForwardRequest(timeoutSeconds: 30)
+            .IncludeFragment("myFragment")
             ;
 
         base.Backend();
@@ -34,6 +35,16 @@ public class BackendPolicyTest
         var backend = _document.Descendants("backend").Single();
         var forwardRequest = backend.Element("forward-request");
         Assert.NotNull(forwardRequest);
+        Assert.Equal("30", forwardRequest.Attribute("timeout").Value);
+    }
+
+    [Fact]
+    public void IncludeFragment()
+    {
+        var backend = _document.Descendants("backend").Single();
+        var includeFragment = backend.Element("include-fragment");
+        Assert.NotNull(includeFragment);
+        Assert.Equal("myFragment", includeFragment.Attribute("fragment-id").Value);
     }
 }
 

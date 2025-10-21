@@ -6,6 +6,7 @@ public interface IControl
 {
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/choose-policy</summary>
     IPolicyDocument Choose(Action<IChooseActions> choose);
+    IPolicyDocument IncludeFragment(string fragmentId);
 }
 
 public interface IChooseActions
@@ -46,6 +47,13 @@ partial class PolicyDocument
             return this;
         }
     }
+
+    public IPolicyDocument IncludeFragment(string fragmentId)
+    {
+        AssertScopes(PolicyScopes.All);
+        Writer.IncludeFragment(fragmentId);
+        return this;
+    }
 }
 
 partial class PolicyXmlWriter
@@ -72,4 +80,10 @@ partial class PolicyXmlWriter
         _xmlWriter.WriteEndElement();
     }
 
+    public void IncludeFragment(string fragmentId)
+    {
+        _xmlWriter.WriteStartElement("include-fragment");
+        _xmlWriter.WriteAttributeString("fragment-id", fragmentId);
+        _xmlWriter.WriteEndElement();
+    }
 }
