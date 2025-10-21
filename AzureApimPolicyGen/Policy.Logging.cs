@@ -6,6 +6,9 @@ public interface ILogging
 {
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/emit-metric-policy</summary>
     IPolicyDocument EmitMetric(string name, string? @namespace, string? value, Action<IEmitMetricDimensions> dimensions);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/log-to-eventhub-policy</summary>
+    IPolicyDocument LogToEventHub(string loggerId, string? partitionId, string? partitionKey, PolicyExpression message);
 }
 
 public interface IEmitMetricDimensions
@@ -40,6 +43,17 @@ partial class PolicyDocument
             return this;
         }
     }
+
+    public IPolicyDocument LogToEventHub(string loggerId, string? partitionId, string? partitionKey, PolicyExpression message)
+    {
+        AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
+        var idEmpty = String.IsNullOrEmpty(partitionId);
+        var keyEmpty = String.IsNullOrEmpty(partitionKey);
+        if (idEmpty && keyEmpty) throw new ArgumentException($"Either {nameof(partitionId)} or {nameof(partitionKey)} has to be filled.", $"{nameof(partitionId)}+{nameof(partitionKey)}");
+        if (!idEmpty && !keyEmpty) throw new ArgumentException($"Either {nameof(partitionId)} or {nameof(partitionKey)} has to be filled. Not both.", $"{nameof(partitionId)}+{nameof(partitionKey)}");
+        Writer.LogToEventHub(loggerId, partitionId, partitionKey, message);
+        return this;
+    }
 }
 
 partial class PolicyXmlWriter
@@ -58,6 +72,16 @@ partial class PolicyXmlWriter
         _xmlWriter.WriteStartElement("dimension");
         _xmlWriter.WriteAttributeString("name", name);
         _xmlWriter.WriteAttributeStringOpt("value", value);
+        _xmlWriter.WriteEndElement();
+    }
+
+    public void LogToEventHub(string loggerId, string? partitionId, string? partitionKey, string message)
+    {
+        _xmlWriter.WriteStartElement("log-to-eventhub");
+        _xmlWriter.WriteAttributeString("logger-id", loggerId);
+        _xmlWriter.WriteAttributeStringOpt("partition-id", partitionId);
+        _xmlWriter.WriteAttributeStringOpt("partition-key", partitionKey);
+        _xmlWriter.WriteString(message);
         _xmlWriter.WriteEndElement();
     }
 }
