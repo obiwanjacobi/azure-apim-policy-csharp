@@ -2,6 +2,19 @@
 
 // https://learn.microsoft.com/en-us/azure/api-management/api-management-policies#transformation
 
+public interface ITransformation
+{
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/find-and-replace-policy</summary>
+    IPolicyDocument FindAndReplace(PolicyExpression from, PolicyExpression to);
+
+
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-body-policy</summary>
+    IPolicyDocument SetBody(PolicyExpression body);
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-body-policy#using-liquid-templates-with-set-body</summary>
+    IPolicyDocument SetBody(LiquidTemplate body);
+}
+
 partial class PolicyDocument
 {
     public IPolicyDocument FindAndReplace(PolicyExpression from, PolicyExpression to)

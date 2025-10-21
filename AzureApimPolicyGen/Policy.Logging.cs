@@ -2,6 +2,12 @@
 
 // https://learn.microsoft.com/en-us/azure/api-management/api-management-policies#logging
 
+public interface ILogging
+{
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/emit-metric-policy</summary>
+    IPolicyDocument EmitMetric(string name, string? @namespace, string? value, Action<IEmitMetricDimensions> dimensions);
+}
+
 public interface IEmitMetricDimensions
 {
     IEmitMetricDimensions Add(string name, string? value);

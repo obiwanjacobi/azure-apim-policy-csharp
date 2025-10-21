@@ -2,6 +2,28 @@
 
 // https://learn.microsoft.com/en-us/azure/api-management/api-management-policies#caching
 
+public interface ICaching
+{
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/cache-lookup-policy</summary>
+    IPolicyDocument CacheLookup(PolicyExpression varyByDeveloper, PolicyExpression VarByDeveloperGroup,
+        PolicyExpression? allowPrivateResponseCaching = null,
+        CacheType? cacheType = null,
+        PolicyExpression? downstreamCacheType = null, PolicyExpression? mustRevalidate = null,
+        Action<ICacheLookupVaryBy>? varyBy = null);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/cache-lookup-value-policy</summary>
+    IPolicyDocument CacheLookupValue(string variableName, PolicyExpression key, PolicyExpression? defaultValue = null, CacheType? cacheType = null);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/cache-store-policy</summary>
+    IPolicyDocument CacheStore(PolicyExpression duration, PolicyExpression? cacheResponse = null);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/cache-store-value-policy</summary>
+    IPolicyDocument CacheStoreValue(PolicyExpression duration, PolicyExpression key, PolicyExpression value, CacheType? cacheType = null);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/cache-remove-value-policy</summary>
+    IPolicyDocument CacheRemoveValue(PolicyExpression key, CacheType? cacheType = null);
+}
+
 public enum CacheType
 {
     PreferExternal,

@@ -2,6 +2,12 @@
 
 // https://learn.microsoft.com/en-us/azure/api-management/api-management-policies#policy-control-and-flow
 
+public interface IControl
+{
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/choose-policy</summary>
+    IPolicyDocument Choose(Action<IChooseActions> choose);
+}
+
 public interface IChooseActions
 {
     IChooseActions When(PolicyExpression condition, Action<IPolicyDocument> whenActions);

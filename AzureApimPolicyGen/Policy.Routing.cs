@@ -2,6 +2,14 @@
 
 // https://learn.microsoft.com/en-us/azure/api-management/api-management-policies#routing
 
+public interface IRouting
+{
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/forward-request-policy</summary>
+    IPolicyDocument ForwardRequest(HttpVersion? httpVersion = null,
+        PolicyExpression? timeoutSeconds = null, PolicyExpression? timeoutMilliseconds = null, PolicyExpression? continueTimeout = null,
+        bool? followRedirects = null, bool? bufferRequestBody = null, bool? bufferResponse = null, bool? failOnErrorStatusCode = null);
+}
+
 public enum HttpVersion
 {
     /// <summary>Not set</summary>

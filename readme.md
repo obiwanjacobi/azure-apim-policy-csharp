@@ -74,3 +74,10 @@
 - [ ] `xml-to-json` https://learn.microsoft.com/en-us/azure/api-management/xml-to-json-policy
 - [ ] `xsl-transform` https://learn.microsoft.com/en-us/azure/api-management/xsl-transform-policy
 
+
+## TODO
+
+- [ ] Variables: check exists
+- [ ] Variables: Typed - to check the 'structure' of variables
+- [ ] PolicyExpression: TypeHint to document expected (result) type of literal or code expression
+- [ ] 

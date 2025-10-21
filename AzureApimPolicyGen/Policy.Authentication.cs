@@ -2,6 +2,27 @@
 
 // https://learn.microsoft.com/en-us/azure/api-management/api-management-policies#authentication-and-authorization
 
+public interface IAuthentication
+{
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/authentication-basic-policy</summary>
+    IPolicyDocument AuthenticationBasic(PolicyExpression username, PolicyExpression password);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/authentication-certificate-policy</summary>
+    IPolicyDocument AuthenticationCertificate(PolicyExpression thumbprint, PolicyExpression certificate, PolicyExpression? body = null, PolicyExpression? password = null);
+
+    // TODO: use in 'send-request'
+    // https://learn.microsoft.com/en-us/azure/api-management/authentication-managed-identity-policy#use-managed-identity-in-send-request-policy
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/authentication-managed-identity-policy</summary>
+    IPolicyDocument AuthenticationManagedIdentity(PolicyExpression resource, string? clientId = null, PolicyVariable? outputTokenVariableName = null, bool? ignoreError = false);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/check-header-policy</summary>
+    IPolicyDocument CheckHeader(PolicyExpression name, PolicyExpression failedCheckHttpCode, PolicyExpression failedCheckErrorMessage, PolicyExpression ignoreCase, Action<ICheckHeaderValues>? values = null);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/get-authorization-context-policy</summary>
+    IPolicyDocument GetAuthorizationContext(PolicyExpression providerId, PolicyExpression authorizationId, PolicyVariable contextVariableName,
+        PolicyExpression? identity = null, PolicyExpression? ignoreError = null);
+}
+
 public interface ICheckHeaderValues
 {
     ICheckHeaderValues Add(string value);
@@ -59,6 +80,16 @@ partial class PolicyDocument
             return this;
         }
     }
+
+    public IPolicyDocument GetAuthorizationContext(PolicyExpression providerId, PolicyExpression authorizationId, PolicyVariable contextVariableName,
+        PolicyExpression? identity = null, PolicyExpression? ignoreError = null)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
+        Writer.GetAuthorizationContext(providerId, authorizationId, contextVariableName,
+            identity is null ? "managed" : "jwt", identity, ignoreError);
+        return this;
+    }
 }
 
 partial class PolicyXmlWriter
@@ -105,5 +136,18 @@ partial class PolicyXmlWriter
     internal void CheckHeaderValue(string value)
     {
         _xmlWriter.WriteElementString("value", value);
+    }
+
+    public void GetAuthorizationContext(string providerId, string authorizationId, string contextVariableName,
+        string? identityType, string? identity, string? ignoreError)
+    {
+        _xmlWriter.WriteStartElement("get-authorization-context");
+        _xmlWriter.WriteAttributeStringOpt("provider-id", providerId);
+        _xmlWriter.WriteAttributeStringOpt("authorization-id", authorizationId);
+        _xmlWriter.WriteAttributeStringOpt("context-variable-name", contextVariableName);
+        _xmlWriter.WriteAttributeStringOpt("identity-type", identityType);
+        _xmlWriter.WriteAttributeStringOpt("identity", identity);
+        _xmlWriter.WriteAttributeStringOpt("ignore-error", ignoreError);
+        _xmlWriter.WriteEndElement();
     }
 }

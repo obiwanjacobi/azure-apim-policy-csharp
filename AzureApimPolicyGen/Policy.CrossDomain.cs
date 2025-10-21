@@ -1,6 +1,13 @@
 ﻿namespace AzureApimPolicyGen;
 
 // https://learn.microsoft.com/en-us/azure/api-management/api-management-policies#cross-domain
+
+public interface ICrossDomain
+{
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/cors-policy</summary>
+    IPolicyDocument Cors(Action<ICorsActions> cors, bool? allowCredentials = null, bool? terminateUnmatchedRequests = null);
+}
+
 public interface ICorsActions
 {
     ICorsActions AllowedOrigins(Action<ICorsAllowedOrigins> origins);

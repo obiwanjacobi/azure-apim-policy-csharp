@@ -23,7 +23,8 @@ internal class InboundPolicy : PolicyDocument
                     .AllowedHeaders(headers => headers.Add("*")))
             .EmitMetric("metricName", null, "metricValue",
                 dimensions => dimensions.Add("dim1", "val1").Add("dim2", "val2"))
-            ;
+            .GetAuthorizationContext("providerId", "authId", "authCtx")
+        ;
 
         base.Inbound();
     }
@@ -117,6 +118,17 @@ public class InboundPolicyTest
         Assert.NotNull(dimensions);
         Assert.Equal("dim1", dimensions.ElementAt(0).Attribute("name").Value);
         Assert.Equal("dim2", dimensions.ElementAt(1).Attribute("name").Value);
+    }
+
+    [Fact]
+    public void GetAuthorizationContext()
+    {
+        var inbound = _document.Descendants("inbound").Single();
+        var authContext = inbound.Element("get-authorization-context");
+        Assert.NotNull(authContext);
+        Assert.Equal("providerId", authContext.Attribute("provider-id").Value);
+        Assert.Equal("authId", authContext.Attribute("authorization-id").Value);
+        Assert.Equal("authCtx", authContext.Attribute("context-variable-name").Value);
     }
 }
 
