@@ -26,6 +26,7 @@ internal class InboundPolicy : PolicyDocument
             .GetAuthorizationContext("providerId", "authId", "authCtx")
             .IpFilter("allow", address => address.AddRange("10.0.0.0", "10.0.0.255"))
             .Proxy("http://hostname-or-ip:port", "username", "password")
+            .PublishToDapr("Hello World", "new", "greetings", "responseVariable")
         ;
 
         base.Inbound();
@@ -142,6 +143,18 @@ public class InboundPolicyTest
         Assert.Equal("http://hostname-or-ip:port", proxy.Attribute("url").Value);
         Assert.Equal("username", proxy.Attribute("username").Value);
         Assert.Equal("password", proxy.Attribute("password").Value);
+    }
+
+    [Fact]
+    public void PublishToDapr()
+    {
+        var inbound = _document.Descendants("inbound").Single();
+        var publishToDapr = inbound.Element("publish-to-dapr");
+        Assert.NotNull(publishToDapr);
+        Assert.Equal("new", publishToDapr.Attribute("topic").Value);
+        Assert.Equal("greetings", publishToDapr.Attribute("pubsub-name").Value);
+        Assert.Equal("responseVariable", publishToDapr.Attribute("response-variable-name").Value);
+        Assert.Equal("Hello World", publishToDapr.Value);
     }
 }
 

@@ -39,7 +39,7 @@
 - [x] `mock-response` https://learn.microsoft.com/en-us/azure/api-management/mock-response-policy
 - [x] `proxy` https://learn.microsoft.com/en-us/azure/api-management/proxy-policy
 - [ ] `publish-event` https://learn.microsoft.com/en-us/azure/api-management/publish-event-policy
-- [ ] `publish-to-dapr` https://learn.microsoft.com/en-us/azure/api-management/publish-to-dapr-policy
+- [x] `publish-to-dapr` https://learn.microsoft.com/en-us/azure/api-management/publish-to-dapr-policy
 - [ ] `quota` https://learn.microsoft.com/en-us/azure/api-management/quota-policy
 - [ ] `quota-by-key` https://learn.microsoft.com/en-us/azure/api-management/quota-by-key-policy
 - [ ] `rate-limit` https://learn.microsoft.com/en-us/azure/api-management/rate-limit-policy
