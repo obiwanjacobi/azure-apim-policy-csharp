@@ -8,6 +8,9 @@ public interface IRouting
     IPolicyDocument ForwardRequest(HttpVersion? httpVersion = null,
         PolicyExpression? timeoutSeconds = null, PolicyExpression? timeoutMilliseconds = null, PolicyExpression? continueTimeout = null,
         bool? followRedirects = null, bool? bufferRequestBody = null, bool? bufferResponse = null, bool? failOnErrorStatusCode = null);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/proxy-policy</summary>
+    IPolicyDocument Proxy(PolicyExpression url, PolicyExpression? username = null, PolicyExpression? password = null);
 }
 
 public enum HttpVersion
@@ -43,6 +46,14 @@ partial class PolicyDocument
                 _ => null
             };
     }
+
+    public IPolicyDocument Proxy(PolicyExpression url, PolicyExpression? username = null, PolicyExpression? password = null)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        Writer.Proxy(url, username, password);
+        return this;
+    }
 }
 
 partial class PolicyXmlWriter
@@ -59,6 +70,15 @@ partial class PolicyXmlWriter
         _xmlWriter.WriteAttributeStringOpt("buffer-request-body", BoolValue(bufferRequestBody));
         _xmlWriter.WriteAttributeStringOpt("buffer-response", BoolValue(bufferResponse));
         _xmlWriter.WriteAttributeStringOpt("fail-on-error-status-code", BoolValue(failOnErrorStatusCode));
+        _xmlWriter.WriteEndElement();
+    }
+
+    public void Proxy(string url, string? username, string? password)
+    {
+        _xmlWriter.WriteStartElement("proxy");
+        _xmlWriter.WriteAttributeString("url", url);
+        _xmlWriter.WriteAttributeStringOpt("username", username);
+        _xmlWriter.WriteAttributeStringOpt("password", password);
         _xmlWriter.WriteEndElement();
     }
 }

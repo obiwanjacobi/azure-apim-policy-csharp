@@ -25,6 +25,7 @@ internal class InboundPolicy : PolicyDocument
                 dimensions => dimensions.Add("dim1", "val1").Add("dim2", "val2"))
             .GetAuthorizationContext("providerId", "authId", "authCtx")
             .IpFilter("allow", address => address.AddRange("10.0.0.0", "10.0.0.255"))
+            .Proxy("http://hostname-or-ip:port", "username", "password")
         ;
 
         base.Inbound();
@@ -130,6 +131,17 @@ public class InboundPolicyTest
         Assert.Equal("providerId", authContext.Attribute("provider-id").Value);
         Assert.Equal("authId", authContext.Attribute("authorization-id").Value);
         Assert.Equal("authCtx", authContext.Attribute("context-variable-name").Value);
+    }
+
+    [Fact]
+    public void Proxy()
+    {
+        var inbound = _document.Descendants("inbound").Single();
+        var proxy = inbound.Element("proxy");
+        Assert.NotNull(proxy);
+        Assert.Equal("http://hostname-or-ip:port", proxy.Attribute("url").Value);
+        Assert.Equal("username", proxy.Attribute("username").Value);
+        Assert.Equal("password", proxy.Attribute("password").Value);
     }
 }
 

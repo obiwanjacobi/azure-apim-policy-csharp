@@ -37,7 +37,7 @@
 - [ ] `llm-token-limit` https://learn.microsoft.com/en-us/azure/api-management/llm-token-limit-policy
 - [x] `log-to-eventhub` https://learn.microsoft.com/en-us/azure/api-management/log-to-eventhub-policy
 - [x] `mock-response` https://learn.microsoft.com/en-us/azure/api-management/mock-response-policy
-- [ ] `proxy` https://learn.microsoft.com/en-us/azure/api-management/proxy-policy
+- [x] `proxy` https://learn.microsoft.com/en-us/azure/api-management/proxy-policy
 - [ ] `publish-event` https://learn.microsoft.com/en-us/azure/api-management/publish-event-policy
 - [ ] `publish-to-dapr` https://learn.microsoft.com/en-us/azure/api-management/publish-to-dapr-policy
 - [ ] `quota` https://learn.microsoft.com/en-us/azure/api-management/quota-policy
