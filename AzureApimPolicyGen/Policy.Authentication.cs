@@ -53,7 +53,7 @@ partial class PolicyDocument
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.All);
         if (!String.IsNullOrEmpty(thumbprint) && !String.IsNullOrEmpty(certificate))
-            throw new ArgumentException("Specify either a thumbprint or a certificate.  Not both.", $"{nameof(thumbprint)}+{nameof(certificate)}");
+            throw new ArgumentException("Specify either a thumbprint or a certificate. Not both.", $"{nameof(thumbprint)}+{nameof(certificate)}");
 
         Writer.AuthenticationCertificate(thumbprint, certificate, body, password);
         return this;

@@ -25,6 +25,8 @@ internal class InboundPolicy : PolicyDocument
                 dimensions => dimensions.Add("dim1", "val1").Add("dim2", "val2"))
             .GetAuthorizationContext("providerId", "authId", "authCtx")
             .IpFilter("allow", address => address.AddRange("10.0.0.0", "10.0.0.255"))
+            .JsonToXml("always", considerAcceptHeader: false, parseDate: false,
+                namespaceSeparator: ":", namespacePrefix: "xmlns", attributeBlockName: "#attrs")
         ;
 
         base.Inbound();

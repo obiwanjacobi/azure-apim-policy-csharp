@@ -7,7 +7,9 @@ public interface ITransformation
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/find-and-replace-policy</summary>
     IPolicyDocument FindAndReplace(PolicyExpression from, PolicyExpression to);
 
-
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/json-to-xml-policy</summary>
+    IPolicyDocument JsonToXml(PolicyExpression apply, PolicyExpression? considerAcceptHeader = null, bool? parseDate = null,
+        PolicyExpression? namespaceSeparator = null, PolicyExpression? namespacePrefix = null, PolicyExpression? attributeBlockName = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-body-policy</summary>
     IPolicyDocument SetBody(PolicyExpression body);
@@ -22,6 +24,15 @@ partial class PolicyDocument
         // allowed in all sections
         AssertScopes(PolicyScopes.All);
         Writer.FindAndReplace(from, to);
+        return this;
+    }
+
+    public IPolicyDocument JsonToXml(PolicyExpression apply, PolicyExpression? considerAcceptHeader = null, bool? parseDate = null,
+        PolicyExpression? namespaceSeparator = null, PolicyExpression? namespacePrefix = null, PolicyExpression? attributeBlockName = null)
+    {
+        AssertSection([PolicySection.Inbound, PolicySection.Outbound, PolicySection.OnError]);
+        AssertScopes(PolicyScopes.All);
+        Writer.JsonToXml(apply, considerAcceptHeader, parseDate, namespaceSeparator, namespacePrefix, attributeBlockName);
         return this;
     }
 
@@ -48,6 +59,19 @@ partial class PolicyXmlWriter
         _xmlWriter.WriteStartElement("find-and-replace");
         _xmlWriter.WriteAttributeString("from", from);
         _xmlWriter.WriteAttributeString("to", to);
+        _xmlWriter.WriteEndElement();
+    }
+
+    public void JsonToXml(string apply, string? considerAcceptHeader, bool? parseDate, string? namespaceSeparator,
+        string? namespacePrefix, string? attributeBlockName)
+    {
+        _xmlWriter.WriteStartElement("json-to-xml");
+        _xmlWriter.WriteAttributeString("apply", apply);
+        _xmlWriter.WriteAttributeStringOpt("consider-accept-header", considerAcceptHeader);
+        _xmlWriter.WriteAttributeStringOpt("parse-date", BoolValue(parseDate));
+        _xmlWriter.WriteAttributeStringOpt("namespace-separator", namespaceSeparator);
+        _xmlWriter.WriteAttributeStringOpt("namespace-prefix", namespacePrefix);
+        _xmlWriter.WriteAttributeStringOpt("attribute-block-name", attributeBlockName);
         _xmlWriter.WriteEndElement();
     }
 
