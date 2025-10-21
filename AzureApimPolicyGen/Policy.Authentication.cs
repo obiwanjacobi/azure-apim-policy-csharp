@@ -21,6 +21,15 @@ public interface IAuthentication
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/get-authorization-context-policy</summary>
     IPolicyDocument GetAuthorizationContext(PolicyExpression providerId, PolicyExpression authorizationId, PolicyVariable contextVariableName,
         PolicyExpression? identity = null, PolicyExpression? ignoreError = null);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/ip-filter-policy</summary>
+    IPolicyDocument IpFilter(PolicyExpression action, Action<IIpFilterAddress> address);
+}
+
+public interface IIpFilterAddress
+{
+    IIpFilterAddress Add(PolicyExpression address);
+    IIpFilterAddress AddRange(string fromAddress, string toAddress);
 }
 
 public interface ICheckHeaderValues
@@ -90,6 +99,32 @@ partial class PolicyDocument
             identity is null ? "managed" : "jwt", identity, ignoreError);
         return this;
     }
+
+    public IPolicyDocument IpFilter(PolicyExpression action, Action<IIpFilterAddress> address)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
+        Writer.IpFilter(action, () => address(new IpFilterAddress(Writer)));
+        return this;
+    }
+
+    private sealed class IpFilterAddress : IIpFilterAddress
+    {
+        private readonly PolicyXmlWriter _writer;
+        internal IpFilterAddress(PolicyXmlWriter writer) { _writer = writer; }
+
+        public IIpFilterAddress Add(PolicyExpression address)
+        {
+            _writer.IpFilterAddress(address);
+            return this;
+        }
+
+        public IIpFilterAddress AddRange(string fromAddress, string toAddress)
+        {
+            _writer.IpFilterAddressRange(fromAddress, toAddress);
+            return this;
+        }
+    }
 }
 
 partial class PolicyXmlWriter
@@ -150,4 +185,23 @@ partial class PolicyXmlWriter
         _xmlWriter.WriteAttributeStringOpt("ignore-error", ignoreError);
         _xmlWriter.WriteEndElement();
     }
+
+    public void IpFilter(string action, Action writeAddresses)
+    {
+        _xmlWriter.WriteStartElement("ip-filter");
+        _xmlWriter.WriteAttributeStringOpt("action", action);
+        _xmlWriter.WriteEndElement();
+    }
+    internal void IpFilterAddress(string address)
+    {
+        _xmlWriter.WriteElementString("address", address);
+    }
+    internal void IpFilterAddressRange(string from, string to)
+    {
+        _xmlWriter.WriteStartElement("address-range");
+        _xmlWriter.WriteAttributeString("from", from);
+        _xmlWriter.WriteAttributeString("to", to);
+        _xmlWriter.WriteEndElement();
+    }
+
 }

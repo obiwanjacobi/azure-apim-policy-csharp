@@ -24,6 +24,7 @@ internal class InboundPolicy : PolicyDocument
             .EmitMetric("metricName", null, "metricValue",
                 dimensions => dimensions.Add("dim1", "val1").Add("dim2", "val2"))
             .GetAuthorizationContext("providerId", "authId", "authCtx")
+            .IpFilter("allow", address => address.AddRange("10.0.0.0", "10.0.0.255"))
         ;
 
         base.Inbound();

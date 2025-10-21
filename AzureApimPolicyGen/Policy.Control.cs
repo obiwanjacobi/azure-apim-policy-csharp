@@ -6,6 +6,8 @@ public interface IControl
 {
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/choose-policy</summary>
     IPolicyDocument Choose(Action<IChooseActions> choose);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/include-fragment-policy</summary>
     IPolicyDocument IncludeFragment(string fragmentId);
 }
 

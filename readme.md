@@ -26,7 +26,7 @@
 - [ ] `http-data-source` https://learn.microsoft.com/en-us/azure/api-management/http-data-source-policy
 - [x] `include-fragment` https://learn.microsoft.com/en-us/azure/api-management/include-fragment-policy
 - [ ] `invoke-dapr-binding` https://learn.microsoft.com/en-us/azure/api-management/invoke-dapr-binding-policy
-- [ ] `ip-filter` https://learn.microsoft.com/en-us/azure/api-management/ip-filter-policy
+- [x] `ip-filter` https://learn.microsoft.com/en-us/azure/api-management/ip-filter-policy
 - [ ] `jsonp` https://learn.microsoft.com/en-us/azure/api-management/jsonp-policy
 - [ ] `json-to-xml` https://learn.microsoft.com/en-us/azure/api-management/json-to-xml-policy
 - [ ] `limit-concurrency` https://learn.microsoft.com/en-us/azure/api-management/limit-concurrency-policy

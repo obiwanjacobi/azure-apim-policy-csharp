@@ -3,7 +3,7 @@
 /// <summary>https://learn.microsoft.com/en-us/azure/api-management/api-management-policy-expressions</summary>
 public record struct PolicyExpression
 {
-    private string _expression;
+    private readonly string _expression;
 
     public PolicyExpression(string expression) => _expression = expression;
 
@@ -27,4 +27,3 @@ public record struct PolicyExpression
         return new($"@{{{code}}}");
     }
 }
-
