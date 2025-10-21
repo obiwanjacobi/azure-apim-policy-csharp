@@ -27,6 +27,9 @@ internal class InboundPolicy : PolicyDocument
             .IpFilter("allow", address => address.AddRange("10.0.0.0", "10.0.0.255"))
             .Proxy("http://hostname-or-ip:port", "username", "password")
             .PublishToDapr("Hello World", "new", "greetings", "responseVariable")
+            .Quota(1000, 1024, 3600,
+                api => api.Add(null, "api", 500, 1024, 1200,
+                    operations => operations.Add(null, "operation", 500, 512, 1200)))
         ;
 
         base.Inbound();
@@ -155,6 +158,29 @@ public class InboundPolicyTest
         Assert.Equal("greetings", publishToDapr.Attribute("pubsub-name").Value);
         Assert.Equal("responseVariable", publishToDapr.Attribute("response-variable-name").Value);
         Assert.Equal("Hello World", publishToDapr.Value);
+    }
+
+    [Fact]
+    public void Quota()
+    {
+        var inbound = _document.Descendants("inbound").Single();
+        var quota = inbound.Element("quota");
+        Assert.NotNull(quota);
+        Assert.Equal("1000", quota.Attribute("calls").Value);
+        Assert.Equal("1024", quota.Attribute("bandwidth").Value);
+        Assert.Equal("3600", quota.Attribute("renewal-period").Value);
+        var api = quota.Element("api");
+        Assert.NotNull(api);
+        Assert.Equal("api", api.Attribute("name").Value);
+        Assert.Equal("500", api.Attribute("calls").Value);
+        Assert.Equal("1024", api.Attribute("bandwidth").Value);
+        Assert.Equal("1200", api.Attribute("renewal-period").Value);
+        var operation = api.Element("operation");
+        Assert.NotNull(operation);
+        Assert.Equal("operation", operation.Attribute("name").Value);
+        Assert.Equal("500", operation.Attribute("calls").Value);
+        Assert.Equal("512", operation.Attribute("bandwidth").Value);
+        Assert.Equal("1200", operation.Attribute("renewal-period").Value);
     }
 }
 
