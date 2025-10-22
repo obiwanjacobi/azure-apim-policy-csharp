@@ -45,7 +45,7 @@
 - [x] `rate-limit` https://learn.microsoft.com/en-us/azure/api-management/rate-limit-policy
 - [x] `rate-limit-by-key` https://learn.microsoft.com/en-us/azure/api-management/rate-limit-by-key-policy
 - [x] `redirect-content-urls` https://learn.microsoft.com/en-us/azure/api-management/redirect-content-urls-policy
-- [ ] `retry` https://learn.microsoft.com/en-us/azure/api-management/retry-policy
+- [x] `retry` https://learn.microsoft.com/en-us/azure/api-management/retry-policy
 - [ ] `return-response` https://learn.microsoft.com/en-us/azure/api-management/return-response-policy
 - [ ] `rewrite-uri` https://learn.microsoft.com/en-us/azure/api-management/rewrite-uri-policy
 - [ ] `send-one-way-request` https://learn.microsoft.com/en-us/azure/api-management/send-one-way-request-policy

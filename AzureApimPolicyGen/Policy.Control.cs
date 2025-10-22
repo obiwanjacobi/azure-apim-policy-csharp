@@ -9,6 +9,10 @@ public interface IControl
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/include-fragment-policy</summary>
     IPolicyDocument IncludeFragment(string fragmentId);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/retry-policy</summary>
+    IPolicyDocument Retry(PolicyExpression condition, PolicyExpression numberOfRetries, PolicyExpression intervalSeconds,
+        PolicyExpression? maxIntervalSeconds = null, int? deltaSeconds = null, PolicyExpression? firstFastRetry = null);
 }
 
 public interface IChooseActions
@@ -56,6 +60,15 @@ partial class PolicyDocument
         Writer.IncludeFragment(fragmentId);
         return this;
     }
+
+    public IPolicyDocument Retry(PolicyExpression condition, PolicyExpression numberOfRetries,
+        PolicyExpression intervalSeconds, PolicyExpression? maxIntervalSeconds = null,
+        int? deltaSeconds = null, PolicyExpression? firstFastRetry = null)
+    {
+        AssertScopes(PolicyScopes.All);
+        Writer.Retry(condition, numberOfRetries, intervalSeconds, maxIntervalSeconds, deltaSeconds.ToString(), firstFastRetry);
+        return this;
+    }
 }
 
 partial class PolicyXmlWriter
@@ -86,6 +99,18 @@ partial class PolicyXmlWriter
     {
         _xmlWriter.WriteStartElement("include-fragment");
         _xmlWriter.WriteAttributeString("fragment-id", fragmentId);
+        _xmlWriter.WriteEndElement();
+    }
+
+    public void Retry(string condition, string count, string interval, string? maxInterval, string? delta, string? firstFastRetry)
+    {
+        _xmlWriter.WriteStartElement("retry");
+        _xmlWriter.WriteAttributeString("condition", condition);
+        _xmlWriter.WriteAttributeString("count", count);
+        _xmlWriter.WriteAttributeString("interval", interval);
+        _xmlWriter.WriteAttributeStringOpt("max-interval", maxInterval);
+        _xmlWriter.WriteAttributeStringOpt("delta", delta);
+        _xmlWriter.WriteAttributeStringOpt("first-fast-retry", firstFastRetry);
         _xmlWriter.WriteEndElement();
     }
 }

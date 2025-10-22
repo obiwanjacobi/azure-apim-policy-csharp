@@ -13,6 +13,7 @@ internal class BackendPolicy : PolicyDocument
             .IncludeFragment("myFragment")
             .LimitConcurrency(PolicyExpression.FromCode("""(string)Context.Variables["connectionId"]"""), 120,
                 actions => actions.ForwardRequest(timeoutSeconds: 120))
+            .Retry(PolicyExpression.FromCode("true"), 3, 10, 30, firstFastRetry: true)
             ;
 
         base.Backend();
@@ -59,6 +60,20 @@ public class BackendPolicyTest
         Assert.Equal("120", limitConcurrency.Attribute("max-count").Value);
         var forwardRequest = limitConcurrency.Element("forward-request");
         Assert.NotNull(forwardRequest);
+    }
+
+    [Fact]
+    public void Retry()
+    {
+        var backend = _document.Descendants("backend").Single();
+        var retry = backend.Element("retry");
+        Assert.NotNull(retry);
+        Assert.Equal("""@(true)""", retry.Attribute("condition").Value);
+        Assert.Equal("3", retry.Attribute("count").Value);
+        Assert.Equal("10", retry.Attribute("interval").Value);
+        Assert.Equal("30", retry.Attribute("max-interval").Value);
+        Assert.Equal("true", retry.Attribute("first-fast-retry").Value);
+
     }
 }
 
