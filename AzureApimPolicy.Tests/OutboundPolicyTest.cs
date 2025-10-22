@@ -12,7 +12,8 @@ internal class OutboundPolicy : PolicyDocument
         this
             .JsonToXml("always", considerAcceptHeader: false, parseDate: false,
                 namespaceSeparator: ":", namespacePrefix: "xmlns", attributeBlockName: "#attrs")
-            .MockResponse(200, MediaTypeNames.Application.Json);
+            .MockResponse(200, MediaTypeNames.Application.Json)
+            .RedirectContentUrls()
         ;
 
         base.Outbound();
@@ -52,6 +53,14 @@ public class OutboundPolicyTest
         Assert.NotNull(mockResponse);
         Assert.Equal("200", mockResponse.Attribute("status-code").Value);
         Assert.Equal("application/json", mockResponse.Attribute("content-type").Value);
+    }
+
+    [Fact]
+    public void RedirectContentUrls()
+    {
+        var outbound = _document.Descendants("outbound").Single();
+        var redirectContentUrls = outbound.Element("redirect-content-urls");
+        Assert.NotNull(redirectContentUrls);
     }
 }
 

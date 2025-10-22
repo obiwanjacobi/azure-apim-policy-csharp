@@ -14,6 +14,9 @@ public interface ITransformation
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/mock-response-policy</summary>
     IPolicyDocument MockResponse(int? statusCode = null, string? contentType = null);
 
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/redirect-content-urls-policy</summary>
+    IPolicyDocument RedirectContentUrls();
+
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-body-policy</summary>
     IPolicyDocument SetBody(PolicyExpression body);
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-body-policy#using-liquid-templates-with-set-body</summary>
@@ -44,6 +47,14 @@ partial class PolicyDocument
         AssertSection([PolicySection.Inbound, PolicySection.Outbound, PolicySection.OnError]);
         AssertScopes(PolicyScopes.All);
         Writer.MockResponse(statusCode.ToString(), contentType);
+        return this;
+    }
+
+    public IPolicyDocument RedirectContentUrls()
+    {
+        AssertSection([PolicySection.Inbound, PolicySection.Outbound]);
+        AssertScopes(PolicyScopes.All);
+        Writer.RedirectContentUrls();
         return this;
     }
 
@@ -91,6 +102,12 @@ partial class PolicyXmlWriter
         _xmlWriter.WriteStartElement("mock-response");
         _xmlWriter.WriteAttributeStringOpt("status-code", statusCode);
         _xmlWriter.WriteAttributeStringOpt("content-type", contentType);
+        _xmlWriter.WriteEndElement();
+    }
+
+    public void RedirectContentUrls()
+    {
+        _xmlWriter.WriteStartElement("redirect-content-urls");
         _xmlWriter.WriteEndElement();
     }
 
