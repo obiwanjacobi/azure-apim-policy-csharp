@@ -20,6 +20,9 @@ public interface ITransformation
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/return-response-policy</summary>
     IPolicyDocument ReturnResponse(Action<IReturnResponseActions> response, PolicyVariable? responseVariableName = null);
 
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/rewrite-uri-policy</summary>
+    IPolicyDocument RewriteUri(PolicyExpression template, bool? copyUnmatchedParams = null);
+
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-body-policy</summary>
     IPolicyDocument SetBody(PolicyExpression body);
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-body-policy#using-liquid-templates-with-set-body</summary>
@@ -28,6 +31,7 @@ public interface ITransformation
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-header-policy</summary>
     IPolicyDocument SetHeader(PolicyExpression name, PolicyExpression? existsAction = null, Action<ISetHeaderValue>? values = null);
 
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-status-policy</summary>
     IPolicyDocument SetStatus(PolicyExpression statusCode, PolicyExpression reason);
 }
 
@@ -106,6 +110,14 @@ partial class PolicyDocument
             _document.SetStatus(statusCode, reason);
             return this;
         }
+    }
+
+    public IPolicyDocument RewriteUri(PolicyExpression template, bool? copyUnmatchedParams = null)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        Writer.RewriteUri(template, copyUnmatchedParams);
+        return this;
     }
 
     public IPolicyDocument SetBody(PolicyExpression body)
@@ -192,6 +204,14 @@ partial class PolicyXmlWriter
         _xmlWriter.WriteStartElement("return-response");
         _xmlWriter.WriteAttributeStringOpt("response-variable-name", responseVariableName);
         writeResponse();
+        _xmlWriter.WriteEndElement();
+    }
+
+    public void RewriteUri(string template, bool? copyUnmatchedParams)
+    {
+        _xmlWriter.WriteStartElement("rewrite-uri");
+        _xmlWriter.WriteAttributeString("template", template);
+        _xmlWriter.WriteAttributeStringOpt("copy-unmatched-params", BoolValue(copyUnmatchedParams));
         _xmlWriter.WriteEndElement();
     }
 

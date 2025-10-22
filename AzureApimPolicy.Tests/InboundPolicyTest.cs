@@ -38,6 +38,7 @@ internal class InboundPolicy : PolicyDocument
             .RateLimitByKey(PolicyExpression.FromCode("Context.Request.IpAddress"), 100, 60, null,
                 PolicyExpression.FromCode("Context.Response.StatusCode == 200"),
                 "retryVar", "X-Retry-After", "remainingVar", "X-Remaining-Calls", "X-Total-Calls")
+            .RewriteUri("/api/v1", false);
         ;
 
         base.Inbound();
@@ -243,6 +244,16 @@ public class InboundPolicyTest
         Assert.Equal("X-Remaining-Calls", rateLimitByKey.Attribute("remaining-calls-header-name").Value);
         Assert.Equal("X-Total-Calls", rateLimitByKey.Attribute("total-calls-header-name").Value);
         Assert.Equal("@(Context.Response.StatusCode == 200)", rateLimitByKey.Attribute("increment-condition").Value);
+    }
+
+    [Fact]
+    public void RewriteUri()
+    {
+        var inbound = _document.Descendants("inbound").Single();
+        var rewriteUri = inbound.Element("rewrite-uri");
+        Assert.NotNull(rewriteUri);
+        Assert.Equal("/api/v1", rewriteUri.Attribute("template").Value);
+        Assert.Equal("false", rewriteUri.Attribute("copy-unmatched-params").Value);
     }
 }
 

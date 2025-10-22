@@ -47,7 +47,7 @@
 - [x] `redirect-content-urls` https://learn.microsoft.com/en-us/azure/api-management/redirect-content-urls-policy
 - [x] `retry` https://learn.microsoft.com/en-us/azure/api-management/retry-policy
 - [x] `return-response` https://learn.microsoft.com/en-us/azure/api-management/return-response-policy
-- [ ] `rewrite-uri` https://learn.microsoft.com/en-us/azure/api-management/rewrite-uri-policy
+- [x] `rewrite-uri` https://learn.microsoft.com/en-us/azure/api-management/rewrite-uri-policy
 - [ ] `send-one-way-request` https://learn.microsoft.com/en-us/azure/api-management/send-one-way-request-policy
 - [ ] `send-service-bus-message` https://learn.microsoft.com/en-us/azure/api-management/send-service-bus-message-policy
 - [ ] `send-request` https://learn.microsoft.com/en-us/azure/api-management/send-request-policy
