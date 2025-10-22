@@ -52,9 +52,13 @@ partial class PolicyDocument
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.All);
+        AuthenticationCertificateInternal(thumbprint, certificate, body, password);
+        return this;
+    }
+    private IPolicyDocument AuthenticationCertificateInternal(PolicyExpression thumbprint, PolicyExpression certificate, PolicyExpression? body, PolicyExpression? password)
+    {
         if (!String.IsNullOrEmpty(thumbprint) && !String.IsNullOrEmpty(certificate))
             throw new ArgumentException("Specify either a thumbprint or a certificate. Not both.", $"{nameof(thumbprint)}+{nameof(certificate)}");
-
         Writer.AuthenticationCertificate(thumbprint, certificate, body, password);
         return this;
     }

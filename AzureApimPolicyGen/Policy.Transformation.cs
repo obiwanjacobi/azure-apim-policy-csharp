@@ -31,6 +31,9 @@ public interface ITransformation
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-header-policy</summary>
     IPolicyDocument SetHeader(PolicyExpression name, PolicyExpression? existsAction = null, Action<ISetHeaderValue>? values = null);
 
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-method-policy</summary>
+    IPolicyDocument SetMethod(PolicyExpression method);
+
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-status-policy</summary>
     IPolicyDocument SetStatus(PolicyExpression statusCode, PolicyExpression reason);
 }
@@ -154,6 +157,14 @@ partial class PolicyDocument
         }
     }
 
+    public IPolicyDocument SetMethod(PolicyExpression method)
+    {
+        AssertSection([PolicySection.Inbound, PolicySection.OnError]);
+        AssertScopes(PolicyScopes.All);
+        Writer.SetMethod(method);
+        return this;
+    }
+
     public IPolicyDocument SetStatus(PolicyExpression statusCode, PolicyExpression reason)
     {
         AssertScopes(PolicyScopes.All);
@@ -235,6 +246,11 @@ partial class PolicyXmlWriter
     internal void SetHeaderValue(string value)
     {
         _xmlWriter.WriteElementString("value", value);
+    }
+
+    public void SetMethod(string method)
+    {
+        _xmlWriter.WriteElementString("set-method", method);
     }
 
     public void SetStatus(string statusCode, string reason)

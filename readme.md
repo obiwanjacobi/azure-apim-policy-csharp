@@ -48,14 +48,14 @@
 - [x] `retry` https://learn.microsoft.com/en-us/azure/api-management/retry-policy
 - [x] `return-response` https://learn.microsoft.com/en-us/azure/api-management/return-response-policy
 - [x] `rewrite-uri` https://learn.microsoft.com/en-us/azure/api-management/rewrite-uri-policy
-- [ ] `send-one-way-request` https://learn.microsoft.com/en-us/azure/api-management/send-one-way-request-policy
+- [x] `send-one-way-request` https://learn.microsoft.com/en-us/azure/api-management/send-one-way-request-policy
 - [ ] `send-service-bus-message` https://learn.microsoft.com/en-us/azure/api-management/send-service-bus-message-policy
 - [ ] `send-request` https://learn.microsoft.com/en-us/azure/api-management/send-request-policy
 - [ ] `set-backend-service` https://learn.microsoft.com/en-us/azure/api-management/set-backend-service-policy
 - [ ] `set-backend-service-dapr` https://learn.microsoft.com/en-us/azure/api-management/set-backend-service-dapr-policy
 - [x] `set-body` https://learn.microsoft.com/en-us/azure/api-management/set-body-policy
 - [x] `set-header` https://learn.microsoft.com/en-us/azure/api-management/set-header-policy
-- [ ] `set-method` https://learn.microsoft.com/en-us/azure/api-management/set-method-policy
+- [x] `set-method` https://learn.microsoft.com/en-us/azure/api-management/set-method-policy
 - [ ] `set-query-parameter` https://learn.microsoft.com/en-us/azure/api-management/set-query-parameter-policy
 - [x] `set-status` https://learn.microsoft.com/en-us/azure/api-management/set-status-policy
 - [ ] `set-variable` https://learn.microsoft.com/en-us/azure/api-management/set-variable-policy
