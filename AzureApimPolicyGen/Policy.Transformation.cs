@@ -17,10 +17,30 @@ public interface ITransformation
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/redirect-content-urls-policy</summary>
     IPolicyDocument RedirectContentUrls();
 
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/return-response-policy</summary>
+    IPolicyDocument ReturnResponse(Action<IReturnResponseActions> response, PolicyVariable? responseVariableName = null);
+
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-body-policy</summary>
     IPolicyDocument SetBody(PolicyExpression body);
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-body-policy#using-liquid-templates-with-set-body</summary>
     IPolicyDocument SetBody(LiquidTemplate body);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-header-policy</summary>
+    IPolicyDocument SetHeader(PolicyExpression name, PolicyExpression? existsAction = null, Action<ISetHeaderValue>? values = null);
+
+    IPolicyDocument SetStatus(PolicyExpression statusCode, PolicyExpression reason);
+}
+
+public interface IReturnResponseActions
+{
+    IReturnResponseActions SetStatus(PolicyExpression statusCode, PolicyExpression reason);
+    IReturnResponseActions SetHeader(PolicyExpression name, PolicyExpression? existsAction = null, Action<ISetHeaderValue>? values = null);
+    IReturnResponseActions SetBody(PolicyExpression body);
+}
+
+public interface ISetHeaderValue
+{
+    ISetHeaderValue Add(PolicyExpression value);
 }
 
 partial class PolicyDocument
@@ -58,6 +78,36 @@ partial class PolicyDocument
         return this;
     }
 
+    public IPolicyDocument ReturnResponse(Action<IReturnResponseActions> response, PolicyVariable? responseVariableName = null)
+    {
+        AssertScopes(PolicyScopes.All);
+        Writer.ReturnResponse(responseVariableName, () => response(new ReturnResponseActions(this)));
+        return this;
+    }
+
+    private sealed class ReturnResponseActions : IReturnResponseActions
+    {
+        private readonly IPolicyDocument _document;
+        public ReturnResponseActions(IPolicyDocument document) { _document = document; }
+
+        public IReturnResponseActions SetHeader(PolicyExpression name, PolicyExpression? existsAction = null, Action<ISetHeaderValue>? values = null)
+        {
+            _document.SetHeader(name, existsAction, values);
+            return this;
+        }
+        public IReturnResponseActions SetBody(PolicyExpression body)
+        {
+            _document.SetBody(body);
+            return this;
+        }
+
+        public IReturnResponseActions SetStatus(PolicyExpression statusCode, PolicyExpression reason)
+        {
+            _document.SetStatus(statusCode, reason);
+            return this;
+        }
+    }
+
     public IPolicyDocument SetBody(PolicyExpression body)
     {
         AssertSection([PolicySection.Inbound, PolicySection.Outbound, PolicySection.Backend]);
@@ -70,6 +120,32 @@ partial class PolicyDocument
         AssertSection([PolicySection.Inbound, PolicySection.Outbound, PolicySection.Backend]);
         AssertScopes(PolicyScopes.All);
         Writer.SetBody(body, liquidTemplate: true);
+        return this;
+    }
+
+    public IPolicyDocument SetHeader(PolicyExpression name, PolicyExpression? existsAction = null, Action<ISetHeaderValue>? values = null)
+    {
+        AssertScopes(PolicyScopes.All);
+        Writer.SetHeader(name, existsAction, values is null ? null : () => values(new SetHeaderValue(Writer)));
+        return this;
+    }
+
+    private sealed class SetHeaderValue : ISetHeaderValue
+    {
+        private readonly PolicyXmlWriter _writer;
+        public SetHeaderValue(PolicyXmlWriter writer) { _writer = writer; }
+
+        public ISetHeaderValue Add(PolicyExpression value)
+        {
+            _writer.SetHeaderValue(value);
+            return this;
+        }
+    }
+
+    public IPolicyDocument SetStatus(PolicyExpression statusCode, PolicyExpression reason)
+    {
+        AssertScopes(PolicyScopes.All);
+        Writer.SetStatus(statusCode, reason);
         return this;
     }
 }
@@ -111,12 +187,41 @@ partial class PolicyXmlWriter
         _xmlWriter.WriteEndElement();
     }
 
+    public void ReturnResponse(string? responseVariableName, Action writeResponse)
+    {
+        _xmlWriter.WriteStartElement("return-response");
+        _xmlWriter.WriteAttributeStringOpt("response-variable-name", responseVariableName);
+        writeResponse();
+        _xmlWriter.WriteEndElement();
+    }
+
     public void SetBody(string body, bool liquidTemplate = false)
     {
         _xmlWriter.WriteStartElement("set-body");
         if (liquidTemplate)
             _xmlWriter.WriteAttributeString("template", "liquid");
         _xmlWriter.WriteString(body);
+        _xmlWriter.WriteEndElement();
+    }
+
+    public void SetHeader(string name, string? existsAction, Action? writeValues)
+    {
+        _xmlWriter.WriteStartElement("set-header");
+        _xmlWriter.WriteAttributeString("name", name);
+        _xmlWriter.WriteAttributeStringOpt("exists-action", existsAction);
+        if (writeValues is not null) writeValues();
+        _xmlWriter.WriteEndElement();
+    }
+    internal void SetHeaderValue(string value)
+    {
+        _xmlWriter.WriteElementString("value", value);
+    }
+
+    public void SetStatus(string statusCode, string reason)
+    {
+        _xmlWriter.WriteStartElement("set-status");
+        _xmlWriter.WriteAttributeString("status-code", statusCode);
+        _xmlWriter.WriteAttributeString("reason", reason);
         _xmlWriter.WriteEndElement();
     }
 }

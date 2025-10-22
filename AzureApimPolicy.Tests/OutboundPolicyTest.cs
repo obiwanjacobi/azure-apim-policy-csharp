@@ -14,6 +14,12 @@ internal class OutboundPolicy : PolicyDocument
                 namespaceSeparator: ":", namespacePrefix: "xmlns", attributeBlockName: "#attrs")
             .MockResponse(200, MediaTypeNames.Application.Json)
             .RedirectContentUrls()
+            .ReturnResponse(
+                response => response
+                    .SetHeader("Content-Type", "override", values => values.Add(MediaTypeNames.Application.Json))
+                    .SetStatus(200, "OK")
+                    .SetBody("""{ "data": 42 }""")
+            )
         ;
 
         base.Outbound();
@@ -61,6 +67,26 @@ public class OutboundPolicyTest
         var outbound = _document.Descendants("outbound").Single();
         var redirectContentUrls = outbound.Element("redirect-content-urls");
         Assert.NotNull(redirectContentUrls);
+    }
+
+    [Fact]
+    public void ReturnResponse()
+    {
+        var outbound = _document.Descendants("outbound").Single();
+        var returnResponse = outbound.Element("return-response");
+        Assert.NotNull(returnResponse);
+        var setHeader = returnResponse.Element("set-header");
+        Assert.NotNull(setHeader);
+        Assert.Equal("Content-Type", setHeader.Attribute("name").Value);
+        Assert.Equal("override", setHeader.Attribute("exists-action").Value);
+        Assert.Equal("application/json", setHeader.Value);
+        var setStatus = returnResponse.Element("set-status");
+        Assert.NotNull(setStatus);
+        Assert.Equal("200", setStatus.Attribute("status-code").Value);
+        Assert.Equal("OK", setStatus.Attribute("reason").Value);
+        var setBody = returnResponse.Element("set-body");
+        Assert.NotNull(setBody);
+        Assert.Equal("""{ "data": 42 }""", setBody.Value);
     }
 }
 
