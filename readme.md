@@ -41,7 +41,7 @@
 - [ ] `publish-event` https://learn.microsoft.com/en-us/azure/api-management/publish-event-policy
 - [x] `publish-to-dapr` https://learn.microsoft.com/en-us/azure/api-management/publish-to-dapr-policy
 - [x] `quota` https://learn.microsoft.com/en-us/azure/api-management/quota-policy
-- [ ] `quota-by-key` https://learn.microsoft.com/en-us/azure/api-management/quota-by-key-policy
+- [x] `quota-by-key` https://learn.microsoft.com/en-us/azure/api-management/quota-by-key-policy
 - [ ] `rate-limit` https://learn.microsoft.com/en-us/azure/api-management/rate-limit-policy
 - [ ] `rate-limit-by-key` https://learn.microsoft.com/en-us/azure/api-management/rate-limit-by-key-policy
 - [ ] `redirect-content-urls` https://learn.microsoft.com/en-us/azure/api-management/redirect-content-urls-policy
@@ -82,3 +82,5 @@
 - [ ] PolicyExpression: TypeHint to document expected (result) type of literal or code expression
 - [ ] CodeExpression: `{{named-value}}` in code. Compiler will fail.
 - [ ] CodeExpression Compiler: `(string)Context.Variables["connectionId"]` error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+- [ ] Int32: validate non-negative or use uint.
+- [ ] 

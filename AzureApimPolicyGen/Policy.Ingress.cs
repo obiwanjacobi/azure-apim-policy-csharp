@@ -1,4 +1,6 @@
-﻿namespace AzureApimPolicyGen;
+﻿using System.Globalization;
+
+namespace AzureApimPolicyGen;
 
 //https://learn.microsoft.com/en-us/azure/api-management/api-management-policies#rate-limiting-and-quotas
 
@@ -9,6 +11,9 @@ public interface IIngress
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/quota-policy</summary>
     IPolicyDocument Quota(int numberOfCalls, int bandwidthKB, int renewalPeriodSeconds, Action<IQuotaApi> apis);
+
+    /// <summary></summary>
+    IPolicyDocument QuotaByKey(PolicyExpression counterKey, int numberOfCalls, int bandwidthKB, int renewalPeriodSeconds, PolicyExpression? incrementCount = null, PolicyExpression? incrementCondition = null, DateTime? firstPeriodStart = null);
 }
 
 public interface IQuotaApi
@@ -81,6 +86,19 @@ partial class PolicyDocument
                 throw new ArgumentException($"Either {nameof(id)} and {nameof(name)} must be filled. Not Both", $"{nameof(id)}+{nameof(name)}");
         }
     }
+
+    public IPolicyDocument QuotaByKey(PolicyExpression counterKey, int numberOfCalls, int bandwidthKB, int renewalPeriodSeconds,
+        PolicyExpression? incrementCount = null, PolicyExpression? incrementCondition = null, DateTime? firstPeriodStart = null)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        QuotaValidate(numberOfCalls, bandwidthKB);
+        if (renewalPeriodSeconds < 300 && renewalPeriodSeconds != 0)
+            throw new ArgumentOutOfRangeException(nameof(renewalPeriodSeconds), "Value must be 300 minimum or 0.");
+        Writer.QuotaByKey(counterKey, QuotaIntToString(numberOfCalls), QuotaIntToString(bandwidthKB), renewalPeriodSeconds.ToString(),
+            incrementCount, incrementCondition, firstPeriodStart?.ToString("o", CultureInfo.InvariantCulture));
+        return this;
+    }
 }
 
 partial class PolicyXmlWriter
@@ -126,5 +144,17 @@ partial class PolicyXmlWriter
         _xmlWriter.WriteAttributeStringOpt("calls", calls);
         _xmlWriter.WriteAttributeStringOpt("bandwidth", bandwidth);
         _xmlWriter.WriteAttributeString("renewal-period", renewalPeriod);
+    }
+
+    public void QuotaByKey(string counterKey, string? calls, string? bandwidth, string renewalPeriod,
+        string? incrementCount, string? incrementCondition, string? firstPeriodStart)
+    {
+        _xmlWriter.WriteStartElement("quota-by-key");
+        _xmlWriter.WriteAttributeString("counter-key", counterKey);
+        QuotaAttributes(calls, bandwidth, renewalPeriod);
+        _xmlWriter.WriteAttributeStringOpt("increment-count", incrementCount);
+        _xmlWriter.WriteAttributeStringOpt("increment-condition", incrementCondition);
+        _xmlWriter.WriteAttributeStringOpt("first-period-start", firstPeriodStart);
+        _xmlWriter.WriteEndElement();
     }
 }

@@ -86,14 +86,6 @@ public abstract partial class PolicyDocument : IPolicyDocument
         if ((_scopes & policyScopes) == 0)
             throw new InvalidOperationException($"Function '{callerName}' cannot be called in scope(s) {_scopes.ToString()}.");
     }
-    private static string? CacheTypeToString(CacheType? cacheType)
-        => cacheType switch
-        {
-            CacheType.Internal => "internal",
-            CacheType.External => "external",
-            CacheType.PreferExternal => "prefer-external",
-            _ => null
-        };
 }
 
 internal enum PolicySection

@@ -113,6 +113,15 @@ partial class PolicyDocument
             return this;
         }
     }
+
+    private static string? CacheTypeToString(CacheType? cacheType)
+        => cacheType switch
+        {
+            CacheType.Internal => "internal",
+            CacheType.External => "external",
+            CacheType.PreferExternal => "prefer-external",
+            _ => null
+        };
 }
 
 partial class PolicyXmlWriter

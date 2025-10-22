@@ -30,6 +30,8 @@ internal class InboundPolicy : PolicyDocument
             .Quota(1000, 1024, 3600,
                 api => api.Add(null, "api", 500, 1024, 1200,
                     operations => operations.Add(null, "operation", 500, 512, 1200)))
+            .QuotaByKey(PolicyExpression.FromCode("Context.Request.IpAddress"), 1000, 4000, 3600,
+                incrementCondition: PolicyExpression.FromCode("Context.Response.StatusCode >= 200 && Context.Response.StatusCode < 400"))
         ;
 
         base.Inbound();
@@ -181,6 +183,19 @@ public class InboundPolicyTest
         Assert.Equal("500", operation.Attribute("calls").Value);
         Assert.Equal("512", operation.Attribute("bandwidth").Value);
         Assert.Equal("1200", operation.Attribute("renewal-period").Value);
+    }
+
+    [Fact]
+    public void QuotaByKey()
+    {
+        var inbound = _document.Descendants("inbound").Single();
+        var quotaByKey = inbound.Element("quota-by-key");
+        Assert.NotNull(quotaByKey);
+        Assert.Equal("@(Context.Request.IpAddress)", quotaByKey.Attribute("counter-key").Value);
+        Assert.Equal("1000", quotaByKey.Attribute("calls").Value);
+        Assert.Equal("4000", quotaByKey.Attribute("bandwidth").Value);
+        Assert.Equal("3600", quotaByKey.Attribute("renewal-period").Value);
+        Assert.Equal("@(Context.Response.StatusCode >= 200 && Context.Response.StatusCode < 400)", quotaByKey.Attribute("increment-condition").Value);
     }
 }
 
