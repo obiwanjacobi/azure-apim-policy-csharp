@@ -42,7 +42,7 @@
 - [x] `publish-to-dapr` https://learn.microsoft.com/en-us/azure/api-management/publish-to-dapr-policy
 - [x] `quota` https://learn.microsoft.com/en-us/azure/api-management/quota-policy
 - [x] `quota-by-key` https://learn.microsoft.com/en-us/azure/api-management/quota-by-key-policy
-- [ ] `rate-limit` https://learn.microsoft.com/en-us/azure/api-management/rate-limit-policy
+- [x] `rate-limit` https://learn.microsoft.com/en-us/azure/api-management/rate-limit-policy
 - [ ] `rate-limit-by-key` https://learn.microsoft.com/en-us/azure/api-management/rate-limit-by-key-policy
 - [ ] `redirect-content-urls` https://learn.microsoft.com/en-us/azure/api-management/redirect-content-urls-policy
 - [ ] `retry` https://learn.microsoft.com/en-us/azure/api-management/retry-policy

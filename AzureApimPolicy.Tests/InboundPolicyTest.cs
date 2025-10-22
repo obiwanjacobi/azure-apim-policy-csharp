@@ -32,6 +32,9 @@ internal class InboundPolicy : PolicyDocument
                     operations => operations.Add(null, "operation", 500, 512, 1200)))
             .QuotaByKey(PolicyExpression.FromCode("Context.Request.IpAddress"), 1000, 4000, 3600,
                 incrementCondition: PolicyExpression.FromCode("Context.Response.StatusCode >= 200 && Context.Response.StatusCode < 400"))
+            .RateLimit(100, 100, "retryVar", "X-Retry-After", "remainingVar", "X-Remaining-Calls", "X-Total-Calls",
+                apis => apis.Add(null, "myApi", 100, 100,
+                    operations => operations.Add(null, "myOp", 10, 100)))
         ;
 
         base.Inbound();
@@ -196,6 +199,31 @@ public class InboundPolicyTest
         Assert.Equal("4000", quotaByKey.Attribute("bandwidth").Value);
         Assert.Equal("3600", quotaByKey.Attribute("renewal-period").Value);
         Assert.Equal("@(Context.Response.StatusCode >= 200 && Context.Response.StatusCode < 400)", quotaByKey.Attribute("increment-condition").Value);
+    }
+
+    [Fact]
+    public void RateLimit()
+    {
+        var inbound = _document.Descendants("inbound").Single();
+        var rateLimit = inbound.Element("rate-limit");
+        Assert.NotNull(rateLimit);
+        Assert.Equal("100", rateLimit.Attribute("calls").Value);
+        Assert.Equal("100", rateLimit.Attribute("renewal-period").Value);
+        Assert.Equal("retryVar", rateLimit.Attribute("retry-after-variable-name").Value);
+        Assert.Equal("X-Retry-After", rateLimit.Attribute("retry-after-header-name").Value);
+        Assert.Equal("remainingVar", rateLimit.Attribute("remaining-calls-variable-name").Value);
+        Assert.Equal("X-Remaining-Calls", rateLimit.Attribute("remaining-calls-header-name").Value);
+        Assert.Equal("X-Total-Calls", rateLimit.Attribute("total-calls-header-name").Value);
+        var api = rateLimit.Element("api");
+        Assert.NotNull(api);
+        Assert.Equal("myApi", api.Attribute("name").Value);
+        Assert.Equal("100", api.Attribute("calls").Value);
+        Assert.Equal("100", api.Attribute("renewal-period").Value);
+        var operation = api.Element("operation");
+        Assert.NotNull(operation);
+        Assert.Equal("myOp", operation.Attribute("name").Value);
+        Assert.Equal("10", operation.Attribute("calls").Value);
+        Assert.Equal("100", operation.Attribute("renewal-period").Value);
     }
 }
 
