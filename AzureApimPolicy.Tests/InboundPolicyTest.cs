@@ -35,6 +35,9 @@ internal class InboundPolicy : PolicyDocument
             .RateLimit(100, 100, "retryVar", "X-Retry-After", "remainingVar", "X-Remaining-Calls", "X-Total-Calls",
                 apis => apis.Add(null, "myApi", 100, 100,
                     operations => operations.Add(null, "myOp", 10, 100)))
+            .RateLimitByKey(PolicyExpression.FromCode("Context.Request.IpAddress"), 100, 60, null,
+                PolicyExpression.FromCode("Context.Response.StatusCode == 200"),
+                "retryVar", "X-Retry-After", "remainingVar", "X-Remaining-Calls", "X-Total-Calls")
         ;
 
         base.Inbound();
@@ -224,6 +227,22 @@ public class InboundPolicyTest
         Assert.Equal("myOp", operation.Attribute("name").Value);
         Assert.Equal("10", operation.Attribute("calls").Value);
         Assert.Equal("100", operation.Attribute("renewal-period").Value);
+    }
+
+    [Fact]
+    public void RateLimitByKey()
+    {
+        var inbound = _document.Descendants("inbound").Single();
+        var rateLimitByKey = inbound.Element("rate-limit-by-key");
+        Assert.NotNull(rateLimitByKey);
+        Assert.Equal("@(Context.Request.IpAddress)", rateLimitByKey.Attribute("counter-key").Value);
+        Assert.Equal("100", rateLimitByKey.Attribute("calls").Value);
+        Assert.Equal("60", rateLimitByKey.Attribute("renewal-period").Value);
+        Assert.Equal("X-Retry-After", rateLimitByKey.Attribute("retry-after-header-name").Value);
+        Assert.Equal("remainingVar", rateLimitByKey.Attribute("remaining-calls-variable-name").Value);
+        Assert.Equal("X-Remaining-Calls", rateLimitByKey.Attribute("remaining-calls-header-name").Value);
+        Assert.Equal("X-Total-Calls", rateLimitByKey.Attribute("total-calls-header-name").Value);
+        Assert.Equal("@(Context.Response.StatusCode == 200)", rateLimitByKey.Attribute("increment-condition").Value);
     }
 }
 

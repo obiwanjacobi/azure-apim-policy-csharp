@@ -20,6 +20,12 @@ public interface IIngress
     IPolicyDocument RateLimit(int numberOfCalls, int renewalPeriodSeconds, PolicyVariable? retryAfterVariableName = null, string? retryAfterHeaderName = null,
         PolicyVariable? remainingCallsVariableName = null, string? remainingCallsHeaderName = null, string? totalCallsHeaderName = null,
         Action<IRateLimitApi>? apis = null);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/rate-limit-by-key-policy</summary>
+    IPolicyDocument RateLimitByKey(PolicyExpression counterKey, PolicyExpression numberOfCalls, PolicyExpression renewalPeriodSeconds,
+        PolicyExpression? incrementCount = null, PolicyExpression? incrementCondition = null,
+        PolicyVariable? retryAfterVariableName = null, string? retryAfterHeaderName = null,
+        PolicyVariable? remainingCallsVariableName = null, string? remainingCallsHeaderName = null, string? totalCallsHeaderName = null);
 }
 
 public interface IQuotaApi
@@ -150,6 +156,18 @@ partial class PolicyDocument
             return this;
         }
     }
+
+    public IPolicyDocument RateLimitByKey(PolicyExpression counterKey, PolicyExpression numberOfCalls, PolicyExpression renewalPeriodSeconds,
+        PolicyExpression? incrementCount = null, PolicyExpression? incrementCondition = null,
+        PolicyVariable? retryAfterVariableName = null, string? retryAfterHeaderName = null,
+        PolicyVariable? remainingCallsVariableName = null, string? remainingCallsHeaderName = null, string? totalCallsHeaderName = null)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        Writer.RateLimitByKey(counterKey, numberOfCalls, renewalPeriodSeconds, incrementCount, incrementCondition,
+            retryAfterVariableName, retryAfterHeaderName, remainingCallsVariableName, remainingCallsHeaderName, totalCallsHeaderName);
+        return this;
+    }
 }
 
 partial class PolicyXmlWriter
@@ -203,10 +221,14 @@ partial class PolicyXmlWriter
         _xmlWriter.WriteStartElement("quota-by-key");
         _xmlWriter.WriteAttributeString("counter-key", counterKey);
         QuotaAttributes(calls, bandwidth, renewalPeriod);
-        _xmlWriter.WriteAttributeStringOpt("increment-count", incrementCount);
-        _xmlWriter.WriteAttributeStringOpt("increment-condition", incrementCondition);
+        QuotaIncrement(incrementCount, incrementCondition);
         _xmlWriter.WriteAttributeStringOpt("first-period-start", firstPeriodStart);
         _xmlWriter.WriteEndElement();
+    }
+    private void QuotaIncrement(string? incrementCount, string? incrementCondition)
+    {
+        _xmlWriter.WriteAttributeStringOpt("increment-count", incrementCount);
+        _xmlWriter.WriteAttributeStringOpt("increment-condition", incrementCondition);
     }
 
     public void RateLimit(string calls, string renewalPeriod, string? retryAfterVariableName, string? retryAfterHeaderName,
@@ -214,11 +236,7 @@ partial class PolicyXmlWriter
     {
         _xmlWriter.WriteStartElement("rate-limit");
         RateLimitAttributes(calls, renewalPeriod);
-        _xmlWriter.WriteAttributeStringOpt("retry-after-variable-name", retryAfterVariableName);
-        _xmlWriter.WriteAttributeStringOpt("retry-after-header-name", retryAfterHeaderName);
-        _xmlWriter.WriteAttributeStringOpt("remaining-calls-variable-name", remainingCallsVariableName);
-        _xmlWriter.WriteAttributeStringOpt("remaining-calls-header-name", remainingCallsHeaderName);
-        _xmlWriter.WriteAttributeStringOpt("total-calls-header-name", totalCallsHeaderName);
+        RateLimitStats(retryAfterVariableName, retryAfterHeaderName, remainingCallsVariableName, remainingCallsHeaderName, totalCallsHeaderName);
         if (writeApis is not null) writeApis();
         _xmlWriter.WriteEndElement();
     }
@@ -243,5 +261,26 @@ partial class PolicyXmlWriter
     {
         _xmlWriter.WriteAttributeString("calls", calls);
         _xmlWriter.WriteAttributeString("renewal-period", renewalPeriod);
+    }
+    internal void RateLimitStats(string? retryAfterVariableName, string? retryAfterHeaderName,
+        string? remainingCallsVariableName, string? remainingCallsHeaderName, string? totalCallsHeaderName)
+    {
+        _xmlWriter.WriteAttributeStringOpt("retry-after-variable-name", retryAfterVariableName);
+        _xmlWriter.WriteAttributeStringOpt("retry-after-header-name", retryAfterHeaderName);
+        _xmlWriter.WriteAttributeStringOpt("remaining-calls-variable-name", remainingCallsVariableName);
+        _xmlWriter.WriteAttributeStringOpt("remaining-calls-header-name", remainingCallsHeaderName);
+        _xmlWriter.WriteAttributeStringOpt("total-calls-header-name", totalCallsHeaderName);
+    }
+
+    public void RateLimitByKey(string counterKey, string calls, string renewalPeriod, string? incrementCount,
+        string? incrementCondition, string? retryAfterVariableName, string? retryAfterHeaderName,
+        string? remainingCallsVariableName, string? remainingCallsHeaderName, string? totalCallsHeaderName)
+    {
+        _xmlWriter.WriteStartElement("rate-limit-by-key");
+        RateLimitAttributes(calls, renewalPeriod);
+        _xmlWriter.WriteAttributeString("counter-key", counterKey);
+        QuotaIncrement(incrementCount, incrementCondition);
+        RateLimitStats(retryAfterVariableName, retryAfterHeaderName, remainingCallsVariableName, remainingCallsHeaderName, totalCallsHeaderName);
+        _xmlWriter.WriteEndElement();
     }
 }
