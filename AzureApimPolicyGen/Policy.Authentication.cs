@@ -10,8 +10,6 @@ public interface IAuthentication
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/authentication-certificate-policy</summary>
     IPolicyDocument AuthenticationCertificate(PolicyExpression thumbprint, PolicyExpression certificate, PolicyExpression? body = null, PolicyExpression? password = null);
 
-    // TODO: use in 'send-request'
-    // https://learn.microsoft.com/en-us/azure/api-management/authentication-managed-identity-policy#use-managed-identity-in-send-request-policy
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/authentication-managed-identity-policy</summary>
     IPolicyDocument AuthenticationManagedIdentity(PolicyExpression resource, string? clientId = null, PolicyVariable? outputTokenVariableName = null, bool? ignoreError = false);
 

@@ -29,6 +29,7 @@ public interface ISendRequestActions
     ISendRequestActions SetHeader(PolicyExpression name, PolicyExpression? existsAction = null, Action<ISetHeaderValue>? values = null);
     ISendRequestActions SetBody(PolicyExpression body);
     ISendRequestActions AuthenticationCertificate(PolicyExpression thumbprint, PolicyExpression certificate, PolicyExpression? body = null, PolicyExpression? password = null);
+    ISendRequestActions AuthenticationManagedIdentity(PolicyExpression resource, string? clientId = null, PolicyVariable? outputTokenVariableName = null, bool? ignoreError = false);
     ISendRequestActions Proxy(PolicyExpression url, PolicyExpression? username = null, PolicyExpression? password = null);
 }
 
@@ -97,6 +98,12 @@ partial class PolicyDocument
         public ISendRequestActions AuthenticationCertificate(PolicyExpression thumbprint, PolicyExpression certificate, PolicyExpression? body = null, PolicyExpression? password = null)
         {
             _document.AuthenticationCertificateInternal(thumbprint, certificate, body, password);
+            return this;
+        }
+
+        public ISendRequestActions AuthenticationManagedIdentity(PolicyExpression resource, string? clientId = null, PolicyVariable? outputTokenVariableName = null, bool? ignoreError = false)
+        {
+            _document.AuthenticationManagedIdentity(resource, clientId, outputTokenVariableName, ignoreError);
             return this;
         }
 
