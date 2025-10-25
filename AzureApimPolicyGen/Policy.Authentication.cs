@@ -28,6 +28,9 @@ public interface IAuthentication
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/validate-client-certificate-policy</summary>
     IPolicyDocument ValidateClientCertificate(bool? validateRevocation = null, bool? validateTrust = null, bool? validateNotBefore = null, bool? validateNotAfter = null, bool? ignoreError = null, Action<IValidateClientCertificateIdentities>? identities = null);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/validate-jwt-policy</summary>
+    IPolicyDocument ValidateJwt(PolicyExpression? headerName = null, PolicyExpression? queryParameterName = null, PolicyExpression? tokenValue = null, PolicyExpression? failedValidationHttpCode = null, PolicyExpression? failedValidationErrorMessage = null, PolicyExpression? requireExpirationTime = null, PolicyExpression? requireScheme = null, PolicyExpression? requireSignedTokens = null, PolicyExpression? clockSkewSeconds = null, PolicyVariable? outputTokenVariableName = null, Action<IValidateJwtActions>? jwtActions = null);
 }
 
 public interface IIpFilterAddress
@@ -46,12 +49,12 @@ public interface IValidateAzureAdTokenActions
     IValidateAzureAdTokenActions BackendApplicationIds(params IEnumerable<string> appIds);
     IValidateAzureAdTokenActions ClientApplicationIds(params IEnumerable<string> appIds);
     IValidateAzureAdTokenActions Audiences(params IEnumerable<string> audiences);
-    IValidateAzureAdTokenActions RequiredClaims(Action<IValidateAzureAdTokenClaims> claims);
+    IValidateAzureAdTokenActions RequiredClaims(Action<IValidateAzureRequiredClaims> claims);
     IValidateAzureAdTokenActions DecryptionKeys(params IEnumerable<string> certificateIds);
 }
-public interface IValidateAzureAdTokenClaims
+public interface IValidateAzureRequiredClaims
 {
-    IValidateAzureAdTokenClaims Add(PolicyExpression name, Action<IValidateAzureAdTokenClaimValues> values, PolicyExpression? match = null, PolicyExpression? separator = null);
+    IValidateAzureRequiredClaims Add(PolicyExpression name, Action<IValidateAzureAdTokenClaimValues> values, PolicyExpression? match = null, PolicyExpression? separator = null);
 }
 public interface IValidateAzureAdTokenClaimValues
 {
@@ -61,6 +64,26 @@ public interface IValidateAzureAdTokenClaimValues
 public interface IValidateClientCertificateIdentities
 {
     IValidateClientCertificateIdentities Add(string? thumbprint = null, string? serialNumber = null, string? commonName = null, string? subject = null, string? dnsName = null, string? issuerSubject = null, string? issuerThumbprint = null, string? issuerCertificateId = null);
+}
+
+public interface IValidateJwtActions
+{
+    IValidateJwtActions OpenIdConfig(params IEnumerable<string> urls);
+    IValidateJwtActions IssuerSigningKeys(Action<IValidateJwtIssuersSigningKeys> keys);
+    IValidateJwtActions DecryptionKeys(Action<IValidateJwtDecryptionKeys> keys);
+    IValidateJwtActions Audiences(params IEnumerable<string> audiences);
+    IValidateJwtActions Issuers(params IEnumerable<string> issuers);
+    IValidateJwtActions RequiredClaims(Action<IValidateAzureRequiredClaims> claims);
+}
+
+public interface IValidateJwtIssuersSigningKeys
+{
+    IValidateJwtIssuersSigningKeys Add(PolicyExpression? keyBase64 = null, string? certificateId = null, string? id = null, string? n = null, string? e = null);
+}
+
+public interface IValidateJwtDecryptionKeys
+{
+    IValidateJwtDecryptionKeys Add(PolicyExpression? keyBase64 = null, string? certificateId = null);
 }
 
 partial class PolicyDocument
@@ -161,17 +184,21 @@ partial class PolicyDocument
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.All);
-        if ((headerName is not null && (queryParameterName is not null || tokenValue is not null)) ||
-            (queryParameterName is not null && (headerName is not null || tokenValue is not null)) ||
-            (tokenValue is not null && (queryParameterName is not null || headerName is not null)))
-            throw new ArgumentException($"Only one of {nameof(headerName)} or {nameof(queryParameterName)} or {nameof(tokenValue)} should be filled.", $"{nameof(headerName)}+{nameof(queryParameterName)}+{nameof(tokenValue)}");
-
+        ThrowOnlyOne(headerName, queryParameterName, tokenValue);
         Action? writeNested = validationActions is null ? null : () => validationActions(new ValidateAzureAdTokenActions(Writer));
         Writer.ValidateAzureAdToken(tenantIdOrUrl, headerName, queryParameterName, tokenValue, authenticationEndpoint, failedValidationHttpCode, failedValidationErrorMessage, outputTokenVariableName, writeNested);
         return this;
     }
 
-    private sealed class ValidateAzureAdTokenActions : IValidateAzureAdTokenActions, IValidateAzureAdTokenClaims, IValidateAzureAdTokenClaimValues
+    private static void ThrowOnlyOne(string? headerName, string? queryParameterName, string? tokenValue)
+    {
+        if ((headerName is not null && (queryParameterName is not null || tokenValue is not null)) ||
+            (queryParameterName is not null && (headerName is not null || tokenValue is not null)) ||
+            (tokenValue is not null && (queryParameterName is not null || headerName is not null)))
+            throw new ArgumentException($"Only one of {nameof(headerName)} or {nameof(queryParameterName)} or {nameof(tokenValue)} should be filled.", $"{nameof(headerName)}+{nameof(queryParameterName)}+{nameof(tokenValue)}");
+    }
+
+    private sealed class ValidateAzureAdTokenActions : IValidateAzureAdTokenActions, IValidateAzureRequiredClaims, IValidateAzureAdTokenClaimValues
     {
         private readonly PolicyXmlWriter _writer;
         public ValidateAzureAdTokenActions(PolicyXmlWriter writer) { _writer = writer; }
@@ -194,9 +221,9 @@ partial class PolicyDocument
             return this;
         }
 
-        public IValidateAzureAdTokenActions RequiredClaims(Action<IValidateAzureAdTokenClaims> claims)
+        public IValidateAzureAdTokenActions RequiredClaims(Action<IValidateAzureRequiredClaims> claims)
         {
-            _writer.ValidateAzureAdToken_RequiredClaims(() => claims(this));
+            _writer.ValidateRequiredClaims(() => claims(this));
             return this;
         }
 
@@ -206,15 +233,15 @@ partial class PolicyDocument
             return this;
         }
 
-        public IValidateAzureAdTokenClaims Add(PolicyExpression name, Action<IValidateAzureAdTokenClaimValues> values, PolicyExpression? match = null, PolicyExpression? separator = null)
+        public IValidateAzureRequiredClaims Add(PolicyExpression name, Action<IValidateAzureAdTokenClaimValues> values, PolicyExpression? match = null, PolicyExpression? separator = null)
         {
-            _writer.ValidateAzureAdToken_RequiredClaim(name, match, separator, () => values(this));
+            _writer.ValidateRequiredClaim(name, match, separator, () => values(this));
             return this;
         }
 
         public IValidateAzureAdTokenClaimValues Add(PolicyExpression value)
         {
-            _writer.ValidateAzureAdToken_RequiredClaimValue(value);
+            _writer.ValidateRequiredClaimValue(value);
             return this;
         }
     }
@@ -239,6 +266,83 @@ partial class PolicyDocument
                 throw new ArgumentException($"Specifying {nameof(issuerCertificateId)} is mutually exclusive with other issuer parameters.", $"{nameof(issuerSubject)}+{nameof(issuerThumbprint)}");
 
             _writer.ValidateClientCertificateIdentity(thumbprint, serialNumber, commonName, subject, dnsName, issuerSubject, issuerThumbprint, issuerCertificateId);
+            return this;
+        }
+    }
+
+    public IPolicyDocument ValidateJwt(PolicyExpression? headerName = null, PolicyExpression? queryParameterName = null, PolicyExpression? tokenValue = null, PolicyExpression? failedValidationHttpCode = null, PolicyExpression? failedValidationErrorMessage = null, PolicyExpression? requireExpirationTime = null, PolicyExpression? requireScheme = null, PolicyExpression? requireSignedTokens = null, PolicyExpression? clockSkewSeconds = null, PolicyVariable? outputTokenVariableName = null, Action<IValidateJwtActions>? jwtActions = null)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        ThrowOnlyOne(headerName, queryParameterName, tokenValue);
+        Action? writeActions = jwtActions is null ? null : () => jwtActions(new ValidateJwtActions(Writer));
+        Writer.ValidateJwt(headerName, queryParameterName, tokenValue, failedValidationHttpCode, failedValidationErrorMessage, requireExpirationTime, requireScheme, requireSignedTokens, clockSkewSeconds, outputTokenVariableName, writeActions);
+        return this;
+    }
+
+    private sealed class ValidateJwtActions : IValidateJwtActions, IValidateJwtDecryptionKeys, IValidateJwtIssuersSigningKeys, IValidateAzureRequiredClaims, IValidateAzureAdTokenClaimValues
+    {
+        private readonly PolicyXmlWriter _writer;
+        public ValidateJwtActions(PolicyXmlWriter writer) { _writer = writer; }
+
+        public IValidateJwtActions OpenIdConfig(params IEnumerable<string> urls)
+        {
+            foreach (var url in urls)
+                _writer.ValidateJwtOpenIdConfig(url);
+            return this;
+        }
+
+        public IValidateJwtActions IssuerSigningKeys(Action<IValidateJwtIssuersSigningKeys> keys)
+        {
+            _writer.ValidateJwtIssuerSigningKeys(() => keys(this));
+            return this;
+        }
+
+        public IValidateJwtActions DecryptionKeys(Action<IValidateJwtDecryptionKeys> keys)
+        {
+            _writer.ValidateJwtDecryptionKeys(() => keys(this));
+            return this;
+        }
+
+        public IValidateJwtActions Audiences(params IEnumerable<string> audiences)
+        {
+            _writer.ValidateJwtAudiences(audiences);
+            return this;
+        }
+
+        public IValidateJwtActions Issuers(params IEnumerable<string> issuers)
+        {
+            _writer.ValidateJwtIssuers(issuers);
+            return this;
+        }
+
+        public IValidateJwtActions RequiredClaims(Action<IValidateAzureRequiredClaims> claims)
+        {
+            _writer.ValidateRequiredClaims(() => claims(this));
+            return this;
+        }
+
+        public IValidateJwtDecryptionKeys Add(PolicyExpression? keyBase64 = null, string? certificateId = null)
+        {
+            _writer.ValidateJwtDecryptionKey(keyBase64, certificateId);
+            return this;
+        }
+
+        public IValidateJwtIssuersSigningKeys Add(PolicyExpression? keyBase64 = null, string? certificateId = null, string? id = null, string? n = null, string? e = null)
+        {
+            _writer.ValidateJwtIssuerSigingKey(keyBase64, certificateId, id, n, e);
+            return this;
+        }
+
+        public IValidateAzureRequiredClaims Add(PolicyExpression name, Action<IValidateAzureAdTokenClaimValues> values, PolicyExpression? match = null, PolicyExpression? separator = null)
+        {
+            _writer.ValidateRequiredClaim(name, match, separator, () => values(this));
+            return this;
+        }
+
+        public IValidateAzureAdTokenClaimValues Add(PolicyExpression value)
+        {
+            _writer.ValidateRequiredClaimValue(value);
             return this;
         }
     }
@@ -356,12 +460,6 @@ partial class PolicyXmlWriter
             _xmlWriter.WriteElementString("audience", audience);
         _xmlWriter.WriteEndElement();
     }
-    internal void ValidateAzureAdToken_RequiredClaims(Action writeClaims)
-    {
-        _xmlWriter.WriteStartElement("required-claims");
-        writeClaims();
-        _xmlWriter.WriteEndElement();
-    }
     internal void ValidateAzureAdToken_CertificateIds(IEnumerable<string> certificateIds)
     {
         _xmlWriter.WriteStartElement("decryption-keys");
@@ -373,7 +471,13 @@ partial class PolicyXmlWriter
         }
         _xmlWriter.WriteEndElement();
     }
-    internal void ValidateAzureAdToken_RequiredClaim(string name, string? match, string? separator, Action writeValues)
+    internal void ValidateRequiredClaims(Action writeClaims)
+    {
+        _xmlWriter.WriteStartElement("required-claims");
+        writeClaims();
+        _xmlWriter.WriteEndElement();
+    }
+    internal void ValidateRequiredClaim(string name, string? match, string? separator, Action writeValues)
     {
         _xmlWriter.WriteStartElement("claim");
         _xmlWriter.WriteAttributeString("name", name);
@@ -382,7 +486,7 @@ partial class PolicyXmlWriter
         writeValues();
         _xmlWriter.WriteEndElement();
     }
-    internal void ValidateAzureAdToken_RequiredClaimValue(PolicyExpression value)
+    internal void ValidateRequiredClaimValue(PolicyExpression value)
     {
         _xmlWriter.WriteElementString("value", value);
     }
@@ -414,6 +518,81 @@ partial class PolicyXmlWriter
         _xmlWriter.WriteAttributeStringOpt("issuer-subject", issuerSubject);
         _xmlWriter.WriteAttributeStringOpt("issuer-thumbprint", issuerThumbprint);
         _xmlWriter.WriteAttributeStringOpt("issuer-certificate-id", issuerCertificateId);
+        _xmlWriter.WriteEndElement();
+    }
+
+    public void ValidateJwt(string? headerName, string? queryParameterName, string? tokenValue, string? failedValidationHttpCode, string? failedValidationErrorMessage, string? requireExpirationTime, string? requireScheme, string? requireSignedTokens, string? clockSkew, string? outputTokenVariableName, Action? writeActions)
+    {
+        _xmlWriter.WriteStartElement("validate-jwt");
+        _xmlWriter.WriteAttributeStringOpt("header-name", headerName);
+        _xmlWriter.WriteAttributeStringOpt("query-parameter-name", queryParameterName);
+        _xmlWriter.WriteAttributeStringOpt("token-value", tokenValue);
+        _xmlWriter.WriteAttributeStringOpt("failed-validation-error-message", failedValidationErrorMessage);
+        _xmlWriter.WriteAttributeStringOpt("failed-validation-httpcode", failedValidationHttpCode);
+        _xmlWriter.WriteAttributeStringOpt("require-expiration-time", requireExpirationTime);
+        _xmlWriter.WriteAttributeStringOpt("require-scheme", requireScheme);
+        _xmlWriter.WriteAttributeStringOpt("require-signed-tokens", requireSignedTokens);
+        _xmlWriter.WriteAttributeStringOpt("clock-skew", clockSkew);
+        _xmlWriter.WriteAttributeStringOpt("output-token-variable-name", outputTokenVariableName);
+        if (writeActions is not null)
+        {
+            writeActions();
+        }
+        _xmlWriter.WriteEndElement();
+    }
+    internal void ValidateJwtOpenIdConfig(string url)
+    {
+        _xmlWriter.WriteStartElement("openid-config");
+        _xmlWriter.WriteAttributeString("url", url);
+        _xmlWriter.WriteEndElement();
+    }
+    internal void ValidateJwtIssuerSigningKeys(Action keys)
+    {
+        _xmlWriter.WriteStartElement("issuer-signing-keys");
+        keys();
+        _xmlWriter.WriteEndElement();
+    }
+    internal void ValidateJwtIssuerSigingKey(string? keyBase64, string? certificateId, string? id, string? n, string? e)
+    {
+        _xmlWriter.WriteStartElement("key");
+        _xmlWriter.WriteAttributeStringOpt("certificate-id", certificateId);
+        _xmlWriter.WriteAttributeStringOpt("id", id);
+        _xmlWriter.WriteAttributeStringOpt("n", n);
+        _xmlWriter.WriteAttributeStringOpt("e", e);
+        if (keyBase64 is not null)
+            _xmlWriter.WriteString(keyBase64);
+        _xmlWriter.WriteEndElement();
+
+    }
+    internal void ValidateJwtDecryptionKeys(Action keys)
+    {
+        _xmlWriter.WriteStartElement("decryption-keys");
+        keys();
+        _xmlWriter.WriteEndElement();
+
+    }
+    internal void ValidateJwtDecryptionKey(string? keyBase64, string? certificateId)
+    {
+        _xmlWriter.WriteStartElement("key");
+        _xmlWriter.WriteAttributeStringOpt("certificate-id", certificateId);
+        if (keyBase64 is not null)
+            _xmlWriter.WriteString(keyBase64);
+        _xmlWriter.WriteEndElement();
+
+    }
+    internal void ValidateJwtAudiences(IEnumerable<string> audiences)
+    {
+        _xmlWriter.WriteStartElement("audiences");
+        foreach (var audience in audiences)
+            _xmlWriter.WriteElementString("audience", audience);
+        _xmlWriter.WriteEndElement();
+
+    }
+    internal void ValidateJwtIssuers(IEnumerable<string> issuers)
+    {
+        _xmlWriter.WriteStartElement("issuers");
+        foreach (var issuer in issuers)
+            _xmlWriter.WriteElementString("issuer", issuer);
         _xmlWriter.WriteEndElement();
     }
 }

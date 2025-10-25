@@ -50,6 +50,15 @@ internal class InboundPolicy : PolicyDocument
                 )
             .ValidateClientCertificate(true, true, true, true, false,
                 identities => identities.Add("thumbprint", "serialNumber", "commonName", "subject", "dnsName", "issuerSubject", "issuerThumbprint"))
+            .ValidateJwt("headerName", null, null, 401, "access denied", true, "scheme", true, 100, "outputVar",
+                actions => actions
+                    .Audiences("audience")
+                    .DecryptionKeys(keys => keys.Add("keyBase64", "certId"))
+                    .Issuers("issuer")
+                    .IssuerSigningKeys(keys => keys.Add("keyBase64", "certId", "id", "n", "e"))
+                    .OpenIdConfig("openid")
+                    .RequiredClaims(claims => claims.Add("claim", values => values.Add("admin"), "all")))
+
         ;
 
         base.Inbound();
@@ -333,6 +342,49 @@ public class InboundPolicyTest
         Assert.Equal("dnsName", identity.Attribute("dns-name").Value);
         Assert.Equal("issuerSubject", identity.Attribute("issuer-subject").Value);
         Assert.Equal("issuerThumbprint", identity.Attribute("issuer-thumbprint").Value);
+    }
+
+    [Fact]
+    public void ValidateJwt()
+    {
+        var inbound = _document.Descendants("inbound").Single();
+        var validateJwt = inbound.Element("validate-jwt");
+        Assert.NotNull(validateJwt);
+        Assert.Equal("headerName", validateJwt.Attribute("header-name").Value);
+        Assert.Equal("401", validateJwt.Attribute("failed-validation-httpcode").Value);
+        Assert.Equal("access denied", validateJwt.Attribute("failed-validation-error-message").Value);
+        Assert.Equal("true", validateJwt.Attribute("require-expiration-time").Value);
+        Assert.Equal("scheme", validateJwt.Attribute("require-scheme").Value);
+        Assert.Equal("true", validateJwt.Attribute("require-signed-tokens").Value);
+        Assert.Equal("100", validateJwt.Attribute("clock-skew").Value);
+        Assert.Equal("outputVar", validateJwt.Attribute("output-token-variable-name").Value);
+        var openIdConfig = validateJwt.Element("openid-config");
+        Assert.NotNull(openIdConfig);
+        Assert.Equal("openid", openIdConfig.Attribute("url").Value);
+        var issuerSigningKeys = validateJwt.Element("issuer-signing-keys");
+        Assert.NotNull(issuerSigningKeys);
+        var key = issuerSigningKeys.Element("key");
+        Assert.NotNull(key);
+        Assert.Equal("keyBase64", key.Value);
+        Assert.Equal("certId", key.Attribute("certificate-id").Value);
+        Assert.Equal("id", key.Attribute("id").Value);
+        Assert.Equal("n", key.Attribute("n").Value);
+        Assert.Equal("e", key.Attribute("e").Value);
+        var audiences = validateJwt.Element("audiences");
+        Assert.NotNull(audiences);
+        Assert.Equal("audience", audiences.Element("audience").Value);
+        var decryptionKeys = validateJwt.Element("decryption-keys");
+        Assert.NotNull(decryptionKeys);
+        key = decryptionKeys.Element("key");
+        Assert.NotNull(key);
+        Assert.Equal("keyBase64", key.Value);
+        Assert.Equal("certId", key.Attribute("certificate-id").Value);
+        var requiredClaims = validateJwt.Element("required-claims");
+        Assert.NotNull(requiredClaims);
+        var claim = requiredClaims.Element("claim");
+        Assert.Equal("claim", claim.Attribute("name").Value);
+        Assert.Equal("all", claim.Attribute("match").Value);
+        Assert.Equal("admin", claim.Value);
     }
 }
 
