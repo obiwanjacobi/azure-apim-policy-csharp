@@ -51,7 +51,7 @@
 - [x] `send-one-way-request` https://learn.microsoft.com/en-us/azure/api-management/send-one-way-request-policy
 - [x] `send-service-bus-message` https://learn.microsoft.com/en-us/azure/api-management/send-service-bus-message-policy
 - [x] `send-request` https://learn.microsoft.com/en-us/azure/api-management/send-request-policy
-- [ ] `set-backend-service` https://learn.microsoft.com/en-us/azure/api-management/set-backend-service-policy
+- [x] `set-backend-service` https://learn.microsoft.com/en-us/azure/api-management/set-backend-service-policy
 - [ ] `set-backend-service-dapr` https://learn.microsoft.com/en-us/azure/api-management/set-backend-service-dapr-policy
 - [x] `set-body` https://learn.microsoft.com/en-us/azure/api-management/set-body-policy
 - [x] `set-header` https://learn.microsoft.com/en-us/azure/api-management/set-header-policy
@@ -77,10 +77,10 @@
 
 ## TODO
 
-- [ ] Variables: check exists
+- [ ] Variables: check exists (variable-referense in policies are typically created on demand)
 - [ ] Variables: Typed - to check the 'structure' of variables
 - [ ] PolicyExpression: TypeHint to document expected (result) type of literal or code expression
 - [ ] CodeExpression: `{{named-value}}` in code. Compiler will fail.
-- [ ] CodeExpression Compiler: `(string)Context.Variables["connectionId"]` error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+- [ ] CodeExpression Compiler: `(string)Context.Variables["connectionId"]` error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement (suppressed for now)
 - [ ] Int32: validate non-negative or use uint.
 - [ ] 

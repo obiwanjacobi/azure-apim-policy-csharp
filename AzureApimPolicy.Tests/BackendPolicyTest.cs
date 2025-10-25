@@ -27,6 +27,7 @@ internal class BackendPolicy : PolicyDocument
                     .SetHeader("Content-Type", "override", values => values.Add(MediaTypeNames.Application.Json))
                     .SetBody("""{ "value": "42" }"""),
                 "copy", 120, false)
+            .SetBackendService("https://localhost/post")
             ;
 
         base.Backend();
@@ -138,6 +139,15 @@ public class BackendPolicyTest
         Assert.Equal("application/json", setHeaderValue.Value);
         var setBody = sendRequest.Element("set-body");
         Assert.NotNull(setBody);
+    }
+
+    [Fact]
+    public void SetBackendService()
+    {
+        var backend = _document.Descendants("backend").Single();
+        var setBackendService = backend.Element("set-backend-service");
+        Assert.NotNull(setBackendService);
+        Assert.Equal("https://localhost/post", setBackendService.Attribute("base-url").Value);
     }
 }
 

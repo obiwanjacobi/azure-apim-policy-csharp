@@ -11,6 +11,11 @@ public interface IRouting
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/proxy-policy</summary>
     IPolicyDocument Proxy(PolicyExpression url, PolicyExpression? username = null, PolicyExpression? password = null);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-backend-service-policy</summary>
+    IPolicyDocument SetBackendService(PolicyExpression baseUrl);
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-backend-service-policy</summary>
+    IPolicyDocument SetBackendService(PolicyExpression backendId, PolicyExpression? sfResolveCondition = null, PolicyExpression? sfServiceInstanceName = null, PolicyExpression? sfPartitionKey = null, PolicyExpression? sfListenerName = null);
 }
 
 public enum HttpVersion
@@ -54,6 +59,21 @@ partial class PolicyDocument
         Writer.Proxy(url, username, password);
         return this;
     }
+
+    public IPolicyDocument SetBackendService(PolicyExpression baseUrl)
+    {
+        AssertSection([PolicySection.Inbound, PolicySection.Backend]);
+        AssertScopes(PolicyScopes.All);
+        Writer.SetBackendService(baseUrl);
+        return this;
+    }
+    public IPolicyDocument SetBackendService(PolicyExpression backendId, PolicyExpression? sfResolveCondition = null, PolicyExpression? sfServiceInstanceName = null, PolicyExpression? sfPartitionKey = null, PolicyExpression? sfListenerName = null)
+    {
+        AssertSection([PolicySection.Inbound, PolicySection.Backend]);
+        AssertScopes(PolicyScopes.All);
+        Writer.SetBackendService(backendId, sfResolveCondition, sfServiceInstanceName, sfPartitionKey, sfListenerName);
+        return this;
+    }
 }
 
 partial class PolicyXmlWriter
@@ -79,6 +99,23 @@ partial class PolicyXmlWriter
         _xmlWriter.WriteAttributeString("url", url);
         _xmlWriter.WriteAttributeStringOpt("username", username);
         _xmlWriter.WriteAttributeStringOpt("password", password);
+        _xmlWriter.WriteEndElement();
+    }
+
+    public void SetBackendService(string baseUrl)
+    {
+        _xmlWriter.WriteStartElement("set-backend-service");
+        _xmlWriter.WriteAttributeString("base-url", baseUrl);
+        _xmlWriter.WriteEndElement();
+    }
+    public void SetBackendService(string backendId, string? sfResolveCondition, string? sfServiceInstanceName, string? sfPartitionKey, string? sfListenerName)
+    {
+        _xmlWriter.WriteStartElement("set-backend-service");
+        _xmlWriter.WriteAttributeString("backend-id", backendId);
+        _xmlWriter.WriteAttributeStringOpt("sf-resolve-condition", sfResolveCondition);
+        _xmlWriter.WriteAttributeStringOpt("sf-service-instance-name", sfServiceInstanceName);
+        _xmlWriter.WriteAttributeStringOpt("sf-partition-key", sfPartitionKey);
+        _xmlWriter.WriteAttributeStringOpt("sf-listener-name", sfListenerName);
         _xmlWriter.WriteEndElement();
     }
 }
