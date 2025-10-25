@@ -207,5 +207,4 @@ partial class PolicyXmlWriter
         _xmlWriter.WriteAttributeString("to", to);
         _xmlWriter.WriteEndElement();
     }
-
 }

@@ -56,7 +56,6 @@ partial class PolicyDocument
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/cache-lookup-value-policy</summary>
     public IPolicyDocument CacheLookupValue(string variableName, PolicyExpression key, PolicyExpression? defaultValue = null, CacheType? cacheType = null)
     {
-        // TODO: check variable exists
         // allowed in all sections
         AssertScopes(PolicyScopes.All);
         Writer.CacheLookupValue(variableName, key, defaultValue, CacheTypeToString(cacheType));

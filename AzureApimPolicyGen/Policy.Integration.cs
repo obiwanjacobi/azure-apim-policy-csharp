@@ -11,6 +11,9 @@ public interface IIntegration
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/send-one-way-request-policy</summary>
     IPolicyDocument SendOneWayRequest(Action<ISendOneWayRequestActions> request, PolicyExpression? mode = null, PolicyExpression? timeoutSeconds = null);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/send-service-bus-message-policy</summary>
+    IPolicyDocument SendServiceBusMessage(PolicyExpression @namespace, PolicyExpression message, Action<ISendServiceBusMessageProperties>? messageProperties = null, PolicyExpression? queueName = null, PolicyExpression? topicName = null, PolicyExpression? clientId = null);
 }
 
 public interface ISendOneWayRequestActions
@@ -21,6 +24,11 @@ public interface ISendOneWayRequestActions
     ISendOneWayRequestActions SetBody(PolicyExpression body);
     ISendOneWayRequestActions AuthenticationCertificate(PolicyExpression thumbprint, PolicyExpression certificate, PolicyExpression? body = null, PolicyExpression? password = null);
     ISendOneWayRequestActions Proxy(PolicyExpression url, PolicyExpression? username = null, PolicyExpression? password = null);
+}
+
+public interface ISendServiceBusMessageProperties
+{
+    ISendServiceBusMessageProperties Add(string name, string value);
 }
 
 partial class PolicyDocument
@@ -92,6 +100,32 @@ partial class PolicyDocument
             return this;
         }
     }
+
+    public IPolicyDocument SendServiceBusMessage(PolicyExpression @namespace, PolicyExpression message, Action<ISendServiceBusMessageProperties>? messageProperties, PolicyExpression? queueName = null, PolicyExpression? topicName = null, PolicyExpression? clientId = null)
+    {
+        AssertSection([PolicySection.Inbound, PolicySection.Outbound, PolicySection.OnError]);
+        AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
+        if (queueName is null && topicName is null)
+            throw new ArgumentException($"Either {nameof(queueName)} or {nameof(topicName)} must be filled.", $"{nameof(queueName)}+{nameof(topicName)}");
+        if (queueName is not null && topicName is not null)
+            throw new ArgumentException($"Either {nameof(queueName)} or {nameof(topicName)} must be filled. But not both.", $"{nameof(queueName)}+{nameof(topicName)}");
+
+        Action? writeActions = messageProperties is null ? null : () => messageProperties(new SendServiceBusMessageProperties(Writer));
+        Writer.SendServiceBusMessage(@namespace, queueName, topicName, clientId, message, writeActions);
+        return this;
+    }
+
+    private sealed class SendServiceBusMessageProperties : ISendServiceBusMessageProperties
+    {
+        private readonly PolicyXmlWriter _writer;
+        public SendServiceBusMessageProperties(PolicyXmlWriter writer) { _writer = writer; }
+
+        public ISendServiceBusMessageProperties Add(string name, string value)
+        {
+            _writer.SendServiceBusMessageProperty(name, value);
+            return this;
+        }
+    }
 }
 
 partial class PolicyXmlWriter
@@ -121,5 +155,32 @@ partial class PolicyXmlWriter
     internal void SendOneWayRequestUrl(string url)
     {
         _xmlWriter.WriteElementString("set-url", url);
+    }
+
+    public void SendServiceBusMessage(string @namespace, string? queueName, string? topicName, string? clientId, string message, Action? writeProperties)
+    {
+        _xmlWriter.WriteStartElement("send-service-bus-message");
+        _xmlWriter.WriteAttributeString("namespace", @namespace);
+        _xmlWriter.WriteAttributeStringOpt("queue-name", queueName);
+        _xmlWriter.WriteAttributeStringOpt("topic-name", topicName);
+        _xmlWriter.WriteAttributeStringOpt("client-id", clientId);
+        if (!String.IsNullOrEmpty(message))
+        {
+            _xmlWriter.WriteElementString("payload", message);
+        }
+        if (writeProperties is not null)
+        {
+            _xmlWriter.WriteStartElement("message-properties");
+            writeProperties();
+            _xmlWriter.WriteEndElement();
+        }
+        _xmlWriter.WriteEndElement();
+    }
+    internal void SendServiceBusMessageProperty(string name, string value)
+    {
+        _xmlWriter.WriteStartElement("message-property");
+        _xmlWriter.WriteAttributeString("name", name);
+        _xmlWriter.WriteString(value);
+        _xmlWriter.WriteEndElement();
     }
 }

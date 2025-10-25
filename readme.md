@@ -49,7 +49,7 @@
 - [x] `return-response` https://learn.microsoft.com/en-us/azure/api-management/return-response-policy
 - [x] `rewrite-uri` https://learn.microsoft.com/en-us/azure/api-management/rewrite-uri-policy
 - [x] `send-one-way-request` https://learn.microsoft.com/en-us/azure/api-management/send-one-way-request-policy
-- [ ] `send-service-bus-message` https://learn.microsoft.com/en-us/azure/api-management/send-service-bus-message-policy
+- [x] `send-service-bus-message` https://learn.microsoft.com/en-us/azure/api-management/send-service-bus-message-policy
 - [ ] `send-request` https://learn.microsoft.com/en-us/azure/api-management/send-request-policy
 - [ ] `set-backend-service` https://learn.microsoft.com/en-us/azure/api-management/set-backend-service-policy
 - [ ] `set-backend-service-dapr` https://learn.microsoft.com/en-us/azure/api-management/set-backend-service-dapr-policy

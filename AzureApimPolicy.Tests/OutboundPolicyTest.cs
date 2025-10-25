@@ -20,6 +20,7 @@ internal class OutboundPolicy : PolicyDocument
                     .SetStatus(200, "OK")
                     .SetBody("""{ "data": 42 }""")
             )
+            .SendServiceBusMessage("sb-test", "Hello World!", props => props.Add("correlation-id", "42"), null, "myTopic")
         ;
 
         base.Outbound();
@@ -87,6 +88,25 @@ public class OutboundPolicyTest
         var setBody = returnResponse.Element("set-body");
         Assert.NotNull(setBody);
         Assert.Equal("""{ "data": 42 }""", setBody.Value);
+    }
+
+    [Fact]
+    public void SendServiceBusMessage()
+    {
+        var outbound = _document.Descendants("outbound").Single();
+        var sendServiceBusMessage = outbound.Element("send-service-bus-message");
+        Assert.NotNull(sendServiceBusMessage);
+        Assert.Equal("sb-test", sendServiceBusMessage.Attribute("namespace").Value);
+        Assert.Equal("myTopic", sendServiceBusMessage.Attribute("topic-name").Value);
+        var messageProperties = sendServiceBusMessage.Element("message-properties");
+        Assert.NotNull(messageProperties);
+        var messageProperty = messageProperties.Element("message-property");
+        Assert.NotNull(messageProperty);
+        Assert.Equal("correlation-id", messageProperty.Attribute("name").Value);
+        Assert.Equal("42", messageProperties.Value);
+        var payload = sendServiceBusMessage.Element("payload");
+        Assert.NotNull(payload);
+        Assert.Equal("Hello World!", payload.Value);
     }
 }
 
