@@ -65,7 +65,7 @@
 - [x] `validate-client-certificate` https://learn.microsoft.com/en-us/azure/api-management/validate-client-certificate-policy
 - [x] `validate-content` https://learn.microsoft.com/en-us/azure/api-management/validate-content-policy
 - [ ] `validate-graphql-request` https://learn.microsoft.com/en-us/azure/api-management/validate-graphql-request-policy
-- [ ] `validate-headers` https://learn.microsoft.com/en-us/azure/api-management/validate-headers-policy
+- [x] `validate-headers` https://learn.microsoft.com/en-us/azure/api-management/validate-headers-policy
 - [ ] `validate-jwt` https://learn.microsoft.com/en-us/azure/api-management/validate-jwt-policy
 - [ ] `validate-odata-request` https://learn.microsoft.com/en-us/azure/api-management/validate-odata-request-policy
 - [ ] `validate-parameters` https://learn.microsoft.com/en-us/azure/api-management/validate-parameters-policy

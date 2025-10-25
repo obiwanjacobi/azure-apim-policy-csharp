@@ -11,6 +11,8 @@ internal class OnErrorPolicy : PolicyDocument
         this
             .LogToEventHub("loggerId", null, partitionKey: "partitionKey", message: "Error")
             .SetVariable("hasError", PolicyExpression.FromCode("true"))
+            .ValidateHeaders("detect", "prevent", "errorVar",
+                headers => headers.Add("headerName", "detect"))
         ;
 
         base.OnError();
@@ -48,6 +50,20 @@ public class OnErrorPolicyTest
         Assert.NotNull(setVariable);
         Assert.Equal("hasError", setVariable.Attribute("name").Value);
         Assert.Equal("@(true)", setVariable.Attribute("value").Value);
+    }
+
+    [Fact]
+    public void ValidateHeaders()
+    {
+        var onError = _document.Descendants("on-error").Single();
+        var validateHeaders = onError.Element("validate-headers");
+        Assert.NotNull(validateHeaders);
+        Assert.Equal("detect", validateHeaders.Attribute("specified-header-action").Value);
+        Assert.Equal("prevent", validateHeaders.Attribute("unspecified-header-action").Value);
+        var header = validateHeaders.Element("header");
+        Assert.NotNull(header);
+        Assert.Equal("headerName", header.Attribute("name").Value);
+        Assert.Equal("detect", header.Attribute("action").Value);
     }
 }
 

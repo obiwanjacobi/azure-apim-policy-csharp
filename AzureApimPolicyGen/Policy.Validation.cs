@@ -6,6 +6,9 @@ public interface IValidation
 {
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/validate-content-policy</summary>
     IPolicyDocument ValidateContent(PolicyExpression unspecifiedContentTypeAction, PolicyExpression maxSizeBytes, PolicyExpression sizeExceedAction, PolicyVariable? errorsVariableName = null, Action<IValidateContentActions>? validateActions = null);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/validate-headers-policy</summary>
+    IPolicyDocument ValidateHeaders(PolicyExpression specifiedHeaderAction, PolicyExpression unspecifiedHeaderAction, PolicyVariable? errorsVariableName = null, Action<IValidateHeaderActions>? headers = null);
 }
 
 public interface IValidateContentActions
@@ -23,6 +26,11 @@ public interface IValidateContentTypeMapType
 public enum ValidateContentAs
 {
     Xml, Soap, Json
+}
+
+public interface IValidateHeaderActions
+{
+    IValidateHeaderActions Add(string name, PolicyExpression action);
 }
 
 partial class PolicyDocument
@@ -75,6 +83,27 @@ partial class PolicyDocument
             return this;
         }
     }
+
+    public IPolicyDocument ValidateHeaders(PolicyExpression specifiedHeaderAction, PolicyExpression unspecifiedHeaderAction, PolicyVariable? errorsVariableName = null, Action<IValidateHeaderActions>? headers = null)
+    {
+        AssertSection([PolicySection.Outbound, PolicySection.OnError]);
+        AssertScopes(PolicyScopes.All);
+        Action? writeHeaders = headers is null ? null : () => headers(new ValidateHeaderActions(Writer));
+        Writer.ValidateHeaders(specifiedHeaderAction, unspecifiedHeaderAction, errorsVariableName, writeHeaders);
+        return this;
+    }
+
+    private sealed class ValidateHeaderActions : IValidateHeaderActions
+    {
+        private readonly PolicyXmlWriter _writer;
+        public ValidateHeaderActions(PolicyXmlWriter writer) { _writer = writer; }
+
+        public IValidateHeaderActions Add(string name, PolicyExpression action)
+        {
+            _writer.ValidateHeaderName(name, action);
+            return this;
+        }
+    }
 }
 
 partial class PolicyXmlWriter
@@ -117,6 +146,23 @@ partial class PolicyXmlWriter
         _xmlWriter.WriteAttributeStringOpt("when", when);
         _xmlWriter.WriteAttributeStringOpt("from", from);
         _xmlWriter.WriteAttributeString("to", to);
+        _xmlWriter.WriteEndElement();
+    }
+
+    public void ValidateHeaders(string specifiedHeaderAction, string unspecifiedHeaderAction, string? errorsVariableName, Action? writeHeaders)
+    {
+        _xmlWriter.WriteStartElement("validate-headers");
+        _xmlWriter.WriteAttributeString("specified-header-action", specifiedHeaderAction);
+        _xmlWriter.WriteAttributeString("unspecified-header-action", unspecifiedHeaderAction);
+        _xmlWriter.WriteAttributeStringOpt("errors-variable-name", errorsVariableName);
+        if (writeHeaders is not null) writeHeaders();
+        _xmlWriter.WriteEndElement();
+    }
+    internal void ValidateHeaderName(string name, string action)
+    {
+        _xmlWriter.WriteStartElement("header");
+        _xmlWriter.WriteAttributeString("name", name);
+        _xmlWriter.WriteAttributeString("action", action);
         _xmlWriter.WriteEndElement();
     }
 }
