@@ -21,6 +21,12 @@ internal class BackendPolicy : PolicyDocument
                     .SetHeader("Content-Type", "override", values => values.Add(MediaTypeNames.Application.Json))
                     .SetBody("""{ "value": "42" }"""),
                 "copy", 120)
+            .SendRequest("responseVar", request => request
+                    .SetUrl("https://localhost/post")
+                    .SetMethod("POST")
+                    .SetHeader("Content-Type", "override", values => values.Add(MediaTypeNames.Application.Json))
+                    .SetBody("""{ "value": "42" }"""),
+                "copy", 120, false)
             ;
 
         base.Backend();
@@ -104,6 +110,33 @@ public class BackendPolicyTest
         Assert.NotNull(setHeaderValue);
         Assert.Equal("application/json", setHeaderValue.Value);
         var setBody = sendOneWayRequest.Element("set-body");
+        Assert.NotNull(setBody);
+    }
+
+    [Fact]
+    public void SendRequest()
+    {
+        var backend = _document.Descendants("backend").Single();
+        var sendRequest = backend.Element("send-request");
+        Assert.NotNull(sendRequest);
+        Assert.Equal("responseVar", sendRequest.Attribute("response-variable-name").Value);
+        Assert.Equal("copy", sendRequest.Attribute("mode").Value);
+        Assert.Equal("120", sendRequest.Attribute("timeout").Value);
+        Assert.Equal("false", sendRequest.Attribute("ignore-error").Value);
+        var setUrl = sendRequest.Element("set-url");
+        Assert.NotNull(setUrl);
+        Assert.Equal("https://localhost/post", setUrl.Value);
+        var setMethod = sendRequest.Element("set-method");
+        Assert.NotNull(setMethod);
+        Assert.Equal("POST", setMethod.Value);
+        var setHeader = sendRequest.Element("set-header");
+        Assert.NotNull(setHeader);
+        Assert.Equal("Content-Type", setHeader.Attribute("name").Value);
+        Assert.Equal("override", setHeader.Attribute("exists-action").Value);
+        var setHeaderValue = setHeader.Element("value");
+        Assert.NotNull(setHeaderValue);
+        Assert.Equal("application/json", setHeaderValue.Value);
+        var setBody = sendRequest.Element("set-body");
         Assert.NotNull(setBody);
     }
 }
