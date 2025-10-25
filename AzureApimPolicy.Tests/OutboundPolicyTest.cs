@@ -22,6 +22,10 @@ internal class OutboundPolicy : PolicyDocument
             )
             .SendServiceBusMessage("sb-test", "Hello World!", props => props.Add("correlation-id", "42"), null, "myTopic")
             .Trace("Test", "Trace Test", TraceSeverity.Verbose, "traceid", "42")
+            .ValidateContent("detect", 1024, "ignore", "errorVar",
+                validation => validation
+                    .ContentTypeMap("anyValue", "missingValue", types => types.Add("from", "to"))
+                    .Content(ValidateContentAs.Json, "type", "schemaId", "schemaRef", false, true))
         ;
 
         base.Outbound();
@@ -125,6 +129,34 @@ public class OutboundPolicyTest
         Assert.NotNull(metadata);
         Assert.Equal("traceid", metadata.Attribute("name").Value);
         Assert.Equal("42", metadata.Attribute("value").Value);
+    }
+
+    [Fact]
+    public void ValidateContent()
+    {
+        var outbound = _document.Descendants("outbound").Single();
+        var validateContent = outbound.Element("validate-content");
+        Assert.NotNull(validateContent);
+        Assert.Equal("detect", validateContent.Attribute("unspecified-content-type-action").Value);
+        Assert.Equal("1024", validateContent.Attribute("max-size").Value);
+        Assert.Equal("ignore", validateContent.Attribute("size-exceed-action").Value);
+        Assert.Equal("errorVar", validateContent.Attribute("errors-variable-name").Value);
+        var contentTypeMap = validateContent.Element("content-type-map");
+        Assert.NotNull(contentTypeMap);
+        Assert.Equal("anyValue", contentTypeMap.Attribute("any-content-type-value").Value);
+        Assert.Equal("missingValue", contentTypeMap.Attribute("missing-content-type-value").Value);
+        var type = contentTypeMap.Element("type");
+        Assert.NotNull(type);
+        Assert.Equal("from", type.Attribute("from").Value);
+        Assert.Equal("to", type.Attribute("to").Value);
+        var content = validateContent.Element("content");
+        Assert.NotNull(content);
+        Assert.Equal("json", content.Attribute("validate-as").Value);
+        Assert.Equal("type", content.Attribute("type").Value);
+        Assert.Equal("schemaId", content.Attribute("schema-id").Value);
+        Assert.Equal("schemaRef", content.Attribute("schema-ref").Value);
+        Assert.Equal("false", content.Attribute("allow-additional-properties").Value);
+        Assert.Equal("true", content.Attribute("case-insensitive-property-names").Value);
     }
 }
 

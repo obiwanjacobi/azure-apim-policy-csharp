@@ -4,13 +4,119 @@
 
 public interface IValidation
 {
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/validate-content-policy</summary>
+    IPolicyDocument ValidateContent(PolicyExpression unspecifiedContentTypeAction, PolicyExpression maxSizeBytes, PolicyExpression sizeExceedAction, PolicyVariable? errorsVariableName = null, Action<IValidateContentActions>? validateActions = null);
+}
 
+public interface IValidateContentActions
+{
+    IValidateContentActions ContentTypeMap(string? anyContentTypeValue = null, string? missingContentTypeValue = null, Action<IValidateContentTypeMapType>? types = null);
+    IValidateContentActions Content(ValidateContentAs validateAs, string? type = null, string? schemaId = null, string? schemaRef = null, bool? allowAdditionProperties = null, bool? caseInsensitivePropertyNames = null);
+}
+
+public interface IValidateContentTypeMapType
+{
+    IValidateContentTypeMapType Add(string from, string to);
+    IValidateContentTypeMapType Add(PolicyExpression when, string to);
+}
+
+public enum ValidateContentAs
+{
+    Xml, Soap, Json
 }
 
 partial class PolicyDocument
 {
+    public IPolicyDocument ValidateContent(PolicyExpression unspecifiedContentTypeAction, PolicyExpression maxSizeBytes, PolicyExpression sizeExceedAction, PolicyVariable? errorsVariableName = null, Action<IValidateContentActions>? validateActions = null)
+    {
+        AssertSection([PolicySection.Inbound, PolicySection.Outbound, PolicySection.OnError]);
+        AssertScopes(PolicyScopes.All);
+        Action? writeActions = validateActions is null ? null : () => validateActions(new ValidateContentActions(Writer));
+        Writer.ValidateContent(unspecifiedContentTypeAction, maxSizeBytes, sizeExceedAction, errorsVariableName, writeActions);
+        return this;
+    }
+
+    private sealed class ValidateContentActions : IValidateContentActions, IValidateContentTypeMapType
+    {
+        private readonly PolicyXmlWriter _writer;
+        public ValidateContentActions(PolicyXmlWriter writer) { _writer = writer; }
+
+        public IValidateContentActions ContentTypeMap(string? anyContentTypeValue = null, string? missingContentTypeValue = null, Action<IValidateContentTypeMapType>? types = null)
+        {
+            Action? writeTypes = types is null ? null : () => types(this);
+            _writer.ValidateContentTypeMap(anyContentTypeValue, missingContentTypeValue, writeTypes);
+            return this;
+        }
+
+        public IValidateContentActions Content(ValidateContentAs validateAs, string? type = null, string? schemaId = null, string? schemaRef = null, bool? allowAdditionProperties = null, bool? caseInsensitivePropertyNames = null)
+        {
+            _writer.ValidateContentContent(ValidateAsToString(validateAs), type, schemaId, schemaRef, allowAdditionProperties, caseInsensitivePropertyNames);
+            return this;
+
+            static string ValidateAsToString(ValidateContentAs validateAs)
+                => validateAs switch
+                {
+                    ValidateContentAs.Json => "json",
+                    ValidateContentAs.Soap => "soap",
+                    ValidateContentAs.Xml => "xml",
+                    _ => "json"
+                };
+        }
+
+        public IValidateContentTypeMapType Add(string from, string to)
+        {
+            _writer.ValidateContentTypeMapType(null, from, to);
+            return this;
+        }
+
+        public IValidateContentTypeMapType Add(PolicyExpression when, string to)
+        {
+            _writer.ValidateContentTypeMapType(when, null, to);
+            return this;
+        }
+    }
 }
 
 partial class PolicyXmlWriter
 {
+    public void ValidateContent(string unspecifiedContentTypeAction, string maxSizeBytes, string sizeExceedAction, string? errorsVariableName, Action? writeActions)
+    {
+        _xmlWriter.WriteStartElement("validate-content");
+        _xmlWriter.WriteAttributeString("unspecified-content-type-action", unspecifiedContentTypeAction);
+        _xmlWriter.WriteAttributeString("max-size", maxSizeBytes);
+        _xmlWriter.WriteAttributeString("size-exceed-action", sizeExceedAction);
+        _xmlWriter.WriteAttributeStringOpt("errors-variable-name", errorsVariableName);
+        if (writeActions is not null) writeActions();
+        _xmlWriter.WriteEndElement();
+    }
+
+    internal void ValidateContentContent(string validateAs, string? type, string? schemaId, string? schemaRef, bool? allowAdditionProperties, bool? caseInsensitivePropertyNames)
+    {
+        _xmlWriter.WriteStartElement("content");
+        _xmlWriter.WriteAttributeString("validate-as", validateAs);
+        _xmlWriter.WriteAttributeStringOpt("type", type);
+        _xmlWriter.WriteAttributeStringOpt("schema-id", schemaId);
+        _xmlWriter.WriteAttributeStringOpt("schema-ref", schemaRef);
+        _xmlWriter.WriteAttributeStringOpt("allow-additional-properties", BoolValue(allowAdditionProperties));
+        _xmlWriter.WriteAttributeStringOpt("case-insensitive-property-names", BoolValue(caseInsensitivePropertyNames));
+        _xmlWriter.WriteEndElement();
+    }
+
+    internal void ValidateContentTypeMap(string? anyContentTypeValue, string? missingContentTypeValue, Action? writeTypes)
+    {
+        _xmlWriter.WriteStartElement("content-type-map");
+        _xmlWriter.WriteAttributeStringOpt("any-content-type-value", anyContentTypeValue);
+        _xmlWriter.WriteAttributeStringOpt("missing-content-type-value", missingContentTypeValue);
+        if (writeTypes is not null) writeTypes();
+        _xmlWriter.WriteEndElement();
+    }
+
+    internal void ValidateContentTypeMapType(string? when, string? from, string to)
+    {
+        _xmlWriter.WriteStartElement("type");
+        _xmlWriter.WriteAttributeStringOpt("when", when);
+        _xmlWriter.WriteAttributeStringOpt("from", from);
+        _xmlWriter.WriteAttributeString("to", to);
+        _xmlWriter.WriteEndElement();
+    }
 }

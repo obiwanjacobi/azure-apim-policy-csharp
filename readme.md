@@ -63,7 +63,7 @@
 - [x] `trace` https://learn.microsoft.com/en-us/azure/api-management/trace-policy
 - [x] `validate-azure-ad-token` https://learn.microsoft.com/en-us/azure/api-management/validate-azure-ad-token-policy
 - [x] `validate-client-certificate` https://learn.microsoft.com/en-us/azure/api-management/validate-client-certificate-policy
-- [ ] `validate-content` https://learn.microsoft.com/en-us/azure/api-management/validate-content-policy
+- [x] `validate-content` https://learn.microsoft.com/en-us/azure/api-management/validate-content-policy
 - [ ] `validate-graphql-request` https://learn.microsoft.com/en-us/azure/api-management/validate-graphql-request-policy
 - [ ] `validate-headers` https://learn.microsoft.com/en-us/azure/api-management/validate-headers-policy
 - [ ] `validate-jwt` https://learn.microsoft.com/en-us/azure/api-management/validate-jwt-policy
