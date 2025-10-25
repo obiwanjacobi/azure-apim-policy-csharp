@@ -40,6 +40,14 @@ internal class InboundPolicy : PolicyDocument
                 "retryVar", "X-Retry-After", "remainingVar", "X-Remaining-Calls", "X-Total-Calls")
             .RewriteUri("/api/v1", false)
             .SetBackendService("daprAppId", "daprMethod", "daprNamespace")
+            .ValidateAzureAdToken("tenantId", "headerName", null, null, "authEndpoint", "401", "access denied", "outputVar",
+                validations => validations
+                    .BackendApplicationIds("backend1")
+                    .ClientApplicationIds("client1")
+                    .Audiences("audience")
+                    .DecryptionKeys("cert")
+                    .RequiredClaims(claims => claims.Add("claim", values => values.Add("admin"), "all"))
+                )
         ;
 
         base.Inbound();
@@ -267,6 +275,38 @@ public class InboundPolicyTest
         Assert.Equal("daprAppId", setBackendService.Attribute("dapr-app-id").Value);
         Assert.Equal("daprMethod", setBackendService.Attribute("dapr-method").Value);
         Assert.Equal("daprNamespace", setBackendService.Attribute("dapr-namespace").Value);
+    }
+
+    [Fact]
+    public void ValidateAzureAdToken()
+    {
+        var inbound = _document.Descendants("inbound").Single();
+        var validateAzureAdToken = inbound.Element("validate-azure-ad-token");
+        Assert.NotNull(validateAzureAdToken);
+        Assert.Equal("tenantId", validateAzureAdToken.Attribute("tenant-id").Value);
+        Assert.Equal("headerName", validateAzureAdToken.Attribute("header-name").Value);
+        Assert.Equal("authEndpoint", validateAzureAdToken.Attribute("authentication-endpoint").Value);
+        Assert.Equal("401", validateAzureAdToken.Attribute("failed-validation-httpcode").Value);
+        Assert.Equal("access denied", validateAzureAdToken.Attribute("failed-validation-error-message").Value);
+        Assert.Equal("outputVar", validateAzureAdToken.Attribute("output-token-variable-name").Value);
+        var backendAppIds = validateAzureAdToken.Element("backend-application-ids");
+        Assert.NotNull(backendAppIds);
+        Assert.Equal("backend1", backendAppIds.Element("application-id").Value);
+        var clientAppIds = validateAzureAdToken.Element("client-application-ids");
+        Assert.NotNull(clientAppIds);
+        Assert.Equal("client1", clientAppIds.Element("application-id").Value);
+        var audiences = validateAzureAdToken.Element("audiences");
+        Assert.NotNull(audiences);
+        Assert.Equal("audience", audiences.Element("audience").Value);
+        var decryptionKeys = validateAzureAdToken.Element("decryption-keys");
+        Assert.NotNull(decryptionKeys);
+        Assert.Equal("cert", decryptionKeys.Element("key").Attribute("certificate-id").Value);
+        var requiredClaims = validateAzureAdToken.Element("required-claims");
+        Assert.NotNull(requiredClaims);
+        var claim = requiredClaims.Element("claim");
+        Assert.Equal("claim", claim.Attribute("name").Value);
+        Assert.Equal("all", claim.Attribute("match").Value);
+        Assert.Equal("admin", claim.Value);
     }
 }
 

@@ -24,6 +24,9 @@ public interface IAuthentication
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/ip-filter-policy</summary>
     IPolicyDocument IpFilter(PolicyExpression action, Action<IIpFilterAddress> address);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/validate-azure-ad-token-policy</summary>
+    IPolicyDocument ValidateAzureAdToken(PolicyExpression tenantIdOrUrl, PolicyExpression? headerName = null, PolicyExpression? queryParameterName = null, PolicyExpression? tokenValue = null, string? authenticationEndpoint = null, PolicyExpression? failedValidationHttpCode = null, PolicyExpression? failedValidationErrorMessage = null, PolicyVariable? outputTokenVariableName = null, Action<IValidateAzureAdTokenActions>? validationActions = null);
 }
 
 public interface IIpFilterAddress
@@ -37,6 +40,22 @@ public interface ICheckHeaderValues
     ICheckHeaderValues Add(string value);
 }
 
+public interface IValidateAzureAdTokenActions
+{
+    IValidateAzureAdTokenActions BackendApplicationIds(params IEnumerable<string> appIds);
+    IValidateAzureAdTokenActions ClientApplicationIds(params IEnumerable<string> appIds);
+    IValidateAzureAdTokenActions Audiences(params IEnumerable<string> audiences);
+    IValidateAzureAdTokenActions RequiredClaims(Action<IValidateAzureAdTokenClaims> claims);
+    IValidateAzureAdTokenActions DecryptionKeys(params IEnumerable<string> certificateIds);
+}
+public interface IValidateAzureAdTokenClaims
+{
+    IValidateAzureAdTokenClaims Add(PolicyExpression name, Action<IValidateAzureAdTokenClaimValues> values, PolicyExpression? match = null, PolicyExpression? separator = null);
+}
+public interface IValidateAzureAdTokenClaimValues
+{
+    IValidateAzureAdTokenClaimValues Add(PolicyExpression value);
+}
 
 partial class PolicyDocument
 {
@@ -129,6 +148,68 @@ partial class PolicyDocument
             return this;
         }
     }
+
+    public IPolicyDocument ValidateAzureAdToken(PolicyExpression tenantIdOrUrl, PolicyExpression? headerName = null, PolicyExpression? queryParameterName = null, PolicyExpression? tokenValue = null, string? authenticationEndpoint = null, PolicyExpression? failedValidationHttpCode = null, PolicyExpression? failedValidationErrorMessage = null, PolicyVariable? outputTokenVariableName = null, Action<IValidateAzureAdTokenActions>? validationActions = null)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        if ((headerName is not null && (queryParameterName is not null || tokenValue is not null)) ||
+            (queryParameterName is not null && (headerName is not null || tokenValue is not null)) ||
+            (tokenValue is not null && (queryParameterName is not null || headerName is not null)))
+            throw new ArgumentException($"Only one of {nameof(headerName)} or {nameof(queryParameterName)} or {nameof(tokenValue)} should be filled.", $"{nameof(headerName)}+{nameof(queryParameterName)}+{nameof(tokenValue)}");
+
+        Action? writeNested = validationActions is null ? null : () => validationActions(new ValidateAzureAdTokenActions(Writer));
+        Writer.ValidateAzureAdToken(tenantIdOrUrl, headerName, queryParameterName, tokenValue, authenticationEndpoint, failedValidationHttpCode, failedValidationErrorMessage, outputTokenVariableName, writeNested);
+        return this;
+    }
+
+    private sealed class ValidateAzureAdTokenActions : IValidateAzureAdTokenActions, IValidateAzureAdTokenClaims, IValidateAzureAdTokenClaimValues
+    {
+        private readonly PolicyXmlWriter _writer;
+        public ValidateAzureAdTokenActions(PolicyXmlWriter writer) { _writer = writer; }
+
+        public IValidateAzureAdTokenActions BackendApplicationIds(params IEnumerable<string> appIds)
+        {
+            _writer.ValidateAzureAdToken_BackendApplicationIds(appIds);
+            return this;
+        }
+
+        public IValidateAzureAdTokenActions ClientApplicationIds(params IEnumerable<string> appIds)
+        {
+            _writer.ValidateAzureAdToken_ClientApplicationIds(appIds);
+            return this;
+        }
+
+        public IValidateAzureAdTokenActions Audiences(params IEnumerable<string> audiences)
+        {
+            _writer.ValidateAzureAdToken_Audiences(audiences);
+            return this;
+        }
+
+        public IValidateAzureAdTokenActions RequiredClaims(Action<IValidateAzureAdTokenClaims> claims)
+        {
+            _writer.ValidateAzureAdToken_RequiredClaims(() => claims(this));
+            return this;
+        }
+
+        public IValidateAzureAdTokenActions DecryptionKeys(params IEnumerable<string> certificateIds)
+        {
+            _writer.ValidateAzureAdToken_CertificateIds(certificateIds);
+            return this;
+        }
+
+        public IValidateAzureAdTokenClaims Add(PolicyExpression name, Action<IValidateAzureAdTokenClaimValues> values, PolicyExpression? match = null, PolicyExpression? separator = null)
+        {
+            _writer.ValidateAzureAdToken_RequiredClaim(name, match, separator, () => values(this));
+            return this;
+        }
+
+        public IValidateAzureAdTokenClaimValues Add(PolicyExpression value)
+        {
+            _writer.ValidateAzureAdToken_RequiredClaimValue(value);
+            return this;
+        }
+    }
 }
 
 partial class PolicyXmlWriter
@@ -206,5 +287,71 @@ partial class PolicyXmlWriter
         _xmlWriter.WriteAttributeString("from", from);
         _xmlWriter.WriteAttributeString("to", to);
         _xmlWriter.WriteEndElement();
+    }
+
+    public void ValidateAzureAdToken(string tenantId, string? headerName, string? queryParameterName, string? tokenValue, string? authenticationEndpoint, string? failedValidationHttpCode, string? failedValidationErrorMessage, string? outputTokenVariableName, Action? writeNested)
+    {
+        _xmlWriter.WriteStartElement("validate-azure-ad-token");
+        _xmlWriter.WriteAttributeString("tenant-id", tenantId);
+        _xmlWriter.WriteAttributeStringOpt("header-name", headerName);
+        _xmlWriter.WriteAttributeStringOpt("query-parameter-name", queryParameterName);
+        _xmlWriter.WriteAttributeStringOpt("token-value", tokenValue);
+        _xmlWriter.WriteAttributeStringOpt("authentication-endpoint", authenticationEndpoint);
+        _xmlWriter.WriteAttributeStringOpt("failed-validation-httpcode", failedValidationHttpCode);
+        _xmlWriter.WriteAttributeStringOpt("failed-validation-error-message", failedValidationErrorMessage);
+        _xmlWriter.WriteAttributeStringOpt("output-token-variable-name", outputTokenVariableName);
+        if (writeNested is not null) writeNested();
+        _xmlWriter.WriteEndElement();
+    }
+    internal void ValidateAzureAdToken_BackendApplicationIds(IEnumerable<string> appIds)
+    {
+        _xmlWriter.WriteStartElement("backend-application-ids");
+        foreach (string appId in appIds)
+            _xmlWriter.WriteElementString("application-id", appId);
+        _xmlWriter.WriteEndElement();
+    }
+    internal void ValidateAzureAdToken_ClientApplicationIds(IEnumerable<string> appIds)
+    {
+        _xmlWriter.WriteStartElement("client-application-ids");
+        foreach (string appId in appIds)
+            _xmlWriter.WriteElementString("application-id", appId);
+        _xmlWriter.WriteEndElement();
+    }
+    internal void ValidateAzureAdToken_Audiences(IEnumerable<string> audiences)
+    {
+        _xmlWriter.WriteStartElement("audiences");
+        foreach (string audience in audiences)
+            _xmlWriter.WriteElementString("audience", audience);
+        _xmlWriter.WriteEndElement();
+    }
+    internal void ValidateAzureAdToken_RequiredClaims(Action writeClaims)
+    {
+        _xmlWriter.WriteStartElement("required-claims");
+        writeClaims();
+        _xmlWriter.WriteEndElement();
+    }
+    internal void ValidateAzureAdToken_CertificateIds(IEnumerable<string> certificateIds)
+    {
+        _xmlWriter.WriteStartElement("decryption-keys");
+        foreach (string certificateId in certificateIds)
+        {
+            _xmlWriter.WriteStartElement("key");
+            _xmlWriter.WriteAttributeString("certificate-id", certificateId);
+            _xmlWriter.WriteEndElement();
+        }
+        _xmlWriter.WriteEndElement();
+    }
+    internal void ValidateAzureAdToken_RequiredClaim(string name, string? match, string? separator, Action writeValues)
+    {
+        _xmlWriter.WriteStartElement("claim");
+        _xmlWriter.WriteAttributeString("name", name);
+        _xmlWriter.WriteAttributeStringOpt("match", match);
+        _xmlWriter.WriteAttributeStringOpt("separator", separator);
+        writeValues();
+        _xmlWriter.WriteEndElement();
+    }
+    internal void ValidateAzureAdToken_RequiredClaimValue(PolicyExpression value)
+    {
+        _xmlWriter.WriteElementString("value", value);
     }
 }
