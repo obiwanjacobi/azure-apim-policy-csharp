@@ -31,13 +31,13 @@ public interface IAuthentication
 
 public interface IIpFilterAddress
 {
-    IIpFilterAddress Add(PolicyExpression address);
+    IIpFilterAddress Add(params IEnumerable<PolicyExpression> addresses);
     IIpFilterAddress AddRange(string fromAddress, string toAddress);
 }
 
 public interface ICheckHeaderValues
 {
-    ICheckHeaderValues Add(string value);
+    ICheckHeaderValues Add(params IEnumerable<string> values);
 }
 
 public interface IValidateAzureAdTokenActions
@@ -106,9 +106,10 @@ partial class PolicyDocument
         private readonly PolicyXmlWriter _writer;
         internal CheckHeaderValues(PolicyXmlWriter writer) => _writer = writer;
 
-        public ICheckHeaderValues Add(string value)
+        public ICheckHeaderValues Add(params IEnumerable<string> values)
         {
-            _writer.CheckHeaderValue(value);
+            foreach (var value in values)
+                _writer.CheckHeaderValue(value);
             return this;
         }
     }
@@ -136,9 +137,10 @@ partial class PolicyDocument
         private readonly PolicyXmlWriter _writer;
         internal IpFilterAddress(PolicyXmlWriter writer) { _writer = writer; }
 
-        public IIpFilterAddress Add(PolicyExpression address)
+        public IIpFilterAddress Add(params IEnumerable<PolicyExpression> addresses)
         {
-            _writer.IpFilterAddress(address);
+            foreach (var address in addresses)
+                _writer.IpFilterAddress(address);
             return this;
         }
 

@@ -20,23 +20,23 @@ public interface ICorsAllowedOrigins
 {
     ICorsAllowedOrigins Any();
     // TODO: url templates?
-    ICorsAllowedOrigins Add(string origin);
+    ICorsAllowedOrigins Add(params IEnumerable<string> origins);
 }
 
 public interface ICorsAllowedMethods
 {
     ICorsAllowedMethods Any();
-    ICorsAllowedMethods Add(HttpMethod method);
+    ICorsAllowedMethods Add(params IEnumerable<HttpMethod> methods);
 }
 
 public interface ICorsAllowedHeaders
 {
-    ICorsAllowedHeaders Add(string header);
+    ICorsAllowedHeaders Add(params IEnumerable<string> headers);
 }
 
 public interface ICorsExposedHeaders
 {
-    ICorsExposedHeaders Add(string header);
+    ICorsExposedHeaders Add(params IEnumerable<string> headers);
 }
 
 partial class PolicyDocument
@@ -85,9 +85,10 @@ partial class PolicyDocument
             return this;
         }
 
-        ICorsAllowedOrigins ICorsAllowedOrigins.Add(string origin)
+        ICorsAllowedOrigins ICorsAllowedOrigins.Add(params IEnumerable<string> origins)
         {
-            _writer.CorsAllowedOrigin(origin);
+            foreach (var origin in origins)
+                _writer.CorsAllowedOrigin(origin);
             return this;
         }
 
@@ -97,21 +98,24 @@ partial class PolicyDocument
             return this;
         }
 
-        ICorsAllowedMethods ICorsAllowedMethods.Add(HttpMethod method)
+        ICorsAllowedMethods ICorsAllowedMethods.Add(params IEnumerable<HttpMethod> methods)
         {
-            _writer.CorsAllowedMethod(method.ToString());
+            foreach (var method in methods)
+                _writer.CorsAllowedMethod(method.ToString());
             return this;
         }
 
-        ICorsAllowedHeaders ICorsAllowedHeaders.Add(string header)
+        ICorsAllowedHeaders ICorsAllowedHeaders.Add(params IEnumerable<string> headers)
         {
-            _writer.CorsHeader(header);
+            foreach (var header in headers)
+                _writer.CorsHeader(header);
             return this;
         }
 
-        ICorsExposedHeaders ICorsExposedHeaders.Add(string header)
+        ICorsExposedHeaders ICorsExposedHeaders.Add(params IEnumerable<string> headers)
         {
-            _writer.CorsHeader(header);
+            foreach (var header in headers)
+                _writer.CorsHeader(header);
             return this;
         }
     }

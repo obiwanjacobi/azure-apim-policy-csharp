@@ -53,12 +53,12 @@ public interface IReturnResponseActions
 
 public interface ISetHeaderValue
 {
-    ISetHeaderValue Add(PolicyExpression value);
+    ISetHeaderValue Add(params IEnumerable<PolicyExpression> values);
 }
 
 public interface ISetQueryParameterValue
 {
-    ISetQueryParameterValue Add(PolicyExpression value);
+    ISetQueryParameterValue Add(params IEnumerable<PolicyExpression> values);
 }
 
 
@@ -162,9 +162,10 @@ partial class PolicyDocument
         private readonly PolicyXmlWriter _writer;
         public SetHeaderValue(PolicyXmlWriter writer) { _writer = writer; }
 
-        public ISetHeaderValue Add(PolicyExpression value)
+        public ISetHeaderValue Add(params IEnumerable<PolicyExpression> values)
         {
-            _writer.SetHeaderValue(value);
+            foreach (var value in values)
+                _writer.SetHeaderValue(value);
             return this;
         }
     }
@@ -197,9 +198,10 @@ partial class PolicyDocument
         private readonly PolicyXmlWriter _writer;
         public SetQueryParameterValue(PolicyXmlWriter writer) { _writer = writer; }
 
-        public ISetQueryParameterValue Add(PolicyExpression value)
+        public ISetQueryParameterValue Add(params IEnumerable<PolicyExpression> values)
         {
-            _writer.SetQueryParameterValue(value);
+            foreach (var value in values)
+                _writer.SetQueryParameterValue(value);
             return this;
         }
     }
