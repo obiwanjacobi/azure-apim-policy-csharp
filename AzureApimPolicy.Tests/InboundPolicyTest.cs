@@ -38,7 +38,8 @@ internal class InboundPolicy : PolicyDocument
             .RateLimitByKey(PolicyExpression.FromCode("Context.Request.IpAddress"), 100, 60, null,
                 PolicyExpression.FromCode("Context.Response.StatusCode == 200"),
                 "retryVar", "X-Retry-After", "remainingVar", "X-Remaining-Calls", "X-Total-Calls")
-            .RewriteUri("/api/v1", false);
+            .RewriteUri("/api/v1", false)
+            .SetBackendService("daprAppId", "daprMethod", "daprNamespace")
         ;
 
         base.Inbound();
@@ -254,6 +255,18 @@ public class InboundPolicyTest
         Assert.NotNull(rewriteUri);
         Assert.Equal("/api/v1", rewriteUri.Attribute("template").Value);
         Assert.Equal("false", rewriteUri.Attribute("copy-unmatched-params").Value);
+    }
+
+    [Fact]
+    public void SetBackendServiceDapr()
+    {
+        var inbound = _document.Descendants("inbound").Single();
+        var setBackendService = inbound.Element("set-backend-service");
+        Assert.NotNull(setBackendService);
+        Assert.Equal("dapr", setBackendService.Attribute("backend-id").Value);
+        Assert.Equal("daprAppId", setBackendService.Attribute("dapr-app-id").Value);
+        Assert.Equal("daprMethod", setBackendService.Attribute("dapr-method").Value);
+        Assert.Equal("daprNamespace", setBackendService.Attribute("dapr-namespace").Value);
     }
 }
 

@@ -17,6 +17,9 @@ public interface IIntegration
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/send-request-policy</summary>
     IPolicyDocument SendRequest(PolicyExpression responseVariableName, Action<ISendRequestActions> request, PolicyExpression? mode = null, PolicyExpression? timeoutSeconds = null, bool? ignoreError = null);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-backend-service-dapr-policy</summary>
+    IPolicyDocument SetBackendService(PolicyExpression daprAppId, PolicyExpression daprMethod, PolicyExpression? daprNamespace = null);
 }
 
 public interface ISendRequestActions
@@ -136,6 +139,14 @@ partial class PolicyDocument
         Writer.SendRequest(responseVariableName, mode, timeoutSeconds, ignoreError, () => request(new SendRequestActions(this, Writer)));
         return this;
     }
+
+    public IPolicyDocument SetBackendService(PolicyExpression daprAppId, PolicyExpression daprMethod, PolicyExpression? daprNamespace = null)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
+        Writer.SetBackendService(daprAppId, daprMethod, daprNamespace);
+        return this;
+    }
 }
 
 partial class PolicyXmlWriter
@@ -202,6 +213,16 @@ partial class PolicyXmlWriter
         _xmlWriter.WriteAttributeStringOpt("timeout", timeout);
         _xmlWriter.WriteAttributeStringOpt("ignore-error", BoolValue(ignoreError));
         writeRequest();
+        _xmlWriter.WriteEndElement();
+    }
+
+    public void SetBackendService(string daprAppId, string daprMethod, string? daprNamespace)
+    {
+        _xmlWriter.WriteStartElement("set-backend-service");
+        _xmlWriter.WriteAttributeString("backend-id", "dapr");
+        _xmlWriter.WriteAttributeString("dapr-app-id", daprAppId);
+        _xmlWriter.WriteAttributeString("dapr-method", daprMethod);
+        _xmlWriter.WriteAttributeStringOpt("dapr-namespace", daprNamespace);
         _xmlWriter.WriteEndElement();
     }
 }
