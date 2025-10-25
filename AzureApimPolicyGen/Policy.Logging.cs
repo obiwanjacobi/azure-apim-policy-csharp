@@ -9,11 +9,21 @@ public interface ILogging
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/log-to-eventhub-policy</summary>
     IPolicyDocument LogToEventHub(string loggerId, string? partitionId, string? partitionKey, PolicyExpression message);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/trace-policy</summary>
+    IPolicyDocument Trace(string source, PolicyExpression message, TraceSeverity severity = TraceSeverity.Verbose, string? metadataName = null, string? metadataValue = null);
 }
 
 public interface IEmitMetricDimensions
 {
     IEmitMetricDimensions Add(string name, string? value);
+}
+
+public enum TraceSeverity
+{
+    Verbose,
+    Information,
+    Error
 }
 
 partial class PolicyDocument
@@ -54,6 +64,27 @@ partial class PolicyDocument
         Writer.LogToEventHub(loggerId, partitionId, partitionKey, message);
         return this;
     }
+
+    public IPolicyDocument Trace(string source, PolicyExpression message, TraceSeverity severity = TraceSeverity.Verbose, string? metadataName = null, string? metadataValue = null)
+    {
+        AssertSection([PolicySection.Inbound, PolicySection.Outbound, PolicySection.Backend]);
+        AssertScopes(PolicyScopes.All);
+        if (((metadataName is null && metadataValue is not null) ||
+             (metadataName is not null && metadataValue is null)))
+            throw new ArgumentException($"Both {nameof(metadataName)} and {metadataValue} must be filled or null.", $"{nameof(metadataName)}+{metadataValue}");
+
+        Writer.Trace(source, message, SeverityToString(severity), metadataName, metadataValue);
+        return this;
+
+        static string SeverityToString(TraceSeverity severity)
+            => severity switch
+            {
+                TraceSeverity.Verbose => "verbose",
+                TraceSeverity.Information => "information",
+                TraceSeverity.Error => "error",
+                _ => "verbose"
+            };
+    }
 }
 
 partial class PolicyXmlWriter
@@ -82,6 +113,24 @@ partial class PolicyXmlWriter
         _xmlWriter.WriteAttributeStringOpt("partition-id", partitionId);
         _xmlWriter.WriteAttributeStringOpt("partition-key", partitionKey);
         _xmlWriter.WriteString(message);
+        _xmlWriter.WriteEndElement();
+    }
+
+    public void Trace(string source, string message, string? severity, string? metaName, string? metaValue)
+    {
+        _xmlWriter.WriteStartElement("trace");
+        _xmlWriter.WriteAttributeString("source", source);
+        _xmlWriter.WriteAttributeStringOpt("severity", severity);
+        _xmlWriter.WriteStartElement("message");
+        _xmlWriter.WriteString(message);
+        _xmlWriter.WriteEndElement();
+        if (metaName is not null && metaValue is not null)
+        {
+            _xmlWriter.WriteStartElement("metadata");
+            _xmlWriter.WriteAttributeString("name", metaName);
+            _xmlWriter.WriteAttributeString("value", metaValue);
+            _xmlWriter.WriteEndElement();
+        }
         _xmlWriter.WriteEndElement();
     }
 }

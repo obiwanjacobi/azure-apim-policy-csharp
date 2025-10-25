@@ -21,6 +21,7 @@ internal class OutboundPolicy : PolicyDocument
                     .SetBody("""{ "data": 42 }""")
             )
             .SendServiceBusMessage("sb-test", "Hello World!", props => props.Add("correlation-id", "42"), null, "myTopic")
+            .Trace("Test", "Trace Test", TraceSeverity.Verbose, "traceid", "42")
         ;
 
         base.Outbound();
@@ -107,6 +108,23 @@ public class OutboundPolicyTest
         var payload = sendServiceBusMessage.Element("payload");
         Assert.NotNull(payload);
         Assert.Equal("Hello World!", payload.Value);
+    }
+
+    [Fact]
+    public void Trace()
+    {
+        var outbound = _document.Descendants("outbound").Single();
+        var trace = outbound.Element("trace");
+        Assert.NotNull(trace);
+        Assert.Equal("Test", trace.Attribute("source").Value);
+        Assert.Equal("verbose", trace.Attribute("severity").Value);
+        var message = trace.Element("message");
+        Assert.NotNull(message);
+        Assert.Equal("Trace Test", message.Value);
+        var metadata = trace.Element("metadata");
+        Assert.NotNull(metadata);
+        Assert.Equal("traceid", metadata.Attribute("name").Value);
+        Assert.Equal("42", metadata.Attribute("value").Value);
     }
 }
 
