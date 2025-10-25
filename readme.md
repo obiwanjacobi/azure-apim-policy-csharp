@@ -62,7 +62,7 @@
 - [ ] `sql-data-source` https://learn.microsoft.com/en-us/azure/api-management/sql-data-source-policy
 - [x] `trace` https://learn.microsoft.com/en-us/azure/api-management/trace-policy
 - [x] `validate-azure-ad-token` https://learn.microsoft.com/en-us/azure/api-management/validate-azure-ad-token-policy
-- [ ] `validate-client-certificate` https://learn.microsoft.com/en-us/azure/api-management/validate-client-certificate-policy
+- [x] `validate-client-certificate` https://learn.microsoft.com/en-us/azure/api-management/validate-client-certificate-policy
 - [ ] `validate-content` https://learn.microsoft.com/en-us/azure/api-management/validate-content-policy
 - [ ] `validate-graphql-request` https://learn.microsoft.com/en-us/azure/api-management/validate-graphql-request-policy
 - [ ] `validate-headers` https://learn.microsoft.com/en-us/azure/api-management/validate-headers-policy

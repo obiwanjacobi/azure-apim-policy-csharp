@@ -48,6 +48,8 @@ internal class InboundPolicy : PolicyDocument
                     .DecryptionKeys("cert")
                     .RequiredClaims(claims => claims.Add("claim", values => values.Add("admin"), "all"))
                 )
+            .ValidateClientCertificate(true, true, true, true, false,
+                identities => identities.Add("thumbprint", "serialNumber", "commonName", "subject", "dnsName", "issuerSubject", "issuerThumbprint"))
         ;
 
         base.Inbound();
@@ -307,6 +309,30 @@ public class InboundPolicyTest
         Assert.Equal("claim", claim.Attribute("name").Value);
         Assert.Equal("all", claim.Attribute("match").Value);
         Assert.Equal("admin", claim.Value);
+    }
+
+    [Fact]
+    public void ValidateClientCertificate()
+    {
+        var inbound = _document.Descendants("inbound").Single();
+        var validateClientCertificate = inbound.Element("validate-client-certificate");
+        Assert.NotNull(validateClientCertificate);
+        Assert.Equal("true", validateClientCertificate.Attribute("validate-revocation").Value);
+        Assert.Equal("true", validateClientCertificate.Attribute("validate-trust").Value);
+        Assert.Equal("true", validateClientCertificate.Attribute("validate-not-before").Value);
+        Assert.Equal("true", validateClientCertificate.Attribute("validate-not-after").Value);
+        Assert.Equal("false", validateClientCertificate.Attribute("ignore-error").Value);
+        var identities = validateClientCertificate.Element("identities");
+        Assert.NotNull(identities);
+        var identity = identities.Element("identity");
+        Assert.NotNull(identity);
+        Assert.Equal("thumbprint", identity.Attribute("thumbprint").Value);
+        Assert.Equal("serialNumber", identity.Attribute("serial-number").Value);
+        Assert.Equal("commonName", identity.Attribute("common-name").Value);
+        Assert.Equal("subject", identity.Attribute("subject").Value);
+        Assert.Equal("dnsName", identity.Attribute("dns-name").Value);
+        Assert.Equal("issuerSubject", identity.Attribute("issuer-subject").Value);
+        Assert.Equal("issuerThumbprint", identity.Attribute("issuer-thumbprint").Value);
     }
 }
 

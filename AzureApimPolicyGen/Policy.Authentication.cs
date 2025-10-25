@@ -25,6 +25,9 @@ public interface IAuthentication
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/validate-azure-ad-token-policy</summary>
     IPolicyDocument ValidateAzureAdToken(PolicyExpression tenantIdOrUrl, PolicyExpression? headerName = null, PolicyExpression? queryParameterName = null, PolicyExpression? tokenValue = null, string? authenticationEndpoint = null, PolicyExpression? failedValidationHttpCode = null, PolicyExpression? failedValidationErrorMessage = null, PolicyVariable? outputTokenVariableName = null, Action<IValidateAzureAdTokenActions>? validationActions = null);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/validate-client-certificate-policy</summary>
+    IPolicyDocument ValidateClientCertificate(bool? validateRevocation = null, bool? validateTrust = null, bool? validateNotBefore = null, bool? validateNotAfter = null, bool? ignoreError = null, Action<IValidateClientCertificateIdentities>? identities = null);
 }
 
 public interface IIpFilterAddress
@@ -53,6 +56,11 @@ public interface IValidateAzureAdTokenClaims
 public interface IValidateAzureAdTokenClaimValues
 {
     IValidateAzureAdTokenClaimValues Add(PolicyExpression value);
+}
+
+public interface IValidateClientCertificateIdentities
+{
+    IValidateClientCertificateIdentities Add(string? thumbprint = null, string? serialNumber = null, string? commonName = null, string? subject = null, string? dnsName = null, string? issuerSubject = null, string? issuerThumbprint = null, string? issuerCertificateId = null);
 }
 
 partial class PolicyDocument
@@ -210,6 +218,30 @@ partial class PolicyDocument
             return this;
         }
     }
+
+    public IPolicyDocument ValidateClientCertificate(bool? validateRevocation = null, bool? validateTrust = null, bool? validateNotBefore = null, bool? validateNotAfter = null, bool? ignoreError = null, Action<IValidateClientCertificateIdentities>? identities = null)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        Action? writeIdentities = identities is null ? null : () => identities(new ValidateClientCertificateIdentities(Writer));
+        Writer.ValidateClientCertificate(validateRevocation, validateTrust, validateNotBefore, validateNotAfter, ignoreError, writeIdentities);
+        return this;
+    }
+
+    private sealed class ValidateClientCertificateIdentities : IValidateClientCertificateIdentities
+    {
+        private readonly PolicyXmlWriter _writer;
+        public ValidateClientCertificateIdentities(PolicyXmlWriter writer) { _writer = writer; }
+
+        public IValidateClientCertificateIdentities Add(string? thumbprint = null, string? serialNumber = null, string? commonName = null, string? subject = null, string? dnsName = null, string? issuerSubject = null, string? issuerThumbprint = null, string? issuerCertificateId = null)
+        {
+            if (issuerCertificateId is not null && (issuerSubject is not null || issuerThumbprint is not null))
+                throw new ArgumentException($"Specifying {nameof(issuerCertificateId)} is mutually exclusive with other issuer parameters.", $"{nameof(issuerSubject)}+{nameof(issuerThumbprint)}");
+
+            _writer.ValidateClientCertificateIdentity(thumbprint, serialNumber, commonName, subject, dnsName, issuerSubject, issuerThumbprint, issuerCertificateId);
+            return this;
+        }
+    }
 }
 
 partial class PolicyXmlWriter
@@ -353,5 +385,35 @@ partial class PolicyXmlWriter
     internal void ValidateAzureAdToken_RequiredClaimValue(PolicyExpression value)
     {
         _xmlWriter.WriteElementString("value", value);
+    }
+
+    public void ValidateClientCertificate(bool? validateRevocation, bool? validateTrust, bool? validateNotBefore, bool? validateNotAfter, bool? ignoreError, Action? writeIdentities)
+    {
+        _xmlWriter.WriteStartElement("validate-client-certificate");
+        _xmlWriter.WriteAttributeStringOpt("validate-revocation", BoolValue(validateRevocation));
+        _xmlWriter.WriteAttributeStringOpt("validate-trust", BoolValue(validateTrust));
+        _xmlWriter.WriteAttributeStringOpt("validate-not-before", BoolValue(validateNotBefore));
+        _xmlWriter.WriteAttributeStringOpt("validate-not-after", BoolValue(validateNotAfter));
+        _xmlWriter.WriteAttributeStringOpt("ignore-error", BoolValue(ignoreError));
+        if (writeIdentities is not null)
+        {
+            _xmlWriter.WriteStartElement("identities");
+            writeIdentities();
+            _xmlWriter.WriteEndElement();
+        }
+        _xmlWriter.WriteEndElement();
+    }
+    internal void ValidateClientCertificateIdentity(string? thumbprint, string? serialNumber, string? commonName, string? subject, string? dnsName, string? issuerSubject, string? issuerThumbprint, string? issuerCertificateId)
+    {
+        _xmlWriter.WriteStartElement("identity");
+        _xmlWriter.WriteAttributeStringOpt("thumbprint", thumbprint);
+        _xmlWriter.WriteAttributeStringOpt("serial-number", serialNumber);
+        _xmlWriter.WriteAttributeStringOpt("common-name", commonName);
+        _xmlWriter.WriteAttributeStringOpt("subject", subject);
+        _xmlWriter.WriteAttributeStringOpt("dns-name", dnsName);
+        _xmlWriter.WriteAttributeStringOpt("issuer-subject", issuerSubject);
+        _xmlWriter.WriteAttributeStringOpt("issuer-thumbprint", issuerThumbprint);
+        _xmlWriter.WriteAttributeStringOpt("issuer-certificate-id", issuerCertificateId);
+        _xmlWriter.WriteEndElement();
     }
 }
