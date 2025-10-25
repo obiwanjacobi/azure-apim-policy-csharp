@@ -56,7 +56,7 @@
 - [x] `set-body` https://learn.microsoft.com/en-us/azure/api-management/set-body-policy
 - [x] `set-header` https://learn.microsoft.com/en-us/azure/api-management/set-header-policy
 - [x] `set-method` https://learn.microsoft.com/en-us/azure/api-management/set-method-policy
-- [ ] `set-query-parameter` https://learn.microsoft.com/en-us/azure/api-management/set-query-parameter-policy
+- [x] `set-query-parameter` https://learn.microsoft.com/en-us/azure/api-management/set-query-parameter-policy
 - [x] `set-status` https://learn.microsoft.com/en-us/azure/api-management/set-status-policy
 - [ ] `set-variable` https://learn.microsoft.com/en-us/azure/api-management/set-variable-policy
 - [ ] `sql-data-source` https://learn.microsoft.com/en-us/azure/api-management/sql-data-source-policy

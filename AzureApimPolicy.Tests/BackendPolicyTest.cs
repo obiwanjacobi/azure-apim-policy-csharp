@@ -28,6 +28,7 @@ internal class BackendPolicy : PolicyDocument
                     .SetBody("""{ "value": "42" }"""),
                 "copy", 120, false)
             .SetBackendService("https://localhost/post")
+            .SetQueryParameter("Content-Type", values => values.Add(MediaTypeNames.Application.Json), "skip")
             ;
 
         base.Backend();
@@ -148,6 +149,18 @@ public class BackendPolicyTest
         var setBackendService = backend.Element("set-backend-service");
         Assert.NotNull(setBackendService);
         Assert.Equal("https://localhost/post", setBackendService.Attribute("base-url").Value);
+    }
+
+    [Fact]
+    public void SetQueryParameter()
+    {
+        var backend = _document.Descendants("backend").Single();
+        var setQueryParameter = backend.Element("set-query-parameter");
+        Assert.NotNull(setQueryParameter);
+        Assert.Equal("Content-Type", setQueryParameter.Attribute("name").Value);
+        var queryParameter = setQueryParameter.Element("value");
+        Assert.NotNull(queryParameter);
+        Assert.Equal("application/json", queryParameter.Value);
     }
 }
 

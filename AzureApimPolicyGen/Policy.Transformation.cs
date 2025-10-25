@@ -36,6 +36,9 @@ public interface ITransformation
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-status-policy</summary>
     IPolicyDocument SetStatus(PolicyExpression statusCode, PolicyExpression reason);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-query-parameter-policy</summary>
+    IPolicyDocument SetQueryParameter(PolicyExpression name, Action<ISetQueryParameterValue> values, PolicyExpression? existsAction = null);
 }
 
 public interface IReturnResponseActions
@@ -49,6 +52,12 @@ public interface ISetHeaderValue
 {
     ISetHeaderValue Add(PolicyExpression value);
 }
+
+public interface ISetQueryParameterValue
+{
+    ISetQueryParameterValue Add(PolicyExpression value);
+}
+
 
 partial class PolicyDocument
 {
@@ -171,6 +180,26 @@ partial class PolicyDocument
         Writer.SetStatus(statusCode, reason);
         return this;
     }
+
+    public IPolicyDocument SetQueryParameter(PolicyExpression name, Action<ISetQueryParameterValue> values, PolicyExpression? existsAction = null)
+    {
+        AssertSection([PolicySection.Inbound, PolicySection.Backend]);
+        AssertScopes(PolicyScopes.All);
+        Writer.SetQueryParameter(name, existsAction, () => values(new SetQueryParameterValue(Writer)));
+        return this;
+    }
+
+    private sealed class SetQueryParameterValue : ISetQueryParameterValue
+    {
+        private readonly PolicyXmlWriter _writer;
+        public SetQueryParameterValue(PolicyXmlWriter writer) { _writer = writer; }
+
+        public ISetQueryParameterValue Add(PolicyExpression value)
+        {
+            _writer.SetQueryParameterValue(value);
+            return this;
+        }
+    }
 }
 
 partial class PolicyXmlWriter
@@ -259,5 +288,18 @@ partial class PolicyXmlWriter
         _xmlWriter.WriteAttributeString("status-code", statusCode);
         _xmlWriter.WriteAttributeString("reason", reason);
         _xmlWriter.WriteEndElement();
+    }
+
+    public void SetQueryParameter(string name, string? existsAction, Action writeValues)
+    {
+        _xmlWriter.WriteStartElement("set-query-parameter");
+        _xmlWriter.WriteAttributeString("name", name);
+        _xmlWriter.WriteAttributeStringOpt("exists-action", existsAction);
+        writeValues();
+        _xmlWriter.WriteEndElement();
+    }
+    internal void SetQueryParameterValue(string value)
+    {
+        _xmlWriter.WriteElementString("value", value);
     }
 }
