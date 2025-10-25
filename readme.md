@@ -58,7 +58,7 @@
 - [x] `set-method` https://learn.microsoft.com/en-us/azure/api-management/set-method-policy
 - [x] `set-query-parameter` https://learn.microsoft.com/en-us/azure/api-management/set-query-parameter-policy
 - [x] `set-status` https://learn.microsoft.com/en-us/azure/api-management/set-status-policy
-- [ ] `set-variable` https://learn.microsoft.com/en-us/azure/api-management/set-variable-policy
+- [x] `set-variable` https://learn.microsoft.com/en-us/azure/api-management/set-variable-policy
 - [ ] `sql-data-source` https://learn.microsoft.com/en-us/azure/api-management/sql-data-source-policy
 - [ ] `trace` https://learn.microsoft.com/en-us/azure/api-management/trace-policy
 - [ ] `validate-azure-ad-token` https://learn.microsoft.com/en-us/azure/api-management/validate-azure-ad-token-policy
@@ -77,7 +77,7 @@
 
 ## TODO
 
-- [ ] Variables: check exists (variable-referense in policies are typically created on demand)
+- [ ] Variables: check exists (variable-references in policies are typically created on demand)
 - [ ] Variables: Typed - to check the 'structure' of variables
 - [ ] PolicyExpression: TypeHint to document expected (result) type of literal or code expression
 - [ ] CodeExpression: `{{named-value}}` in code. Compiler will fail.

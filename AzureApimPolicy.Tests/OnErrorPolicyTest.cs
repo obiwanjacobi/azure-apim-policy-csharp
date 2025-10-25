@@ -10,6 +10,7 @@ internal class OnErrorPolicy : PolicyDocument
     {
         this
             .LogToEventHub("loggerId", null, partitionKey: "partitionKey", message: "Error")
+            .SetVariable("hasError", PolicyExpression.FromCode("true"))
         ;
 
         base.OnError();
@@ -37,6 +38,16 @@ public class OnErrorPolicyTest
         Assert.Equal("loggerId", logToEventHub.Attribute("logger-id").Value);
         Assert.Equal("partitionKey", logToEventHub.Attribute("partition-key").Value);
         Assert.Equal("Error", logToEventHub.Value);
+    }
+
+    [Fact]
+    public void SetVariable()
+    {
+        var onError = _document.Descendants("on-error").Single();
+        var setVariable = onError.Element("set-variable");
+        Assert.NotNull(setVariable);
+        Assert.Equal("hasError", setVariable.Attribute("name").Value);
+        Assert.Equal("@(true)", setVariable.Attribute("value").Value);
     }
 }
 

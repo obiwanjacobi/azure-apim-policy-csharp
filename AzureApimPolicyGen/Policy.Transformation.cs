@@ -39,6 +39,9 @@ public interface ITransformation
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-query-parameter-policy</summary>
     IPolicyDocument SetQueryParameter(PolicyExpression name, Action<ISetQueryParameterValue> values, PolicyExpression? existsAction = null);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-variable-policy</summary>
+    IPolicyDocument SetVariable(string name, PolicyExpression value);
 }
 
 public interface IReturnResponseActions
@@ -200,6 +203,13 @@ partial class PolicyDocument
             return this;
         }
     }
+
+    public IPolicyDocument SetVariable(string name, PolicyExpression value)
+    {
+        AssertScopes(PolicyScopes.All);
+        Writer.SetVariable(name, value);
+        return this;
+    }
 }
 
 partial class PolicyXmlWriter
@@ -301,5 +311,14 @@ partial class PolicyXmlWriter
     internal void SetQueryParameterValue(string value)
     {
         _xmlWriter.WriteElementString("value", value);
+    }
+
+
+    public void SetVariable(string name, string value)
+    {
+        _xmlWriter.WriteStartElement("set-variable");
+        _xmlWriter.WriteAttributeString("name", name);
+        _xmlWriter.WriteAttributeString("value", value);
+        _xmlWriter.WriteEndElement();
     }
 }
