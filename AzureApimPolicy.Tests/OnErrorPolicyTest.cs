@@ -13,6 +13,7 @@ internal class OnErrorPolicy : PolicyDocument
             .SetVariable("hasError", PolicyExpression.FromCode("true"))
             .ValidateHeaders("detect", "prevent", "errorVar",
                 headers => headers.Add("headerName", "detect"))
+            .ValidateStatusCode("detect", "errorVar", codes => codes.Add(401, "ignore"))
         ;
 
         base.OnError();
@@ -64,6 +65,20 @@ public class OnErrorPolicyTest
         Assert.NotNull(header);
         Assert.Equal("headerName", header.Attribute("name").Value);
         Assert.Equal("detect", header.Attribute("action").Value);
+    }
+
+    [Fact]
+    public void ValidateStatusCode()
+    {
+        var onError = _document.Descendants("on-error").Single();
+        var validateStatusCode = onError.Element("validate-status-code");
+        Assert.NotNull(validateStatusCode);
+        Assert.Equal("detect", validateStatusCode.Attribute("unspecified-status-code-action").Value);
+        Assert.Equal("errorVar", validateStatusCode.Attribute("error-variable-name").Value);
+        var statusCode = validateStatusCode.Element("status-code");
+        Assert.NotNull(statusCode);
+        Assert.Equal("401", statusCode.Attribute("code").Value);
+        Assert.Equal("ignore", statusCode.Attribute("action").Value);
     }
 }
 

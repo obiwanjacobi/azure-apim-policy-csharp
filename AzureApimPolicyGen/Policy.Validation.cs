@@ -15,6 +15,9 @@ public interface IValidation
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/validate-parameters-policy</summary>
     IPolicyDocument ValidateParameters(PolicyExpression specifiedParameterAction, PolicyExpression unspecifiedParameterAction, PolicyVariable? errorVariableName = null, Action<IValidateParameterActions>? parameterActions = null);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/validate-status-code-policy</summary>
+    IPolicyDocument ValidateStatusCode(PolicyExpression unspecifiedStatusCodeAction, PolicyVariable? errorVariableName = null, Action<IValidateStatusCodes>? statusCodes = null);
 }
 
 public interface IValidateContentActions
@@ -61,6 +64,10 @@ public interface IValidateParameterPath
     IValidateParameterPath Add(string name, PolicyExpression action);
 }
 
+public interface IValidateStatusCodes
+{
+    IValidateStatusCodes Add(int statusCode, PolicyExpression action);
+}
 
 partial class PolicyDocument
 {
@@ -195,6 +202,27 @@ partial class PolicyDocument
             return this;
         }
     }
+
+    public IPolicyDocument ValidateStatusCode(PolicyExpression unspecifiedStatusCodeAction, PolicyVariable? errorVariableName = null, Action<IValidateStatusCodes>? statusCodes = null)
+    {
+        AssertSection([PolicySection.Outbound, PolicySection.OnError]);
+        AssertScopes(PolicyScopes.All);
+        Action? writeStatusCodes = statusCodes is null ? null : () => statusCodes(new ValidateStatusCodes(Writer));
+        Writer.ValidateStatusCode(unspecifiedStatusCodeAction, errorVariableName, writeStatusCodes);
+        return this;
+    }
+
+    private sealed class ValidateStatusCodes : IValidateStatusCodes
+    {
+        private readonly PolicyXmlWriter _writer;
+        public ValidateStatusCodes(PolicyXmlWriter writer) { _writer = writer; }
+
+        public IValidateStatusCodes Add(int statusCode, PolicyExpression action)
+        {
+            _writer.ValidateStatusCodesAdd(statusCode.ToString(), action);
+            return this;
+        }
+    }
 }
 
 partial class PolicyXmlWriter
@@ -304,6 +332,22 @@ partial class PolicyXmlWriter
     {
         _xmlWriter.WriteStartElement("parameter");
         _xmlWriter.WriteAttributeString("name", name);
+        _xmlWriter.WriteAttributeString("action", action);
+        _xmlWriter.WriteEndElement();
+    }
+
+    public void ValidateStatusCode(string unspecifiedStatusCodeAction, string? errorVariableName, Action? writeStatusCodes)
+    {
+        _xmlWriter.WriteStartElement("validate-status-code");
+        _xmlWriter.WriteAttributeString("unspecified-status-code-action", unspecifiedStatusCodeAction);
+        _xmlWriter.WriteAttributeString("error-variable-name", errorVariableName);
+        if (writeStatusCodes is not null) writeStatusCodes();
+        _xmlWriter.WriteEndElement();
+    }
+    internal void ValidateStatusCodesAdd(string code, string action)
+    {
+        _xmlWriter.WriteStartElement("status-code");
+        _xmlWriter.WriteAttributeString("code", code);
         _xmlWriter.WriteAttributeString("action", action);
         _xmlWriter.WriteEndElement();
     }
