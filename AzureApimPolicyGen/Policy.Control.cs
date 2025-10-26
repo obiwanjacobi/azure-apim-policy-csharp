@@ -13,12 +13,22 @@ public interface IControl
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/retry-policy</summary>
     IPolicyDocument Retry(PolicyExpression condition, PolicyExpression numberOfRetries, PolicyExpression intervalSeconds,
         PolicyExpression? maxIntervalSeconds = null, int? deltaSeconds = null, PolicyExpression? firstFastRetry = null);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/wait-policy</summary>
+    IPolicyDocument Wait(Action<IWaitActions> actions, PolicyExpression? waitFor = null);
 }
 
 public interface IChooseActions
 {
     IChooseActions When(PolicyExpression condition, Action<IPolicyDocument> whenActions);
     IChooseActions Otherwise(Action<IPolicyDocument> otherwiseActions);
+}
+
+public interface IWaitActions
+{
+    IWaitActions Choose(Action<IChooseActions> choose);
+    IWaitActions CacheLookupValue(string variableName, PolicyExpression key, PolicyExpression? defaultValue = null, CacheType? cacheType = null);
+    IWaitActions SendRequest(PolicyExpression responseVariableName, Action<ISendRequestActions> request, PolicyExpression? mode = null, PolicyExpression? timeoutSeconds = null, bool? ignoreError = null);
 }
 
 partial class PolicyDocument
@@ -69,6 +79,38 @@ partial class PolicyDocument
         Writer.Retry(condition, numberOfRetries, intervalSeconds, maxIntervalSeconds, deltaSeconds.ToString(), firstFastRetry);
         return this;
     }
+
+    public IPolicyDocument Wait(Action<IWaitActions> actions, PolicyExpression? waitFor = null)
+    {
+        AssertSection([PolicySection.Inbound, PolicySection.Outbound, PolicySection.Backend]);
+        AssertScopes(PolicyScopes.All);
+        Writer.Wait(waitFor, () => actions(new WaitActions(this)));
+        return this;
+    }
+
+    private sealed class WaitActions : IWaitActions
+    {
+        private readonly IPolicyDocument _document;
+        public WaitActions(IPolicyDocument document) { _document = document; }
+
+        public IWaitActions Choose(Action<IChooseActions> choose)
+        {
+            _document.Choose(choose);
+            return this;
+        }
+
+        public IWaitActions CacheLookupValue(string variableName, PolicyExpression key, PolicyExpression? defaultValue = null, CacheType? cacheType = null)
+        {
+            _document.CacheLookupValue(variableName, key, defaultValue, cacheType);
+            return this;
+        }
+
+        public IWaitActions SendRequest(PolicyExpression responseVariableName, Action<ISendRequestActions> request, PolicyExpression? mode = null, PolicyExpression? timeoutSeconds = null, bool? ignoreError = null)
+        {
+            _document.SendRequest(responseVariableName, request, mode, timeoutSeconds, ignoreError);
+            return this;
+        }
+    }
 }
 
 partial class PolicyXmlWriter
@@ -111,6 +153,14 @@ partial class PolicyXmlWriter
         _xmlWriter.WriteAttributeStringOpt("max-interval", maxInterval);
         _xmlWriter.WriteAttributeStringOpt("delta", delta);
         _xmlWriter.WriteAttributeStringOpt("first-fast-retry", firstFastRetry);
+        _xmlWriter.WriteEndElement();
+    }
+
+    public void Wait(string? waitFor, Action actions)
+    {
+        _xmlWriter.WriteStartElement("wait");
+        _xmlWriter.WriteAttributeStringOpt("for", waitFor);
+        actions();
         _xmlWriter.WriteEndElement();
     }
 }

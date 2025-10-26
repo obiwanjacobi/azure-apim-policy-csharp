@@ -70,7 +70,7 @@
 - [x] `validate-odata-request` https://learn.microsoft.com/en-us/azure/api-management/validate-odata-request-policy
 - [x] `validate-parameters` https://learn.microsoft.com/en-us/azure/api-management/validate-parameters-policy
 - [x] `validate-status-code` https://learn.microsoft.com/en-us/azure/api-management/validate-status-code-policy
-- [ ] `wait` https://learn.microsoft.com/en-us/azure/api-management/wait-policy
+- [x] `wait` https://learn.microsoft.com/en-us/azure/api-management/wait-policy
 - [ ] `xml-to-json` https://learn.microsoft.com/en-us/azure/api-management/xml-to-json-policy
 - [ ] `xsl-transform` https://learn.microsoft.com/en-us/azure/api-management/xsl-transform-policy
 

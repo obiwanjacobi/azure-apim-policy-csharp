@@ -29,6 +29,9 @@ internal class BackendPolicy : PolicyDocument
                 "copy", 120, false)
             .SetBackendService("https://localhost/post")
             .SetQueryParameter("Content-Type", values => values.Add(MediaTypeNames.Application.Json), "skip")
+            .Wait(actions => actions
+                .CacheLookupValue("responseVar", "cacheKey"),
+                "any")
             ;
 
         base.Backend();
@@ -161,6 +164,19 @@ public class BackendPolicyTest
         var queryParameter = setQueryParameter.Element("value");
         Assert.NotNull(queryParameter);
         Assert.Equal("application/json", queryParameter.Value);
+    }
+
+    [Fact]
+    public void Wait()
+    {
+        var backend = _document.Descendants("backend").Single();
+        var wait = backend.Element("wait");
+        Assert.NotNull(wait);
+        Assert.Equal("any", wait.Attribute("for").Value);
+        var cacheLookupValue = wait.Element("cache-lookup-value");
+        Assert.NotNull(cacheLookupValue);
+        Assert.Equal("responseVar", cacheLookupValue.Attribute("variable-name").Value);
+        Assert.Equal("cacheKey", cacheLookupValue.Attribute("key").Value);
     }
 }
 
