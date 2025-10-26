@@ -9,6 +9,9 @@ public interface IValidation
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/validate-headers-policy</summary>
     IPolicyDocument ValidateHeaders(PolicyExpression specifiedHeaderAction, PolicyExpression unspecifiedHeaderAction, PolicyVariable? errorsVariableName = null, Action<IValidateHeaderActions>? headers = null);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/validate-odata-request-policy</summary>
+    IPolicyDocument ValidateODataRequest(PolicyVariable? errorVariableName = null, string? defaultODataVersion = null, string? minODataVersion = null, string? maxODataVersion = null, int? maxSizeBytes = null);
 }
 
 public interface IValidateContentActions
@@ -104,6 +107,14 @@ partial class PolicyDocument
             return this;
         }
     }
+
+    public IPolicyDocument ValidateODataRequest(PolicyVariable? errorVariableName = null, string? defaultODataVersion = null, string? minODataVersion = null, string? maxODataVersion = null, int? maxSizeBytes = null)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.Global | PolicyScopes.Workspace | PolicyScopes.Product | PolicyScopes.Api);
+        Writer.ValidateODataRequest(errorVariableName, defaultODataVersion, minODataVersion, maxODataVersion, maxSizeBytes.ToString());
+        return this;
+    }
 }
 
 partial class PolicyXmlWriter
@@ -163,6 +174,17 @@ partial class PolicyXmlWriter
         _xmlWriter.WriteStartElement("header");
         _xmlWriter.WriteAttributeString("name", name);
         _xmlWriter.WriteAttributeString("action", action);
+        _xmlWriter.WriteEndElement();
+    }
+
+    public void ValidateODataRequest(string? errorVariableName, string? defaultODataVersion, string? minODataVersion, string? maxODataVersion, string? maxSize)
+    {
+        _xmlWriter.WriteStartElement("validate-odata-request");
+        _xmlWriter.WriteAttributeStringOpt("error-variable-name", errorVariableName);
+        _xmlWriter.WriteAttributeStringOpt("default-odata-version", defaultODataVersion);
+        _xmlWriter.WriteAttributeStringOpt("min-odata-version", minODataVersion);
+        _xmlWriter.WriteAttributeStringOpt("max-odata-version", maxODataVersion);
+        _xmlWriter.WriteAttributeStringOpt("max-size", maxSize);
         _xmlWriter.WriteEndElement();
     }
 }

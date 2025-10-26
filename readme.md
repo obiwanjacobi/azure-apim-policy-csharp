@@ -67,7 +67,7 @@
 - [ ] `validate-graphql-request` https://learn.microsoft.com/en-us/azure/api-management/validate-graphql-request-policy
 - [x] `validate-headers` https://learn.microsoft.com/en-us/azure/api-management/validate-headers-policy
 - [x] `validate-jwt` https://learn.microsoft.com/en-us/azure/api-management/validate-jwt-policy
-- [ ] `validate-odata-request` https://learn.microsoft.com/en-us/azure/api-management/validate-odata-request-policy
+- [x] `validate-odata-request` https://learn.microsoft.com/en-us/azure/api-management/validate-odata-request-policy
 - [ ] `validate-parameters` https://learn.microsoft.com/en-us/azure/api-management/validate-parameters-policy
 - [ ] `validate-status-code` https://learn.microsoft.com/en-us/azure/api-management/validate-status-code-policy
 - [ ] `wait` https://learn.microsoft.com/en-us/azure/api-management/wait-policy

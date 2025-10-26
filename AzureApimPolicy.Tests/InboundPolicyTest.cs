@@ -58,6 +58,7 @@ internal class InboundPolicy : PolicyDocument
                     .IssuerSigningKeys(keys => keys.Add("keyBase64", "certId", "id", "n", "e"))
                     .OpenIdConfig("openid")
                     .RequiredClaims(claims => claims.Add("claim", values => values.Add("admin"), "all")))
+            .ValidateODataRequest("errorVar", "4.01", "3.0", "4.1", 2048)
 
         ;
 
@@ -385,6 +386,19 @@ public class InboundPolicyTest
         Assert.Equal("claim", claim.Attribute("name").Value);
         Assert.Equal("all", claim.Attribute("match").Value);
         Assert.Equal("admin", claim.Value);
+    }
+
+    [Fact]
+    public void ValidateODataRequest()
+    {
+        var inbound = _document.Descendants("inbound").Single();
+        var validateODataRequest = inbound.Element("validate-odata-request");
+        Assert.NotNull(validateODataRequest);
+        Assert.Equal("errorVar", validateODataRequest.Attribute("error-variable-name").Value);
+        Assert.Equal("4.01", validateODataRequest.Attribute("default-odata-version").Value);
+        Assert.Equal("3.0", validateODataRequest.Attribute("min-odata-version").Value);
+        Assert.Equal("4.1", validateODataRequest.Attribute("max-odata-version").Value);
+        Assert.Equal("2048", validateODataRequest.Attribute("max-size").Value);
     }
 }
 
