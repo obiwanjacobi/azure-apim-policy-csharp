@@ -5,19 +5,19 @@
 public interface IValidation
 {
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/validate-content-policy</summary>
-    IPolicyDocument ValidateContent(PolicyExpression unspecifiedContentTypeAction, PolicyExpression maxSizeBytes, PolicyExpression sizeExceedAction, PolicyVariable? errorsVariableName = null, Action<IValidateContentActions>? validateActions = null);
+    IPolicyDocument ValidateContent(PolicyExpression<string> unspecifiedContentTypeAction, PolicyExpression<int> maxSizeBytes, PolicyExpression<string> sizeExceedAction, PolicyVariable? errorsVariableName = null, Action<IValidateContentActions>? validateActions = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/validate-headers-policy</summary>
-    IPolicyDocument ValidateHeaders(PolicyExpression specifiedHeaderAction, PolicyExpression unspecifiedHeaderAction, PolicyVariable? errorsVariableName = null, Action<IValidateHeaderActions>? headers = null);
+    IPolicyDocument ValidateHeaders(PolicyExpression<string> specifiedHeaderAction, PolicyExpression<string> unspecifiedHeaderAction, PolicyVariable? errorsVariableName = null, Action<IValidateHeaderActions>? headers = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/validate-odata-request-policy</summary>
     IPolicyDocument ValidateODataRequest(PolicyVariable? errorVariableName = null, string? defaultODataVersion = null, string? minODataVersion = null, string? maxODataVersion = null, int? maxSizeBytes = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/validate-parameters-policy</summary>
-    IPolicyDocument ValidateParameters(PolicyExpression specifiedParameterAction, PolicyExpression unspecifiedParameterAction, PolicyVariable? errorVariableName = null, Action<IValidateParameterActions>? parameterActions = null);
+    IPolicyDocument ValidateParameters(PolicyExpression<string> specifiedParameterAction, PolicyExpression<string> unspecifiedParameterAction, PolicyVariable? errorVariableName = null, Action<IValidateParameterActions>? parameterActions = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/validate-status-code-policy</summary>
-    IPolicyDocument ValidateStatusCode(PolicyExpression unspecifiedStatusCodeAction, PolicyVariable? errorVariableName = null, Action<IValidateStatusCodes>? statusCodes = null);
+    IPolicyDocument ValidateStatusCode(PolicyExpression<string> unspecifiedStatusCodeAction, PolicyVariable? errorVariableName = null, Action<IValidateStatusCodes>? statusCodes = null);
 }
 
 public interface IValidateContentActions
@@ -29,7 +29,7 @@ public interface IValidateContentActions
 public interface IValidateContentTypeMapType
 {
     IValidateContentTypeMapType Add(string from, string to);
-    IValidateContentTypeMapType Add(PolicyExpression when, string to);
+    IValidateContentTypeMapType Add(PolicyExpression<string> when, string to);
 }
 
 public enum ValidateContentAs
@@ -39,39 +39,39 @@ public enum ValidateContentAs
 
 public interface IValidateHeaderActions
 {
-    IValidateHeaderActions Add(string name, PolicyExpression action);
+    IValidateHeaderActions Add(string name, PolicyExpression<string> action);
 }
 
 public interface IValidateParameterActions
 {
-    IValidateParameterActions Headers(PolicyExpression specifiedParameterAction, PolicyExpression unspecifiedParameterAction, Action<IValidateParameterHeaders>? headerParameters = null);
-    IValidateParameterActions Query(PolicyExpression specifiedParameterAction, PolicyExpression unspecifiedParameterAction, Action<IValidateParameterQuery>? queryParameters = null);
-    IValidateParameterActions Path(PolicyExpression specifiedParameterAction, Action<IValidateParameterPath>? pathParameters = null);
+    IValidateParameterActions Headers(PolicyExpression<string> specifiedParameterAction, PolicyExpression<string> unspecifiedParameterAction, Action<IValidateParameterHeaders>? headerParameters = null);
+    IValidateParameterActions Query(PolicyExpression<string> specifiedParameterAction, PolicyExpression<string> unspecifiedParameterAction, Action<IValidateParameterQuery>? queryParameters = null);
+    IValidateParameterActions Path(PolicyExpression<string> specifiedParameterAction, Action<IValidateParameterPath>? pathParameters = null);
 }
 
 public interface IValidateParameterHeaders
 {
-    IValidateParameterHeaders Add(string name, PolicyExpression action);
+    IValidateParameterHeaders Add(string name, PolicyExpression<string> action);
 }
 
 public interface IValidateParameterQuery
 {
-    IValidateParameterQuery Add(string name, PolicyExpression action);
+    IValidateParameterQuery Add(string name, PolicyExpression<string> action);
 }
 
 public interface IValidateParameterPath
 {
-    IValidateParameterPath Add(string name, PolicyExpression action);
+    IValidateParameterPath Add(string name, PolicyExpression<string> action);
 }
 
 public interface IValidateStatusCodes
 {
-    IValidateStatusCodes Add(int statusCode, PolicyExpression action);
+    IValidateStatusCodes Add(int statusCode, PolicyExpression<string> action);
 }
 
 partial class PolicyDocument
 {
-    public IPolicyDocument ValidateContent(PolicyExpression unspecifiedContentTypeAction, PolicyExpression maxSizeBytes, PolicyExpression sizeExceedAction, PolicyVariable? errorsVariableName = null, Action<IValidateContentActions>? validateActions = null)
+    public IPolicyDocument ValidateContent(PolicyExpression<string> unspecifiedContentTypeAction, PolicyExpression<int> maxSizeBytes, PolicyExpression<string> sizeExceedAction, PolicyVariable? errorsVariableName = null, Action<IValidateContentActions>? validateActions = null)
     {
         AssertSection([PolicySection.Inbound, PolicySection.Outbound, PolicySection.OnError]);
         AssertScopes(PolicyScopes.All);
@@ -113,14 +113,14 @@ partial class PolicyDocument
             return this;
         }
 
-        public IValidateContentTypeMapType Add(PolicyExpression when, string to)
+        public IValidateContentTypeMapType Add(PolicyExpression<string> when, string to)
         {
             _writer.ValidateContentTypeMapType(when, null, to);
             return this;
         }
     }
 
-    public IPolicyDocument ValidateHeaders(PolicyExpression specifiedHeaderAction, PolicyExpression unspecifiedHeaderAction, PolicyVariable? errorsVariableName = null, Action<IValidateHeaderActions>? headers = null)
+    public IPolicyDocument ValidateHeaders(PolicyExpression<string> specifiedHeaderAction, PolicyExpression<string> unspecifiedHeaderAction, PolicyVariable? errorsVariableName = null, Action<IValidateHeaderActions>? headers = null)
     {
         AssertSection([PolicySection.Outbound, PolicySection.OnError]);
         AssertScopes(PolicyScopes.All);
@@ -134,7 +134,7 @@ partial class PolicyDocument
         private readonly PolicyXmlWriter _writer;
         public ValidateHeaderActions(PolicyXmlWriter writer) { _writer = writer; }
 
-        public IValidateHeaderActions Add(string name, PolicyExpression action)
+        public IValidateHeaderActions Add(string name, PolicyExpression<string> action)
         {
             _writer.ValidateHeaderName(name, action);
             return this;
@@ -149,7 +149,7 @@ partial class PolicyDocument
         return this;
     }
 
-    public IPolicyDocument ValidateParameters(PolicyExpression specifiedParameterAction, PolicyExpression unspecifiedParameterAction, PolicyVariable? errorVariableName = null, Action<IValidateParameterActions>? parameterActions = null)
+    public IPolicyDocument ValidateParameters(PolicyExpression<string> specifiedParameterAction, PolicyExpression<string> unspecifiedParameterAction, PolicyVariable? errorVariableName = null, Action<IValidateParameterActions>? parameterActions = null)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.All);
@@ -163,47 +163,47 @@ partial class PolicyDocument
         private readonly PolicyXmlWriter _writer;
         public ValidateParameterActions(PolicyXmlWriter writer) { _writer = writer; }
 
-        public IValidateParameterActions Headers(PolicyExpression specifiedParameterAction, PolicyExpression unspecifiedParameterAction, Action<IValidateParameterHeaders>? headerParameters = null)
+        public IValidateParameterActions Headers(PolicyExpression<string> specifiedParameterAction, PolicyExpression<string> unspecifiedParameterAction, Action<IValidateParameterHeaders>? headerParameters = null)
         {
             Action? writeHeaders = headerParameters is null ? null : () => headerParameters(this);
             _writer.ValidateParametersHeaders(specifiedParameterAction, unspecifiedParameterAction, writeHeaders);
             return this;
         }
 
-        public IValidateParameterActions Query(PolicyExpression specifiedParameterAction, PolicyExpression unspecifiedParameterAction, Action<IValidateParameterQuery>? queryParameters = null)
+        public IValidateParameterActions Query(PolicyExpression<string> specifiedParameterAction, PolicyExpression<string> unspecifiedParameterAction, Action<IValidateParameterQuery>? queryParameters = null)
         {
             Action? writeQuery = queryParameters is null ? null : () => queryParameters(this);
             _writer.ValidateParametersQuery(specifiedParameterAction, unspecifiedParameterAction, writeQuery);
             return this;
         }
 
-        public IValidateParameterActions Path(PolicyExpression specifiedParameterAction, Action<IValidateParameterPath>? pathParameters = null)
+        public IValidateParameterActions Path(PolicyExpression<string> specifiedParameterAction, Action<IValidateParameterPath>? pathParameters = null)
         {
             Action? writePath = pathParameters is null ? null : () => pathParameters(this);
             _writer.ValidateParametersPath(specifiedParameterAction, writePath);
             return this;
         }
 
-        IValidateParameterHeaders IValidateParameterHeaders.Add(string name, PolicyExpression action)
+        IValidateParameterHeaders IValidateParameterHeaders.Add(string name, PolicyExpression<string> action)
         {
             _writer.ValidateParametersParameter(name, action);
             return this;
         }
 
-        IValidateParameterQuery IValidateParameterQuery.Add(string name, PolicyExpression action)
+        IValidateParameterQuery IValidateParameterQuery.Add(string name, PolicyExpression<string> action)
         {
             _writer.ValidateParametersParameter(name, action);
             return this;
         }
 
-        IValidateParameterPath IValidateParameterPath.Add(string name, PolicyExpression action)
+        IValidateParameterPath IValidateParameterPath.Add(string name, PolicyExpression<string> action)
         {
             _writer.ValidateParametersParameter(name, action);
             return this;
         }
     }
 
-    public IPolicyDocument ValidateStatusCode(PolicyExpression unspecifiedStatusCodeAction, PolicyVariable? errorVariableName = null, Action<IValidateStatusCodes>? statusCodes = null)
+    public IPolicyDocument ValidateStatusCode(PolicyExpression<string> unspecifiedStatusCodeAction, PolicyVariable? errorVariableName = null, Action<IValidateStatusCodes>? statusCodes = null)
     {
         AssertSection([PolicySection.Outbound, PolicySection.OnError]);
         AssertScopes(PolicyScopes.All);
@@ -217,7 +217,7 @@ partial class PolicyDocument
         private readonly PolicyXmlWriter _writer;
         public ValidateStatusCodes(PolicyXmlWriter writer) { _writer = writer; }
 
-        public IValidateStatusCodes Add(int statusCode, PolicyExpression action)
+        public IValidateStatusCodes Add(int statusCode, PolicyExpression<string> action)
         {
             _writer.ValidateStatusCodesAdd(statusCode.ToString(), action);
             return this;
@@ -328,7 +328,7 @@ partial class PolicyXmlWriter
         if (writePath is not null) writePath();
         _xmlWriter.WriteEndElement();
     }
-    internal void ValidateParametersParameter(string name, PolicyExpression action)
+    internal void ValidateParametersParameter(string name, string action)
     {
         _xmlWriter.WriteStartElement("parameter");
         _xmlWriter.WriteAttributeString("name", name);

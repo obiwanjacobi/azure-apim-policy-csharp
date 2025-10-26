@@ -40,7 +40,7 @@ internal class InboundPolicy : PolicyDocument
                 "retryVar", "X-Retry-After", "remainingVar", "X-Remaining-Calls", "X-Total-Calls")
             .RewriteUri("/api/v1", false)
             .SetBackendService("daprAppId", "daprMethod", "daprNamespace")
-            .ValidateAzureAdToken("tenantId", "headerName", null, null, "authEndpoint", "401", "access denied", "outputVar",
+            .ValidateAzureAdToken("tenantId", "headerName", null, null, "authEndpoint", 401, "access denied", "outputVar",
                 validations => validations
                     .BackendApplicationIds("backend1")
                     .ClientApplicationIds("client1")

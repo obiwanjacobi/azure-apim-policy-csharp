@@ -7,11 +7,10 @@ namespace AzureApimPolicyGen;
 public interface ITransformation
 {
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/find-and-replace-policy</summary>
-    IPolicyDocument FindAndReplace(PolicyExpression from, PolicyExpression to);
+    IPolicyDocument FindAndReplace(PolicyExpression<string> from, PolicyExpression<string> to);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/json-to-xml-policy</summary>
-    IPolicyDocument JsonToXml(PolicyExpression apply, PolicyExpression? considerAcceptHeader = null, bool? parseDate = null,
-        PolicyExpression? namespaceSeparator = null, PolicyExpression? namespacePrefix = null, PolicyExpression? attributeBlockName = null);
+    IPolicyDocument JsonToXml(PolicyExpression<string> apply, PolicyExpression<bool>? considerAcceptHeader = null, bool? parseDate = null, PolicyExpression<string>? namespaceSeparator = null, PolicyExpression<string>? namespacePrefix = null, PolicyExpression<string>? attributeBlockName = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/mock-response-policy</summary>
     IPolicyDocument MockResponse(int? statusCode = null, string? contentType = null);
@@ -23,30 +22,30 @@ public interface ITransformation
     IPolicyDocument ReturnResponse(Action<IReturnResponseActions> response, PolicyVariable? responseVariableName = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/rewrite-uri-policy</summary>
-    IPolicyDocument RewriteUri(PolicyExpression template, bool? copyUnmatchedParams = null);
+    IPolicyDocument RewriteUri(PolicyExpression<string> template, bool? copyUnmatchedParams = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-body-policy</summary>
-    IPolicyDocument SetBody(PolicyExpression body);
+    IPolicyDocument SetBody(PolicyExpression<string> body);
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-body-policy#using-liquid-templates-with-set-body</summary>
     IPolicyDocument SetBody(LiquidTemplate body);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-header-policy</summary>
-    IPolicyDocument SetHeader(PolicyExpression name, PolicyExpression? existsAction = null, Action<ISetHeaderValue>? values = null);
+    IPolicyDocument SetHeader(PolicyExpression<string> name, PolicyExpression<string>? existsAction = null, Action<ISetHeaderValue>? values = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-method-policy</summary>
-    IPolicyDocument SetMethod(PolicyExpression method);
+    IPolicyDocument SetMethod(PolicyExpression<string> method);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-status-policy</summary>
-    IPolicyDocument SetStatus(PolicyExpression statusCode, PolicyExpression reason);
+    IPolicyDocument SetStatus(PolicyExpression<int> statusCode, PolicyExpression<string> reason);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-query-parameter-policy</summary>
-    IPolicyDocument SetQueryParameter(PolicyExpression name, Action<ISetQueryParameterValue> values, PolicyExpression? existsAction = null);
+    IPolicyDocument SetQueryParameter(PolicyExpression<string> name, Action<ISetQueryParameterValue> values, PolicyExpression<string>? existsAction = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-variable-policy</summary>
-    IPolicyDocument SetVariable(string name, PolicyExpression value);
+    IPolicyDocument SetVariable(string name, PolicyExpression<string> value);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/xml-to-json-policy</summary>
-    IPolicyDocument XmlToJson(PolicyExpression kind, PolicyExpression apply, PolicyExpression? considerAcceptHeader = null, PolicyExpression? alwaysArrayChildElements = null);
+    IPolicyDocument XmlToJson(PolicyExpression<string> kind, PolicyExpression<string> apply, PolicyExpression<bool>? considerAcceptHeader = null, PolicyExpression<bool>? alwaysArrayChildElements = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/xsl-transform-policy</summary>
     IPolicyDocument XslTransform(string xslt, Action<IXslTransformParameters>? parameters = null);
@@ -54,19 +53,19 @@ public interface ITransformation
 
 public interface IReturnResponseActions
 {
-    IReturnResponseActions SetStatus(PolicyExpression statusCode, PolicyExpression reason);
-    IReturnResponseActions SetHeader(PolicyExpression name, PolicyExpression? existsAction = null, Action<ISetHeaderValue>? values = null);
-    IReturnResponseActions SetBody(PolicyExpression body);
+    IReturnResponseActions SetStatus(PolicyExpression<int> statusCode, PolicyExpression<string> reason);
+    IReturnResponseActions SetHeader(PolicyExpression<string> name, PolicyExpression<string>? existsAction = null, Action<ISetHeaderValue>? values = null);
+    IReturnResponseActions SetBody(PolicyExpression<string> body);
 }
 
 public interface ISetHeaderValue
 {
-    ISetHeaderValue Add(params IEnumerable<PolicyExpression> values);
+    ISetHeaderValue Add(params IEnumerable<PolicyExpression<string>> values);
 }
 
 public interface ISetQueryParameterValue
 {
-    ISetQueryParameterValue Add(params IEnumerable<PolicyExpression> values);
+    ISetQueryParameterValue Add(params IEnumerable<PolicyExpression<string>> values);
 }
 
 public interface IXslTransformParameters
@@ -77,7 +76,7 @@ public interface IXslTransformParameters
 
 partial class PolicyDocument
 {
-    public IPolicyDocument FindAndReplace(PolicyExpression from, PolicyExpression to)
+    public IPolicyDocument FindAndReplace(PolicyExpression<string> from, PolicyExpression<string> to)
     {
         // allowed in all sections
         AssertScopes(PolicyScopes.All);
@@ -85,8 +84,7 @@ partial class PolicyDocument
         return this;
     }
 
-    public IPolicyDocument JsonToXml(PolicyExpression apply, PolicyExpression? considerAcceptHeader = null, bool? parseDate = null,
-        PolicyExpression? namespaceSeparator = null, PolicyExpression? namespacePrefix = null, PolicyExpression? attributeBlockName = null)
+    public IPolicyDocument JsonToXml(PolicyExpression<string> apply, PolicyExpression<bool>? considerAcceptHeader = null, bool? parseDate = null, PolicyExpression<string>? namespaceSeparator = null, PolicyExpression<string>? namespacePrefix = null, PolicyExpression<string>? attributeBlockName = null)
     {
         AssertSection([PolicySection.Inbound, PolicySection.Outbound, PolicySection.OnError]);
         AssertScopes(PolicyScopes.All);
@@ -122,25 +120,25 @@ partial class PolicyDocument
         private readonly IPolicyDocument _document;
         public ReturnResponseActions(IPolicyDocument document) { _document = document; }
 
-        public IReturnResponseActions SetHeader(PolicyExpression name, PolicyExpression? existsAction = null, Action<ISetHeaderValue>? values = null)
+        public IReturnResponseActions SetHeader(PolicyExpression<string> name, PolicyExpression<string>? existsAction = null, Action<ISetHeaderValue>? values = null)
         {
             _document.SetHeader(name, existsAction, values);
             return this;
         }
-        public IReturnResponseActions SetBody(PolicyExpression body)
+        public IReturnResponseActions SetBody(PolicyExpression<string> body)
         {
             _document.SetBody(body);
             return this;
         }
 
-        public IReturnResponseActions SetStatus(PolicyExpression statusCode, PolicyExpression reason)
+        public IReturnResponseActions SetStatus(PolicyExpression<int> statusCode, PolicyExpression<string> reason)
         {
             _document.SetStatus(statusCode, reason);
             return this;
         }
     }
 
-    public IPolicyDocument RewriteUri(PolicyExpression template, bool? copyUnmatchedParams = null)
+    public IPolicyDocument RewriteUri(PolicyExpression<string> template, bool? copyUnmatchedParams = null)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.All);
@@ -148,7 +146,7 @@ partial class PolicyDocument
         return this;
     }
 
-    public IPolicyDocument SetBody(PolicyExpression body)
+    public IPolicyDocument SetBody(PolicyExpression<string> body)
     {
         AssertSection([PolicySection.Inbound, PolicySection.Outbound, PolicySection.Backend]);
         AssertScopes(PolicyScopes.All);
@@ -163,7 +161,7 @@ partial class PolicyDocument
         return this;
     }
 
-    public IPolicyDocument SetHeader(PolicyExpression name, PolicyExpression? existsAction = null, Action<ISetHeaderValue>? values = null)
+    public IPolicyDocument SetHeader(PolicyExpression<string> name, PolicyExpression<string>? existsAction = null, Action<ISetHeaderValue>? values = null)
     {
         AssertScopes(PolicyScopes.All);
         Writer.SetHeader(name, existsAction, values is null ? null : () => values(new SetHeaderValue(Writer)));
@@ -175,7 +173,7 @@ partial class PolicyDocument
         private readonly PolicyXmlWriter _writer;
         public SetHeaderValue(PolicyXmlWriter writer) { _writer = writer; }
 
-        public ISetHeaderValue Add(params IEnumerable<PolicyExpression> values)
+        public ISetHeaderValue Add(params IEnumerable<PolicyExpression<string>> values)
         {
             foreach (var value in values)
                 _writer.SetHeaderValue(value);
@@ -183,7 +181,7 @@ partial class PolicyDocument
         }
     }
 
-    public IPolicyDocument SetMethod(PolicyExpression method)
+    public IPolicyDocument SetMethod(PolicyExpression<string> method)
     {
         AssertSection([PolicySection.Inbound, PolicySection.OnError]);
         AssertScopes(PolicyScopes.All);
@@ -191,14 +189,14 @@ partial class PolicyDocument
         return this;
     }
 
-    public IPolicyDocument SetStatus(PolicyExpression statusCode, PolicyExpression reason)
+    public IPolicyDocument SetStatus(PolicyExpression<int> statusCode, PolicyExpression<string> reason)
     {
         AssertScopes(PolicyScopes.All);
         Writer.SetStatus(statusCode, reason);
         return this;
     }
 
-    public IPolicyDocument SetQueryParameter(PolicyExpression name, Action<ISetQueryParameterValue> values, PolicyExpression? existsAction = null)
+    public IPolicyDocument SetQueryParameter(PolicyExpression<string> name, Action<ISetQueryParameterValue> values, PolicyExpression<string>? existsAction = null)
     {
         AssertSection([PolicySection.Inbound, PolicySection.Backend]);
         AssertScopes(PolicyScopes.All);
@@ -211,7 +209,7 @@ partial class PolicyDocument
         private readonly PolicyXmlWriter _writer;
         public SetQueryParameterValue(PolicyXmlWriter writer) { _writer = writer; }
 
-        public ISetQueryParameterValue Add(params IEnumerable<PolicyExpression> values)
+        public ISetQueryParameterValue Add(params IEnumerable<PolicyExpression<string>> values)
         {
             foreach (var value in values)
                 _writer.SetQueryParameterValue(value);
@@ -219,14 +217,14 @@ partial class PolicyDocument
         }
     }
 
-    public IPolicyDocument SetVariable(string name, PolicyExpression value)
+    public IPolicyDocument SetVariable(string name, PolicyExpression<string> value)
     {
         AssertScopes(PolicyScopes.All);
         Writer.SetVariable(name, value);
         return this;
     }
 
-    public IPolicyDocument XmlToJson(PolicyExpression kind, PolicyExpression apply, PolicyExpression? considerAcceptHeader = null, PolicyExpression? alwaysArrayChildElements = null)
+    public IPolicyDocument XmlToJson(PolicyExpression<string> kind, PolicyExpression<string> apply, PolicyExpression<bool>? considerAcceptHeader = null, PolicyExpression<bool>? alwaysArrayChildElements = null)
     {
         AssertSection([PolicySection.Inbound, PolicySection.Outbound, PolicySection.OnError]);
         AssertScopes(PolicyScopes.All);

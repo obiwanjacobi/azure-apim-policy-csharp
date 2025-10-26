@@ -5,32 +5,32 @@
 public interface IIntegration
 {
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/publish-to-dapr-policy</summary>
-    IPolicyDocument PublishToDapr(PolicyExpression message, PolicyExpression topic, PolicyExpression? pubSubName = null, PolicyVariable? responseVariableName = null, PolicyExpression? timeout = null, string? contentType = null, bool? ignoreError = null);
+    IPolicyDocument PublishToDapr(PolicyExpression<string> message, PolicyExpression<string> topic, PolicyExpression<string>? pubSubName = null, PolicyVariable? responseVariableName = null, PolicyExpression<int>? timeoutSeconds = null, string? contentType = null, bool? ignoreError = null);
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/publish-to-dapr-policy</summary>
-    IPolicyDocument PublishToDapr(LiquidTemplate template, PolicyExpression topic, PolicyExpression? pubSubName = null, PolicyVariable? responseVariableName = null, PolicyExpression? timeout = null, string? contentType = null, bool? ignoreError = null);
+    IPolicyDocument PublishToDapr(LiquidTemplate template, PolicyExpression<string> topic, PolicyExpression<string>? pubSubName = null, PolicyVariable? responseVariableName = null, PolicyExpression<int>? timeoutSeconds = null, string? contentType = null, bool? ignoreError = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/send-one-way-request-policy</summary>
-    IPolicyDocument SendOneWayRequest(Action<ISendRequestActions> request, PolicyExpression? mode = null, PolicyExpression? timeoutSeconds = null);
+    IPolicyDocument SendOneWayRequest(Action<ISendRequestActions> request, PolicyExpression<string>? mode = null, PolicyExpression<int>? timeoutSeconds = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/send-service-bus-message-policy</summary>
-    IPolicyDocument SendServiceBusMessage(PolicyExpression @namespace, PolicyExpression message, Action<ISendServiceBusMessageProperties>? messageProperties = null, PolicyExpression? queueName = null, PolicyExpression? topicName = null, PolicyExpression? clientId = null);
+    IPolicyDocument SendServiceBusMessage(PolicyExpression<string> @namespace, PolicyExpression<string> message, Action<ISendServiceBusMessageProperties>? messageProperties = null, PolicyExpression<string>? queueName = null, PolicyExpression<string>? topicName = null, PolicyExpression<string>? clientId = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/send-request-policy</summary>
-    IPolicyDocument SendRequest(PolicyExpression responseVariableName, Action<ISendRequestActions> request, PolicyExpression? mode = null, PolicyExpression? timeoutSeconds = null, bool? ignoreError = null);
+    IPolicyDocument SendRequest(PolicyExpression<string> responseVariableName, Action<ISendRequestActions> request, PolicyExpression<string>? mode = null, PolicyExpression<int>? timeoutSeconds = null, bool? ignoreError = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-backend-service-dapr-policy</summary>
-    IPolicyDocument SetBackendService(PolicyExpression daprAppId, PolicyExpression daprMethod, PolicyExpression? daprNamespace = null);
+    IPolicyDocument SetBackendService(PolicyExpression<string> daprAppId, PolicyExpression<string> daprMethod, PolicyExpression<string>? daprNamespace = null);
 }
 
 public interface ISendRequestActions
 {
-    ISendRequestActions SetUrl(PolicyExpression url);
-    ISendRequestActions SetMethod(PolicyExpression method);
-    ISendRequestActions SetHeader(PolicyExpression name, PolicyExpression? existsAction = null, Action<ISetHeaderValue>? values = null);
-    ISendRequestActions SetBody(PolicyExpression body);
-    ISendRequestActions AuthenticationCertificate(PolicyExpression thumbprint, PolicyExpression certificate, PolicyExpression? body = null, PolicyExpression? password = null);
-    ISendRequestActions AuthenticationManagedIdentity(PolicyExpression resource, string? clientId = null, PolicyVariable? outputTokenVariableName = null, bool? ignoreError = false);
-    ISendRequestActions Proxy(PolicyExpression url, PolicyExpression? username = null, PolicyExpression? password = null);
+    ISendRequestActions SetUrl(PolicyExpression<string> url);
+    ISendRequestActions SetMethod(PolicyExpression<string> method);
+    ISendRequestActions SetHeader(PolicyExpression<string> name, PolicyExpression<string>? existsAction = null, Action<ISetHeaderValue>? values = null);
+    ISendRequestActions SetBody(PolicyExpression<string> body);
+    ISendRequestActions AuthenticationCertificate(PolicyExpression<string> thumbprint, PolicyExpression<string> certificate, PolicyExpression<string>? body = null, PolicyExpression<string>? password = null);
+    ISendRequestActions AuthenticationManagedIdentity(PolicyExpression<string> resource, string? clientId = null, PolicyVariable? outputTokenVariableName = null, bool? ignoreError = false);
+    ISendRequestActions Proxy(PolicyExpression<string> url, PolicyExpression<string>? username = null, PolicyExpression<string>? password = null);
 }
 
 public interface ISendServiceBusMessageProperties
@@ -40,22 +40,22 @@ public interface ISendServiceBusMessageProperties
 
 partial class PolicyDocument
 {
-    public IPolicyDocument PublishToDapr(PolicyExpression message, PolicyExpression topic, PolicyExpression? pubSubName = null, PolicyVariable? responseVariableName = null, PolicyExpression? timeout = null, string? contentType = null, bool? ignoreError = null)
+    public IPolicyDocument PublishToDapr(PolicyExpression<string> message, PolicyExpression<string> topic, PolicyExpression<string>? pubSubName = null, PolicyVariable? responseVariableName = null, PolicyExpression<int>? timeoutSeconds = null, string? contentType = null, bool? ignoreError = null)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
-        Writer.PublishToDapr(message, topic, null, pubSubName, responseVariableName, timeout, contentType, ignoreError);
+        Writer.PublishToDapr(message, topic, null, pubSubName, responseVariableName, timeoutSeconds, contentType, ignoreError);
         return this;
     }
-    public IPolicyDocument PublishToDapr(LiquidTemplate template, PolicyExpression topic, PolicyExpression? pubSubName = null, PolicyVariable? responseVariableName = null, PolicyExpression? timeout = null, string? contentType = null, bool? ignoreError = null)
+    public IPolicyDocument PublishToDapr(LiquidTemplate template, PolicyExpression<string> topic, PolicyExpression<string>? pubSubName = null, PolicyVariable? responseVariableName = null, PolicyExpression<int>? timeoutSeconds = null, string? contentType = null, bool? ignoreError = null)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
-        Writer.PublishToDapr(template, topic, "Liquid", pubSubName, responseVariableName, timeout, contentType, ignoreError);
+        Writer.PublishToDapr(template, topic, "Liquid", pubSubName, responseVariableName, timeoutSeconds, contentType, ignoreError);
         return this;
     }
 
-    public IPolicyDocument SendOneWayRequest(Action<ISendRequestActions> request, PolicyExpression? mode = null, PolicyExpression? timeoutSeconds = null)
+    public IPolicyDocument SendOneWayRequest(Action<ISendRequestActions> request, PolicyExpression<string>? mode = null, PolicyExpression<int>? timeoutSeconds = null)
     {
         Writer.SendOneWayRequest(mode, timeoutSeconds, () => request(new SendRequestActions(this, Writer)));
         return this;
@@ -71,50 +71,50 @@ partial class PolicyDocument
             _document = document;
         }
 
-        public ISendRequestActions SetUrl(PolicyExpression url)
+        public ISendRequestActions SetUrl(PolicyExpression<string> url)
         {
             _writer.SendRequestUrl(url);
             return this;
         }
 
-        public ISendRequestActions SetMethod(PolicyExpression method)
+        public ISendRequestActions SetMethod(PolicyExpression<string> method)
         {
             _writer.SetMethod(method);
             return this;
         }
 
-        public ISendRequestActions SetHeader(PolicyExpression name, PolicyExpression? existsAction = null, Action<ISetHeaderValue>? values = null)
+        public ISendRequestActions SetHeader(PolicyExpression<string> name, PolicyExpression<string>? existsAction = null, Action<ISetHeaderValue>? values = null)
         {
             _document.SetHeader(name, existsAction, values);
             return this;
         }
 
-        public ISendRequestActions SetBody(PolicyExpression body)
+        public ISendRequestActions SetBody(PolicyExpression<string> body)
         {
             _document.SetBody(body);
             return this;
         }
 
-        public ISendRequestActions AuthenticationCertificate(PolicyExpression thumbprint, PolicyExpression certificate, PolicyExpression? body = null, PolicyExpression? password = null)
+        public ISendRequestActions AuthenticationCertificate(PolicyExpression<string> thumbprint, PolicyExpression<string> certificate, PolicyExpression<string>? body = null, PolicyExpression<string>? password = null)
         {
             _document.AuthenticationCertificateInternal(thumbprint, certificate, body, password);
             return this;
         }
 
-        public ISendRequestActions AuthenticationManagedIdentity(PolicyExpression resource, string? clientId = null, PolicyVariable? outputTokenVariableName = null, bool? ignoreError = false)
+        public ISendRequestActions AuthenticationManagedIdentity(PolicyExpression<string> resource, string? clientId = null, PolicyVariable? outputTokenVariableName = null, bool? ignoreError = false)
         {
             _document.AuthenticationManagedIdentity(resource, clientId, outputTokenVariableName, ignoreError);
             return this;
         }
 
-        public ISendRequestActions Proxy(PolicyExpression url, PolicyExpression? username = null, PolicyExpression? password = null)
+        public ISendRequestActions Proxy(PolicyExpression<string> url, PolicyExpression<string>? username = null, PolicyExpression<string>? password = null)
         {
             _writer.Proxy(url, username, password);
             return this;
         }
     }
 
-    public IPolicyDocument SendServiceBusMessage(PolicyExpression @namespace, PolicyExpression message, Action<ISendServiceBusMessageProperties>? messageProperties, PolicyExpression? queueName = null, PolicyExpression? topicName = null, PolicyExpression? clientId = null)
+    public IPolicyDocument SendServiceBusMessage(PolicyExpression<string> @namespace, PolicyExpression<string> message, Action<ISendServiceBusMessageProperties>? messageProperties, PolicyExpression<string>? queueName = null, PolicyExpression<string>? topicName = null, PolicyExpression<string>? clientId = null)
     {
         AssertSection([PolicySection.Inbound, PolicySection.Outbound, PolicySection.OnError]);
         AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
@@ -140,14 +140,14 @@ partial class PolicyDocument
         }
     }
 
-    public IPolicyDocument SendRequest(PolicyExpression responseVariableName, Action<ISendRequestActions> request, PolicyExpression? mode = null, PolicyExpression? timeoutSeconds = null, bool? ignoreError = null)
+    public IPolicyDocument SendRequest(PolicyExpression<string> responseVariableName, Action<ISendRequestActions> request, PolicyExpression<string>? mode = null, PolicyExpression<int>? timeoutSeconds = null, bool? ignoreError = null)
     {
         AssertScopes(PolicyScopes.All);
         Writer.SendRequest(responseVariableName, mode, timeoutSeconds, ignoreError, () => request(new SendRequestActions(this, Writer)));
         return this;
     }
 
-    public IPolicyDocument SetBackendService(PolicyExpression daprAppId, PolicyExpression daprMethod, PolicyExpression? daprNamespace = null)
+    public IPolicyDocument SetBackendService(PolicyExpression<string> daprAppId, PolicyExpression<string> daprMethod, PolicyExpression<string>? daprNamespace = null)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);

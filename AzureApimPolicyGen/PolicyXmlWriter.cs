@@ -32,14 +32,14 @@ internal sealed partial class PolicyXmlWriter : IDisposable
 
     public void Inbound(Action inbound)
     {
-        StartPhase("inbound");
+        StartSection("inbound");
         inbound();
         EndElement();
     }
 
     public void Backend(Action backend)
     {
-        StartPhase("backend");
+        StartSection("backend");
         backend();
         EndElement();
     }
@@ -47,14 +47,14 @@ internal sealed partial class PolicyXmlWriter : IDisposable
 
     public void Outbound(Action outbound)
     {
-        StartPhase("outbound");
+        StartSection("outbound");
         outbound();
         EndElement();
     }
 
     public void OnError(Action onError)
     {
-        StartPhase("on-error");
+        StartSection("on-error");
         onError();
         EndElement();
     }
@@ -69,7 +69,7 @@ internal sealed partial class PolicyXmlWriter : IDisposable
     public void Dispose()
         => _xmlWriter.Dispose();
 
-    private void StartPhase(string name)
+    private void StartSection(string name)
     {
         _baseCalled = false;
         _xmlWriter.WriteStartElement(name);

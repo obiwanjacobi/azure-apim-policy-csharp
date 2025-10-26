@@ -8,10 +8,10 @@ public interface ILogging
     IPolicyDocument EmitMetric(string name, string? @namespace, string? value, Action<IEmitMetricDimensions> dimensions);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/log-to-eventhub-policy</summary>
-    IPolicyDocument LogToEventHub(string loggerId, string? partitionId, string? partitionKey, PolicyExpression message);
+    IPolicyDocument LogToEventHub(string loggerId, string? partitionId, string? partitionKey, PolicyExpression<string> message);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/trace-policy</summary>
-    IPolicyDocument Trace(string source, PolicyExpression message, TraceSeverity severity = TraceSeverity.Verbose, string? metadataName = null, string? metadataValue = null);
+    IPolicyDocument Trace(string source, PolicyExpression<string> message, TraceSeverity severity = TraceSeverity.Verbose, string? metadataName = null, string? metadataValue = null);
 }
 
 public interface IEmitMetricDimensions
@@ -54,7 +54,7 @@ partial class PolicyDocument
         }
     }
 
-    public IPolicyDocument LogToEventHub(string loggerId, string? partitionId, string? partitionKey, PolicyExpression message)
+    public IPolicyDocument LogToEventHub(string loggerId, string? partitionId, string? partitionKey, PolicyExpression<string> message)
     {
         AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
         var idEmpty = String.IsNullOrEmpty(partitionId);
@@ -65,7 +65,7 @@ partial class PolicyDocument
         return this;
     }
 
-    public IPolicyDocument Trace(string source, PolicyExpression message, TraceSeverity severity = TraceSeverity.Verbose, string? metadataName = null, string? metadataValue = null)
+    public IPolicyDocument Trace(string source, PolicyExpression<string> message, TraceSeverity severity = TraceSeverity.Verbose, string? metadataName = null, string? metadataValue = null)
     {
         AssertSection([PolicySection.Inbound, PolicySection.Outbound, PolicySection.Backend]);
         AssertScopes(PolicyScopes.All);

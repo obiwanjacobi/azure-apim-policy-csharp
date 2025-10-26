@@ -1,5 +1,15 @@
 # Azure APIM Policy CSharp
 
+## Policy Expressions
+
+Any values that can be an expression (either code or a literal value) is represented by the `PolicyExpression` class.
+
+There are two implementation of this class:
+
+- `PolicyExpression<T>` that is used in the interface method declarations to indicate whet data type is ultimately expected for the value. Although at this point, the return-type of any code is not verified, some validation takes place - it servers more as documentation.
+- `PolicyExpression` is the type you typically use when constructing expressions.
+
+
 ## Policies Implemented
 
 - [x] `authentication-basic` https://learn.microsoft.com/en-us/azure/api-management/authentication-basic-policy

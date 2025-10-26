@@ -7,25 +7,19 @@ namespace AzureApimPolicyGen;
 public interface IIngress
 {
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/limit-concurrency-policy</summary>
-    IPolicyDocument LimitConcurrency(PolicyExpression key, int maxCount, Action<IPolicyDocument> actions);
+    IPolicyDocument LimitConcurrency(PolicyExpression<string> key, int maxCount, Action<IPolicyDocument> actions);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/quota-policy</summary>
     IPolicyDocument Quota(int numberOfCalls, int bandwidthKB, int renewalPeriodSeconds, Action<IQuotaApi> apis);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/quota-by-key-policy</summary>
-    IPolicyDocument QuotaByKey(PolicyExpression counterKey, int numberOfCalls, int bandwidthKB, int renewalPeriodSeconds,
-        PolicyExpression? incrementCount = null, PolicyExpression? incrementCondition = null, DateTime? firstPeriodStart = null);
+    IPolicyDocument QuotaByKey(PolicyExpression<string> counterKey, int numberOfCalls, int bandwidthKB, int renewalPeriodSeconds, PolicyExpression<int>? incrementCount = null, PolicyExpression<string>? incrementCondition = null, DateTime? firstPeriodStart = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/rate-limit-policy</summary>
-    IPolicyDocument RateLimit(int numberOfCalls, int renewalPeriodSeconds, PolicyVariable? retryAfterVariableName = null, string? retryAfterHeaderName = null,
-        PolicyVariable? remainingCallsVariableName = null, string? remainingCallsHeaderName = null, string? totalCallsHeaderName = null,
-        Action<IRateLimitApi>? apis = null);
+    IPolicyDocument RateLimit(int numberOfCalls, int renewalPeriodSeconds, PolicyVariable? retryAfterVariableName = null, string? retryAfterHeaderName = null, PolicyVariable? remainingCallsVariableName = null, string? remainingCallsHeaderName = null, string? totalCallsHeaderName = null, Action<IRateLimitApi>? apis = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/rate-limit-by-key-policy</summary>
-    IPolicyDocument RateLimitByKey(PolicyExpression counterKey, PolicyExpression numberOfCalls, PolicyExpression renewalPeriodSeconds,
-        PolicyExpression? incrementCount = null, PolicyExpression? incrementCondition = null,
-        PolicyVariable? retryAfterVariableName = null, string? retryAfterHeaderName = null,
-        PolicyVariable? remainingCallsVariableName = null, string? remainingCallsHeaderName = null, string? totalCallsHeaderName = null);
+    IPolicyDocument RateLimitByKey(PolicyExpression<string> counterKey, PolicyExpression<int> numberOfCalls, PolicyExpression<int> renewalPeriodSeconds, PolicyExpression<int>? incrementCount = null, PolicyExpression<string>? incrementCondition = null, PolicyVariable? retryAfterVariableName = null, string? retryAfterHeaderName = null, PolicyVariable? remainingCallsVariableName = null, string? remainingCallsHeaderName = null, string? totalCallsHeaderName = null);
 }
 
 public interface IQuotaApi
@@ -50,7 +44,7 @@ public interface IRateLimitApiOperation
 
 partial class PolicyDocument
 {
-    public IPolicyDocument LimitConcurrency(PolicyExpression key, int maxCount, Action<IPolicyDocument> actions)
+    public IPolicyDocument LimitConcurrency(PolicyExpression<string> key, int maxCount, Action<IPolicyDocument> actions)
     {
         AssertScopes(PolicyScopes.All);
         Writer.LimitConcurrency(key, maxCount.ToString(), () => actions(this));
@@ -108,8 +102,7 @@ partial class PolicyDocument
         }
     }
 
-    public IPolicyDocument QuotaByKey(PolicyExpression counterKey, int numberOfCalls, int bandwidthKB, int renewalPeriodSeconds,
-        PolicyExpression? incrementCount = null, PolicyExpression? incrementCondition = null, DateTime? firstPeriodStart = null)
+    public IPolicyDocument QuotaByKey(PolicyExpression<string> counterKey, int numberOfCalls, int bandwidthKB, int renewalPeriodSeconds, PolicyExpression<int>? incrementCount = null, PolicyExpression<string>? incrementCondition = null, DateTime? firstPeriodStart = null)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.All);
@@ -121,9 +114,7 @@ partial class PolicyDocument
         return this;
     }
 
-    public IPolicyDocument RateLimit(int numberOfCalls, int renewalPeriodSeconds, PolicyVariable? retryAfterVariableName = null, string? retryAfterHeaderName = null,
-        PolicyVariable? remainingCallsVariableName = null, string? remainingCallsHeaderName = null, string? totalCallsHeaderName = null,
-        Action<IRateLimitApi>? apis = null)
+    public IPolicyDocument RateLimit(int numberOfCalls, int renewalPeriodSeconds, PolicyVariable? retryAfterVariableName = null, string? retryAfterHeaderName = null, PolicyVariable? remainingCallsVariableName = null, string? remainingCallsHeaderName = null, string? totalCallsHeaderName = null, Action<IRateLimitApi>? apis = null)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
@@ -157,10 +148,7 @@ partial class PolicyDocument
         }
     }
 
-    public IPolicyDocument RateLimitByKey(PolicyExpression counterKey, PolicyExpression numberOfCalls, PolicyExpression renewalPeriodSeconds,
-        PolicyExpression? incrementCount = null, PolicyExpression? incrementCondition = null,
-        PolicyVariable? retryAfterVariableName = null, string? retryAfterHeaderName = null,
-        PolicyVariable? remainingCallsVariableName = null, string? remainingCallsHeaderName = null, string? totalCallsHeaderName = null)
+    public IPolicyDocument RateLimitByKey(PolicyExpression<string> counterKey, PolicyExpression<int> numberOfCalls, PolicyExpression<int> renewalPeriodSeconds, PolicyExpression<int>? incrementCount = null, PolicyExpression<string>? incrementCondition = null, PolicyVariable? retryAfterVariableName = null, string? retryAfterHeaderName = null, PolicyVariable? remainingCallsVariableName = null, string? remainingCallsHeaderName = null, string? totalCallsHeaderName = null)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.All);

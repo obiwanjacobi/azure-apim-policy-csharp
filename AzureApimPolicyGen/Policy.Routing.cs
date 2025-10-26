@@ -5,17 +5,15 @@
 public interface IRouting
 {
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/forward-request-policy</summary>
-    IPolicyDocument ForwardRequest(HttpVersion? httpVersion = null,
-        PolicyExpression? timeoutSeconds = null, PolicyExpression? timeoutMilliseconds = null, PolicyExpression? continueTimeout = null,
-        bool? followRedirects = null, bool? bufferRequestBody = null, bool? bufferResponse = null, bool? failOnErrorStatusCode = null);
+    IPolicyDocument ForwardRequest(HttpVersion? httpVersion = null, PolicyExpression<int>? timeoutSeconds = null, PolicyExpression<int>? timeoutMilliseconds = null, PolicyExpression<int>? continueTimeout = null, bool? followRedirects = null, bool? bufferRequestBody = null, bool? bufferResponse = null, bool? failOnErrorStatusCode = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/proxy-policy</summary>
-    IPolicyDocument Proxy(PolicyExpression url, PolicyExpression? username = null, PolicyExpression? password = null);
+    IPolicyDocument Proxy(PolicyExpression<string> url, PolicyExpression<string>? username = null, PolicyExpression<string>? password = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-backend-service-policy</summary>
-    IPolicyDocument SetBackendService(PolicyExpression baseUrl);
+    IPolicyDocument SetBackendService(PolicyExpression<string> baseUrl);
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-backend-service-policy</summary>
-    IPolicyDocument SetBackendService(PolicyExpression backendId, PolicyExpression? sfResolveCondition = null, PolicyExpression? sfServiceInstanceName = null, PolicyExpression? sfPartitionKey = null, PolicyExpression? sfListenerName = null);
+    IPolicyDocument SetBackendService(PolicyExpression<string> backendId, PolicyExpression<string>? sfResolveCondition = null, PolicyExpression<string>? sfServiceInstanceName = null, PolicyExpression<string>? sfPartitionKey = null, PolicyExpression<string>? sfListenerName = null);
 }
 
 public enum HttpVersion
@@ -32,10 +30,7 @@ public enum HttpVersion
 
 partial class PolicyDocument
 {
-
-    public IPolicyDocument ForwardRequest(HttpVersion? httpVersion = null,
-        PolicyExpression? timeoutSeconds = null, PolicyExpression? timeoutMilliseconds = null, PolicyExpression? continueTimeout = null,
-        bool? followRedirects = null, bool? bufferRequestBody = null, bool? bufferResponse = null, bool? failOnErrorStatusCode = null)
+    public IPolicyDocument ForwardRequest(HttpVersion? httpVersion = null, PolicyExpression<int>? timeoutSeconds = null, PolicyExpression<int>? timeoutMilliseconds = null, PolicyExpression<int>? continueTimeout = null, bool? followRedirects = null, bool? bufferRequestBody = null, bool? bufferResponse = null, bool? failOnErrorStatusCode = null)
     {
         AssertSection(PolicySection.Backend);
         Writer.ForwardRequest(HttpVersionToString(httpVersion), timeoutSeconds, timeoutMilliseconds, continueTimeout,
@@ -52,7 +47,7 @@ partial class PolicyDocument
             };
     }
 
-    public IPolicyDocument Proxy(PolicyExpression url, PolicyExpression? username = null, PolicyExpression? password = null)
+    public IPolicyDocument Proxy(PolicyExpression<string> url, PolicyExpression<string>? username = null, PolicyExpression<string>? password = null)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.All);
@@ -60,14 +55,14 @@ partial class PolicyDocument
         return this;
     }
 
-    public IPolicyDocument SetBackendService(PolicyExpression baseUrl)
+    public IPolicyDocument SetBackendService(PolicyExpression<string> baseUrl)
     {
         AssertSection([PolicySection.Inbound, PolicySection.Backend]);
         AssertScopes(PolicyScopes.All);
         Writer.SetBackendService(baseUrl);
         return this;
     }
-    public IPolicyDocument SetBackendService(PolicyExpression backendId, PolicyExpression? sfResolveCondition = null, PolicyExpression? sfServiceInstanceName = null, PolicyExpression? sfPartitionKey = null, PolicyExpression? sfListenerName = null)
+    public IPolicyDocument SetBackendService(PolicyExpression<string> backendId, PolicyExpression<string>? sfResolveCondition = null, PolicyExpression<string>? sfServiceInstanceName = null, PolicyExpression<string>? sfPartitionKey = null, PolicyExpression<string>? sfListenerName = null)
     {
         AssertSection([PolicySection.Inbound, PolicySection.Backend]);
         AssertScopes(PolicyScopes.All);
