@@ -59,6 +59,11 @@ internal class InboundPolicy : PolicyDocument
                     .OpenIdConfig("openid")
                     .RequiredClaims(claims => claims.Add("claim", values => values.Add("admin"), "all")))
             .ValidateODataRequest("errorVar", "4.01", "3.0", "4.1", 2048)
+            .ValidateParameters("ignore", "detect", "errorVar",
+                actions => actions
+                    .Headers("prevent", "detect", headers => headers.Add("headerName", "detect"))
+                    .Path("detect", paths => paths.Add("path", "ignore"))
+                    .Query("detect", "ignore", query => query.Add("query", "ignore")))
 
         ;
 
@@ -399,6 +404,37 @@ public class InboundPolicyTest
         Assert.Equal("3.0", validateODataRequest.Attribute("min-odata-version").Value);
         Assert.Equal("4.1", validateODataRequest.Attribute("max-odata-version").Value);
         Assert.Equal("2048", validateODataRequest.Attribute("max-size").Value);
+    }
+
+    [Fact]
+    public void ValidateParameters()
+    {
+        var inbound = _document.Descendants("inbound").Single();
+        var validateParameters = inbound.Element("validate-parameters");
+        Assert.NotNull(validateParameters);
+        Assert.Equal("ignore", validateParameters.Attribute("specified-parameter-action").Value);
+        Assert.Equal("detect", validateParameters.Attribute("unspecified-parameter-action").Value);
+        Assert.Equal("errorVar", validateParameters.Attribute("error-variable-name").Value);
+        var headers = validateParameters.Element("headers");
+        Assert.NotNull(headers);
+        Assert.Equal("prevent", headers.Attribute("specified-parameter-action").Value);
+        Assert.Equal("detect", headers.Attribute("unspecified-parameter-action").Value);
+        var parameter = headers.Element("parameter");
+        Assert.Equal("headerName", parameter.Attribute("name").Value);
+        Assert.Equal("detect", parameter.Attribute("action").Value);
+        var query = validateParameters.Element("query");
+        Assert.NotNull(query);
+        Assert.Equal("detect", query.Attribute("specified-parameter-action").Value);
+        Assert.Equal("ignore", query.Attribute("unspecified-parameter-action").Value);
+        parameter = query.Element("parameter");
+        Assert.Equal("query", parameter.Attribute("name").Value);
+        Assert.Equal("ignore", parameter.Attribute("action").Value);
+        var path = validateParameters.Element("path");
+        Assert.NotNull(path);
+        Assert.Equal("detect", path.Attribute("specified-parameter-action").Value);
+        parameter = path.Element("parameter");
+        Assert.Equal("path", parameter.Attribute("name").Value);
+        Assert.Equal("ignore", parameter.Attribute("action").Value);
     }
 }
 

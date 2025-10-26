@@ -68,7 +68,7 @@
 - [x] `validate-headers` https://learn.microsoft.com/en-us/azure/api-management/validate-headers-policy
 - [x] `validate-jwt` https://learn.microsoft.com/en-us/azure/api-management/validate-jwt-policy
 - [x] `validate-odata-request` https://learn.microsoft.com/en-us/azure/api-management/validate-odata-request-policy
-- [ ] `validate-parameters` https://learn.microsoft.com/en-us/azure/api-management/validate-parameters-policy
+- [x] `validate-parameters` https://learn.microsoft.com/en-us/azure/api-management/validate-parameters-policy
 - [ ] `validate-status-code` https://learn.microsoft.com/en-us/azure/api-management/validate-status-code-policy
 - [ ] `wait` https://learn.microsoft.com/en-us/azure/api-management/wait-policy
 - [ ] `xml-to-json` https://learn.microsoft.com/en-us/azure/api-management/xml-to-json-policy

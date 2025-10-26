@@ -12,6 +12,9 @@ public interface IValidation
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/validate-odata-request-policy</summary>
     IPolicyDocument ValidateODataRequest(PolicyVariable? errorVariableName = null, string? defaultODataVersion = null, string? minODataVersion = null, string? maxODataVersion = null, int? maxSizeBytes = null);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/validate-parameters-policy</summary>
+    IPolicyDocument ValidateParameters(PolicyExpression specifiedParameterAction, PolicyExpression unspecifiedParameterAction, PolicyVariable? errorVariableName = null, Action<IValidateParameterActions>? parameterActions = null);
 }
 
 public interface IValidateContentActions
@@ -35,6 +38,29 @@ public interface IValidateHeaderActions
 {
     IValidateHeaderActions Add(string name, PolicyExpression action);
 }
+
+public interface IValidateParameterActions
+{
+    IValidateParameterActions Headers(PolicyExpression specifiedParameterAction, PolicyExpression unspecifiedParameterAction, Action<IValidateParameterHeaders>? headerParameters = null);
+    IValidateParameterActions Query(PolicyExpression specifiedParameterAction, PolicyExpression unspecifiedParameterAction, Action<IValidateParameterQuery>? queryParameters = null);
+    IValidateParameterActions Path(PolicyExpression specifiedParameterAction, Action<IValidateParameterPath>? pathParameters = null);
+}
+
+public interface IValidateParameterHeaders
+{
+    IValidateParameterHeaders Add(string name, PolicyExpression action);
+}
+
+public interface IValidateParameterQuery
+{
+    IValidateParameterQuery Add(string name, PolicyExpression action);
+}
+
+public interface IValidateParameterPath
+{
+    IValidateParameterPath Add(string name, PolicyExpression action);
+}
+
 
 partial class PolicyDocument
 {
@@ -115,6 +141,60 @@ partial class PolicyDocument
         Writer.ValidateODataRequest(errorVariableName, defaultODataVersion, minODataVersion, maxODataVersion, maxSizeBytes.ToString());
         return this;
     }
+
+    public IPolicyDocument ValidateParameters(PolicyExpression specifiedParameterAction, PolicyExpression unspecifiedParameterAction, PolicyVariable? errorVariableName = null, Action<IValidateParameterActions>? parameterActions = null)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        Action? writeActions = parameterActions is null ? null : () => parameterActions(new ValidateParameterActions(Writer));
+        Writer.ValidateParameters(specifiedParameterAction, unspecifiedParameterAction, errorVariableName, writeActions);
+        return this;
+    }
+
+    private sealed class ValidateParameterActions : IValidateParameterActions, IValidateParameterHeaders, IValidateParameterQuery, IValidateParameterPath
+    {
+        private readonly PolicyXmlWriter _writer;
+        public ValidateParameterActions(PolicyXmlWriter writer) { _writer = writer; }
+
+        public IValidateParameterActions Headers(PolicyExpression specifiedParameterAction, PolicyExpression unspecifiedParameterAction, Action<IValidateParameterHeaders>? headerParameters = null)
+        {
+            Action? writeHeaders = headerParameters is null ? null : () => headerParameters(this);
+            _writer.ValidateParametersHeaders(specifiedParameterAction, unspecifiedParameterAction, writeHeaders);
+            return this;
+        }
+
+        public IValidateParameterActions Query(PolicyExpression specifiedParameterAction, PolicyExpression unspecifiedParameterAction, Action<IValidateParameterQuery>? queryParameters = null)
+        {
+            Action? writeQuery = queryParameters is null ? null : () => queryParameters(this);
+            _writer.ValidateParametersQuery(specifiedParameterAction, unspecifiedParameterAction, writeQuery);
+            return this;
+        }
+
+        public IValidateParameterActions Path(PolicyExpression specifiedParameterAction, Action<IValidateParameterPath>? pathParameters = null)
+        {
+            Action? writePath = pathParameters is null ? null : () => pathParameters(this);
+            _writer.ValidateParametersPath(specifiedParameterAction, writePath);
+            return this;
+        }
+
+        IValidateParameterHeaders IValidateParameterHeaders.Add(string name, PolicyExpression action)
+        {
+            _writer.ValidateParametersParameter(name, action);
+            return this;
+        }
+
+        IValidateParameterQuery IValidateParameterQuery.Add(string name, PolicyExpression action)
+        {
+            _writer.ValidateParametersParameter(name, action);
+            return this;
+        }
+
+        IValidateParameterPath IValidateParameterPath.Add(string name, PolicyExpression action)
+        {
+            _writer.ValidateParametersParameter(name, action);
+            return this;
+        }
+    }
 }
 
 partial class PolicyXmlWriter
@@ -185,6 +265,46 @@ partial class PolicyXmlWriter
         _xmlWriter.WriteAttributeStringOpt("min-odata-version", minODataVersion);
         _xmlWriter.WriteAttributeStringOpt("max-odata-version", maxODataVersion);
         _xmlWriter.WriteAttributeStringOpt("max-size", maxSize);
+        _xmlWriter.WriteEndElement();
+    }
+
+    public void ValidateParameters(string specifiedParameterAction, string unspecifiedParameterAction, string? errorVariableName, Action? writeActions)
+    {
+        _xmlWriter.WriteStartElement("validate-parameters");
+        _xmlWriter.WriteAttributeString("specified-parameter-action", specifiedParameterAction);
+        _xmlWriter.WriteAttributeString("unspecified-parameter-action", unspecifiedParameterAction);
+        _xmlWriter.WriteAttributeStringOpt("error-variable-name", errorVariableName);
+        if (writeActions is not null) writeActions();
+        _xmlWriter.WriteEndElement();
+    }
+    internal void ValidateParametersHeaders(string specifiedParameterAction, string unspecifiedParameterAction, Action? writeHeaders)
+    {
+        _xmlWriter.WriteStartElement("headers");
+        _xmlWriter.WriteAttributeString("specified-parameter-action", specifiedParameterAction);
+        _xmlWriter.WriteAttributeString("unspecified-parameter-action", unspecifiedParameterAction);
+        if (writeHeaders is not null) writeHeaders();
+        _xmlWriter.WriteEndElement();
+    }
+    internal void ValidateParametersQuery(string specifiedParameterAction, string unspecifiedParameterAction, Action? writeQuery)
+    {
+        _xmlWriter.WriteStartElement("query");
+        _xmlWriter.WriteAttributeString("specified-parameter-action", specifiedParameterAction);
+        _xmlWriter.WriteAttributeString("unspecified-parameter-action", unspecifiedParameterAction);
+        if (writeQuery is not null) writeQuery();
+        _xmlWriter.WriteEndElement();
+    }
+    internal void ValidateParametersPath(string specifiedParameterAction, Action? writePath)
+    {
+        _xmlWriter.WriteStartElement("path");
+        _xmlWriter.WriteAttributeString("specified-parameter-action", specifiedParameterAction);
+        if (writePath is not null) writePath();
+        _xmlWriter.WriteEndElement();
+    }
+    internal void ValidateParametersParameter(string name, PolicyExpression action)
+    {
+        _xmlWriter.WriteStartElement("parameter");
+        _xmlWriter.WriteAttributeString("name", name);
+        _xmlWriter.WriteAttributeString("action", action);
         _xmlWriter.WriteEndElement();
     }
 }
