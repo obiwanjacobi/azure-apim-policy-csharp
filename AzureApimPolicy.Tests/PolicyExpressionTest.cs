@@ -39,15 +39,4 @@ public class PolicyExpressionTest
         PolicyExpression<string> polStr = expr;
         Assert.Equal(polStr.ToString(), expr.ToString());
     }
-
-    [Fact]
-    public void StringEnumExpression()
-    {
-
-        PolicyExpression expr = "Hello World";
-        Assert.Equal("Hello World", expr.ToString());
-
-        PolicyExpression<string> polStr = expr;
-        Assert.Equal(polStr.ToString(), expr.ToString());
-    }
 }
