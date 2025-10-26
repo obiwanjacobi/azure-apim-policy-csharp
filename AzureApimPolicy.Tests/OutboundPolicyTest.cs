@@ -27,6 +27,8 @@ internal class OutboundPolicy : PolicyDocument
                     .ContentTypeMap("anyValue", "missingValue", types => types.Add("from", "to"))
                     .Content(ValidateContentAs.Json, "type", "schemaId", "schemaRef", false, true))
             .XmlToJson("direct", "always", true, true)
+            .XslTransform("""<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"></xsl:stylesheet>""",
+                parameters => parameters.Add("param", "42"))
         ;
 
         base.Outbound();
@@ -170,6 +172,20 @@ public class OutboundPolicyTest
         Assert.Equal("always", xmlToJson.Attribute("apply").Value);
         Assert.Equal("true", xmlToJson.Attribute("consider-accept-header").Value);
         Assert.Equal("true", xmlToJson.Attribute("always-array-child-elements").Value);
+    }
+
+    [Fact]
+    public void XslTransform()
+    {
+        var outbound = _document.Descendants("outbound").Single();
+        var xslTransform = outbound.Element("xsl-transform");
+        Assert.NotNull(xslTransform);
+        var param = xslTransform.Element("parameter");
+        Assert.NotNull(param);
+        Assert.Equal("param", param.Attribute("parameter-name").Value);
+        Assert.Equal("42", param.Value);
+        // Cannot get the correct code to detect the xslt sheet
+        // but you can verify it in the output
     }
 }
 

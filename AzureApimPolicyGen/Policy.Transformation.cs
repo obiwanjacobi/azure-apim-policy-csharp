@@ -1,4 +1,6 @@
-﻿namespace AzureApimPolicyGen;
+﻿using System.Xml.Linq;
+
+namespace AzureApimPolicyGen;
 
 // https://learn.microsoft.com/en-us/azure/api-management/api-management-policies#transformation
 
@@ -45,6 +47,9 @@ public interface ITransformation
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/xml-to-json-policy</summary>
     IPolicyDocument XmlToJson(PolicyExpression kind, PolicyExpression apply, PolicyExpression? considerAcceptHeader = null, PolicyExpression? alwaysArrayChildElements = null);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/xsl-transform-policy</summary>
+    IPolicyDocument XslTransform(string xslt, Action<IXslTransformParameters>? parameters = null);
 }
 
 public interface IReturnResponseActions
@@ -62,6 +67,11 @@ public interface ISetHeaderValue
 public interface ISetQueryParameterValue
 {
     ISetQueryParameterValue Add(params IEnumerable<PolicyExpression> values);
+}
+
+public interface IXslTransformParameters
+{
+    IXslTransformParameters Add(string name, string value);
 }
 
 
@@ -223,6 +233,28 @@ partial class PolicyDocument
         Writer.XmlToJson(kind, apply, considerAcceptHeader, alwaysArrayChildElements);
         return this;
     }
+
+    public IPolicyDocument XslTransform(string xslt, Action<IXslTransformParameters>? parameters = null)
+    {
+        AssertSection([PolicySection.Inbound, PolicySection.Outbound]);
+        AssertScopes(PolicyScopes.All);
+        Action? writeParams = parameters is null ? null : () => parameters(new XslTransformParameters(Writer));
+        var xsltDoc = XDocument.Parse(xslt);
+        Writer.XslTransform(xsltDoc, writeParams);
+        return this;
+    }
+
+    private sealed class XslTransformParameters : IXslTransformParameters
+    {
+        private readonly PolicyXmlWriter _writer;
+        public XslTransformParameters(PolicyXmlWriter writer) { _writer = writer; }
+
+        public IXslTransformParameters Add(string name, string value)
+        {
+            _writer.XslTransformParameter(name, value);
+            return this;
+        }
+    }
 }
 
 partial class PolicyXmlWriter
@@ -326,7 +358,6 @@ partial class PolicyXmlWriter
         _xmlWriter.WriteElementString("value", value);
     }
 
-
     public void SetVariable(string name, string value)
     {
         _xmlWriter.WriteStartElement("set-variable");
@@ -342,6 +373,21 @@ partial class PolicyXmlWriter
         _xmlWriter.WriteAttributeString("apply", apply);
         _xmlWriter.WriteAttributeStringOpt("consider-accept-header", considerAcceptHeader);
         _xmlWriter.WriteAttributeStringOpt("always-array-child-elements", alwaysArrayChildElements);
+        _xmlWriter.WriteEndElement();
+    }
+
+    public void XslTransform(XDocument xslt, Action? writeParams)
+    {
+        _xmlWriter.WriteStartElement("xsl-transform");
+        if (writeParams is not null) writeParams();
+        xslt.Root!.WriteTo(_xmlWriter);
+        _xmlWriter.WriteEndElement();
+    }
+    internal void XslTransformParameter(string name, string value)
+    {
+        _xmlWriter.WriteStartElement("parameter");
+        _xmlWriter.WriteAttributeString("parameter-name", name);
+        _xmlWriter.WriteString(value);
         _xmlWriter.WriteEndElement();
     }
 }
