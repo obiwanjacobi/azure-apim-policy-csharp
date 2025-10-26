@@ -42,6 +42,9 @@ public interface ITransformation
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-variable-policy</summary>
     IPolicyDocument SetVariable(string name, PolicyExpression value);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/xml-to-json-policy</summary>
+    IPolicyDocument XmlToJson(PolicyExpression kind, PolicyExpression apply, PolicyExpression? considerAcceptHeader = null, PolicyExpression? alwaysArrayChildElements = null);
 }
 
 public interface IReturnResponseActions
@@ -212,6 +215,14 @@ partial class PolicyDocument
         Writer.SetVariable(name, value);
         return this;
     }
+
+    public IPolicyDocument XmlToJson(PolicyExpression kind, PolicyExpression apply, PolicyExpression? considerAcceptHeader = null, PolicyExpression? alwaysArrayChildElements = null)
+    {
+        AssertSection([PolicySection.Inbound, PolicySection.Outbound, PolicySection.OnError]);
+        AssertScopes(PolicyScopes.All);
+        Writer.XmlToJson(kind, apply, considerAcceptHeader, alwaysArrayChildElements);
+        return this;
+    }
 }
 
 partial class PolicyXmlWriter
@@ -321,6 +332,16 @@ partial class PolicyXmlWriter
         _xmlWriter.WriteStartElement("set-variable");
         _xmlWriter.WriteAttributeString("name", name);
         _xmlWriter.WriteAttributeString("value", value);
+        _xmlWriter.WriteEndElement();
+    }
+
+    public void XmlToJson(string kind, string apply, string? considerAcceptHeader, string? alwaysArrayChildElements)
+    {
+        _xmlWriter.WriteStartElement("xml-to-json");
+        _xmlWriter.WriteAttributeString("kind", kind);
+        _xmlWriter.WriteAttributeString("apply", apply);
+        _xmlWriter.WriteAttributeStringOpt("consider-accept-header", considerAcceptHeader);
+        _xmlWriter.WriteAttributeStringOpt("always-array-child-elements", alwaysArrayChildElements);
         _xmlWriter.WriteEndElement();
     }
 }

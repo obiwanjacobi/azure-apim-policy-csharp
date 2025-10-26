@@ -26,6 +26,7 @@ internal class OutboundPolicy : PolicyDocument
                 validation => validation
                     .ContentTypeMap("anyValue", "missingValue", types => types.Add("from", "to"))
                     .Content(ValidateContentAs.Json, "type", "schemaId", "schemaRef", false, true))
+            .XmlToJson("direct", "always", true, true)
         ;
 
         base.Outbound();
@@ -157,6 +158,18 @@ public class OutboundPolicyTest
         Assert.Equal("schemaRef", content.Attribute("schema-ref").Value);
         Assert.Equal("false", content.Attribute("allow-additional-properties").Value);
         Assert.Equal("true", content.Attribute("case-insensitive-property-names").Value);
+    }
+
+    [Fact]
+    public void XmlToJson()
+    {
+        var outbound = _document.Descendants("outbound").Single();
+        var xmlToJson = outbound.Element("xml-to-json");
+        Assert.NotNull(xmlToJson);
+        Assert.Equal("direct", xmlToJson.Attribute("kind").Value);
+        Assert.Equal("always", xmlToJson.Attribute("apply").Value);
+        Assert.Equal("true", xmlToJson.Attribute("consider-accept-header").Value);
+        Assert.Equal("true", xmlToJson.Attribute("always-array-child-elements").Value);
     }
 }
 

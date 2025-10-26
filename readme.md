@@ -71,7 +71,7 @@
 - [x] `validate-parameters` https://learn.microsoft.com/en-us/azure/api-management/validate-parameters-policy
 - [x] `validate-status-code` https://learn.microsoft.com/en-us/azure/api-management/validate-status-code-policy
 - [x] `wait` https://learn.microsoft.com/en-us/azure/api-management/wait-policy
-- [ ] `xml-to-json` https://learn.microsoft.com/en-us/azure/api-management/xml-to-json-policy
+- [x] `xml-to-json` https://learn.microsoft.com/en-us/azure/api-management/xml-to-json-policy
 - [ ] `xsl-transform` https://learn.microsoft.com/en-us/azure/api-management/xsl-transform-policy
 
 
@@ -84,3 +84,4 @@
 - [ ] CodeExpression Compiler: `(string)Context.Variables["connectionId"]` error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement (suppressed for now)
 - [ ] Int32: validate non-negative or use uint.
 - [ ] Action objects: check for methods that can only be called once (due to the generated xml)
+- [ ] Fragment scope: unclear what policies can (not) go in fragments
