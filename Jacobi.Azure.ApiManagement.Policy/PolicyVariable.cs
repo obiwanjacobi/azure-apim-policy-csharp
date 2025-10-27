@@ -1,4 +1,4 @@
-﻿namespace AzureApimPolicyGen;
+﻿namespace Jacobi.Azure.ApiManagement.Policy;
 
 public record struct PolicyVariable
 {

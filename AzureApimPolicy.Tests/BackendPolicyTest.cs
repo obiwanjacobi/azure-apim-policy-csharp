@@ -1,6 +1,6 @@
 ﻿using System.Net.Mime;
 using System.Xml.Linq;
-using AzureApimPolicyGen;
+using Jacobi.Azure.ApiManagement.Policy;
 using Xunit.Abstractions;
 
 namespace AzureApimPolicy.Tests;

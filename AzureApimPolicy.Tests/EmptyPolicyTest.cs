@@ -1,4 +1,4 @@
-﻿using AzureApimPolicyGen;
+﻿using Jacobi.Azure.ApiManagement.Policy;
 
 namespace AzureApimPolicy.Tests;
 

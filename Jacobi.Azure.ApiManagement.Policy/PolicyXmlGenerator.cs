@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using System.Text.RegularExpressions;
 
-namespace AzureApimPolicyGen;
+namespace Jacobi.Azure.ApiManagement.Policy;
 
 public sealed class PolicyXmlGenerator
 {

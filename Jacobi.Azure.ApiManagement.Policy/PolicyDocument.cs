@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 
-namespace AzureApimPolicyGen;
+namespace Jacobi.Azure.ApiManagement.Policy;
 
 public interface IPolicyDocument : IAuthentication, ICaching, IControl, ICrossDomain, IGraphQL,
     IIngress, IIntegration, ILlm, ILogging, IRouting, ITransformation, IValidation

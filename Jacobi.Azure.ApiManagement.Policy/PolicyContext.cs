@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography.X509Certificates;
 
-namespace AzureApimPolicyGen;
+namespace Jacobi.Azure.ApiManagement.Policy;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor.
 

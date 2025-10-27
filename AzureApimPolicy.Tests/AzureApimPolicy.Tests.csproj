@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AzureApimPolicyGen\AzureApimPolicyGen.csproj" />
+    <ProjectReference Include="..\Jacobi.Azure.ApiManagement.Policy\Jacobi.Azure.ApiManagement.Policy.csproj" />
   </ItemGroup>
 
   <ItemGroup>

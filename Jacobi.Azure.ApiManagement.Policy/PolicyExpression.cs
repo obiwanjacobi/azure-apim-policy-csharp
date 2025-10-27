@@ -1,4 +1,4 @@
-﻿namespace AzureApimPolicyGen;
+﻿namespace Jacobi.Azure.ApiManagement.Policy;
 
 /// <summary>https://learn.microsoft.com/en-us/azure/api-management/api-management-policy-expressions</summary>
 public record struct PolicyExpression

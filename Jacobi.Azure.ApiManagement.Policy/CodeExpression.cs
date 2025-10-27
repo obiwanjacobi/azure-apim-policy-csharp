@@ -3,7 +3,7 @@ using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace AzureApimPolicyGen;
+namespace Jacobi.Azure.ApiManagement.Policy;
 
 internal sealed class CSharpCompiler
 {
@@ -39,7 +39,7 @@ internal sealed class CSharpCompiler
         return $"""
             {_usings}
 
-            using AzureApimPolicyGen;
+            using Jacobi.Azure.ApiManagement.Policy;
 
             {code};
             """;

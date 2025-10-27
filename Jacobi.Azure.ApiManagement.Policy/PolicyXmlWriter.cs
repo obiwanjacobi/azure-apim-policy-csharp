@@ -1,6 +1,6 @@
 ﻿using System.Xml;
 
-namespace AzureApimPolicyGen;
+namespace Jacobi.Azure.ApiManagement.Policy;
 
 internal sealed partial class PolicyXmlWriter : IDisposable
 {
