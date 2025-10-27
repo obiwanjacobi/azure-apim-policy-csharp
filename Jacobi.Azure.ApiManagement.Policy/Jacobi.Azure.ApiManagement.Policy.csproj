@@ -7,11 +7,11 @@
     <LangVersion>13</LangVersion>
     <DevelopmentDependency>true</DevelopmentDependency>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Title>Azure API Management Policy XML generation via C#</Title>
+    <Title>Azure API Management Policy XML via C#</Title>
     <Authors>Marc Jacobi</Authors>
     <Company>Jacobi Software</Company>
-    <Description>Generate Azure API Management Policies using C# code.</Description>
-    <Copyright>Copyright 2025 Jacobi Software</Copyright>
+    <Description>Generate Azure API Management Policy XML using C# code.</Description>
+    <Copyright>Copyright © 2025 Jacobi Software</Copyright>
     <PackageProjectUrl>https://github.com/obiwanjacobi/azure-apim-policy-csharp</PackageProjectUrl>
     <RepositoryUrl>https://github.com/obiwanjacobi/azure-apim-policy-csharp</RepositoryUrl>
     <PackageReadmeFile>readme.md</PackageReadmeFile>
