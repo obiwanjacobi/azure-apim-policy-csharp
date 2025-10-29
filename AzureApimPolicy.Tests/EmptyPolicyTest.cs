@@ -2,7 +2,7 @@
 
 namespace AzureApimPolicy.Tests;
 
-public class EmptyPolicy : PolicyDocument
+public sealed class EmptyPolicy : PolicyDocument
 { }
 
 public class EmptyPolicyTest

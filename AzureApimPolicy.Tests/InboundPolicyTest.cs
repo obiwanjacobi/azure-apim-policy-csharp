@@ -4,7 +4,7 @@ using Xunit.Abstractions;
 
 namespace AzureApimPolicy.Tests;
 
-internal class InboundPolicy : PolicyDocument
+public sealed class InboundPolicy : PolicyDocument
 {
     protected override void Inbound()
     {

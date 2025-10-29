@@ -4,7 +4,7 @@ using Xunit.Abstractions;
 
 namespace AzureApimPolicy.Tests;
 
-internal class OnErrorPolicy : PolicyDocument
+public sealed class OnErrorPolicy : PolicyDocument
 {
     protected override void OnError()
     {

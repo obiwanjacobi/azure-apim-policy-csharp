@@ -18,7 +18,7 @@ public sealed class PolicyXmlGenerator
 
     public void GenerateAll(string assemblyPath)
     {
-        var assembly = Assembly.Load(assemblyPath);
+        var assembly = Assembly.LoadFrom(assemblyPath);
         GenerateAll(assembly);
     }
 
@@ -55,7 +55,8 @@ public sealed class PolicyXmlGenerator
         var unescapedPath = path + ".unescaped";
         using (var streamUnescaped = File.OpenWrite(unescapedPath))
         {
-            var xml = File.OpenText(path).ReadToEnd();
+            using var streamEscaped = File.OpenText(path);
+            var xml = streamEscaped.ReadToEnd();
             XmlUnescape(xml, streamUnescaped);
         }
 

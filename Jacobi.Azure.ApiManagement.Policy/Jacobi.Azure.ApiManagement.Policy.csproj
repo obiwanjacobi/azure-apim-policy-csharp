@@ -20,6 +20,7 @@
     <PackageLicenseExpression>GPL-2.0-only</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <Version>1.0.0.0</Version>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 
   <ItemGroup>

@@ -5,7 +5,7 @@ using Xunit.Abstractions;
 
 namespace AzureApimPolicy.Tests;
 
-internal class BackendPolicy : PolicyDocument
+public sealed class BackendPolicy : PolicyDocument
 {
     protected override void Backend()
     {
