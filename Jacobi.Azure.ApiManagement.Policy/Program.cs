@@ -3,7 +3,7 @@
 namespace Jacobi.Azure.ApiManagement.Policy;
 
 
-public sealed class Program
+public static class Program
 {
     public static int Main(string[] args)
     {
@@ -36,6 +36,7 @@ public sealed class Program
     {
         var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "<not available>";
         Console.WriteLine($"Generate Azure API Management Policy XML v{version}");
+        Console.WriteLine($"Copyright © Jacobi Software {DateTime.UtcNow.Year}");
     }
     private static void WriteHelp()
     {
@@ -64,6 +65,5 @@ public sealed class Program
         throw new ArgumentException("Could not parse command line arguments.");
     }
 
-    private record CommandLine(string AssemblyPath, string OutFolder)
-    { }
+    private record CommandLine(string AssemblyPath, string OutFolder);
 }
