@@ -1,0 +1,8 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PolicyXmlOutputFolder>$(MSBuildProjectDirectory)\PolicyXml</PolicyXmlOutputFolder>
+  </PropertyGroup>
+  <Target Name="GeneratePolicyXml" AfterTargets="Build">
+    <Exec Command="&quot;$(PkgJacobi_Azure_ApiManagement_Policy)\tools\net8.0\Jacobi.Azure.ApiManagement.Policy.exe&quot; &quot;$(TargetPath)&quot; -o &quot;$(PolicyXmlOutputFolder)&quot;" />
+  </Target>
+</Project>

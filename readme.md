@@ -1,5 +1,48 @@
 # Azure APIM Policy CSharp
 
+This library allows you to generate Azure API Management Policy XML files based on C# class implementations.
+
+## Usage
+
+You implement a class for each Policy Xml file you whish to generate. The method and parameter names are kept the same as the Azure API Management Policy documentation to make it very easy to know what stuff does. See also the list of implemented policies below.
+
+```csharp
+public sealed class MyPolicy : Jacobi.Azure.ApiManagement.Policy.PolicyDocument
+{
+    protected override void Inbound()
+    {
+        .CheckHeader(...)
+        .IpFilter(...)
+        // other policies
+        ;
+
+        base.Inbound(); // generates the <Base/> implicitly.
+    }
+
+    protected override void Backend()
+    {
+        // add your policies here
+        base.Backend();
+    }
+
+    protected override void Outbound()
+    {
+        // add your policies here
+        base.Outbound();
+    }
+
+    protected override void OnError()
+    {
+        // add your policies here
+        base.OnError();
+    }
+}
+```
+
+When the project is built (successfully) a Policy XML file will be generated for each class - with the same file name (.xml) as the class.
+
+Note that the resulting dotnet assembly is not used in anyway.
+
 ## Policy Expressions
 
 Any values that can be an expression (either code or a literal value) is represented by the `PolicyExpression` class.
@@ -9,6 +52,22 @@ There are two implementation of this class:
 - `PolicyExpression<T>` that is used in the interface method declarations to indicate whet data type is ultimately expected for the value. Although at this point, the return-type of any code is not verified, some validation takes place - it servers more as documentation.
 - `PolicyExpression` is the type you typically use when constructing expressions.
 
+An example of specifying a code expression using the `PolicyExpression.FromCode` would be:
+
+```csharp
+public sealed class MyPolicy : Jacobi.Azure.ApiManagement.Policy.PolicyDocument
+{
+    protected override void Inbound()
+    {
+        .Choose(choose =>
+            choose.When(PolicyExpression.FromCode("""Context.Variables.GetValueOrDefault<bool>("myvar", true)"""),
+                actions => actions.SetBody(LiquidTemplate.From(""" body """))))
+        base.Inbound();
+    }
+}
+```
+
+Note the use of the `LiquidTemplate` struct. Support for Liquid-templates is very rudementary and serves basically as a way to distinguish between `PolicyExpression` and `LiquidTemplate` strings.
 
 ## Policies Implemented
 
@@ -85,7 +144,25 @@ There are two implementation of this class:
 - [x] [`xsl-transform`](https://learn.microsoft.com/en-us/azure/api-management/xsl-transform-policy)
 
 
+## Policy XML Files Output Folder
+
+By default the generated policy XML files are written to the `PolicyXml` folder in the project root folder.
+However this can be easily changed by specifying an override in your .csproj file.
+
+```xml
+<PropertyGroup>
+  <PolicyXmlOutputFolder>$(TargetPath)\MyCustomPolicyXmlFolder</PolicyXmlOutputFolder>
+</PropertyGroup>
+```
+
+Replacement tokens (macros) can be used to build a folder path to where the policy xml files will be written.
+This example creates a new 'MyCustomPolicyXmlFolder' folder in the build-output folder next to the binaries.
+
+---
+
 ## TODO
+
+For transparency:
 
 - [ ] Variables: check exists (variable-references in policies are typically created on demand)
 - [ ] Variables: Typed - to check the 'structure' of variables

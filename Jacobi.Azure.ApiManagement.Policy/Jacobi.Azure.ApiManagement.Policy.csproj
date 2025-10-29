@@ -5,12 +5,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>13</LangVersion>
-    <DevelopmentDependency>true</DevelopmentDependency>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>Azure API Management Policy XML via C#</Title>
     <Authors>Marc Jacobi</Authors>
     <Company>Jacobi Software</Company>
-    <Description>Generate Azure API Management Policy XML using C# code.</Description>
+    <Description>Generate Azure API Management Policy XML using declaritive C# code through a fluent interface.</Description>
     <Copyright>Copyright © 2025 Jacobi Software</Copyright>
     <PackageProjectUrl>https://github.com/obiwanjacobi/azure-apim-policy-csharp</PackageProjectUrl>
     <RepositoryUrl>https://github.com/obiwanjacobi/azure-apim-policy-csharp</RepositoryUrl>
@@ -19,7 +18,7 @@
     <PackageTags>Azure</PackageTags>
     <PackageLicenseExpression>GPL-2.0-only</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-    <Version>1.0.0.0</Version>
+    <Version>1.0.1</Version>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
 
@@ -28,6 +27,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="$(OutputPath)$(TargetName).runtimeconfig.json" Pack="true" PackagePath="tools\net8.0\" />
+    <None Include="$(OutputPath)$(TargetName).dll" Pack="true" PackagePath="tools\net8.0\" />
+    <None Include="$(OutputPath)$(TargetName).exe" Pack="true" PackagePath="tools\net8.0\" />
+    <None Include="Jacobi.Azure.ApiManagement.Policy.targets" Pack="true" PackagePath="buildTransitive\net8.0\" />
     <None Include="..\readme.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
@@ -36,9 +39,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
-    <!--  dependencies for poiclicy code expressions -->
+    <!--  dependencies for policy code expressions -->
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    
+
   </ItemGroup>
-  
 </Project>
