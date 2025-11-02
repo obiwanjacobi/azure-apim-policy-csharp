@@ -2,6 +2,8 @@
 
 public interface IInbound
 {
+    IInbound Base();
+
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/authentication-basic-policy</summary>
     IInbound AuthenticationBasic(PolicyExpression<string> username, PolicyExpression<string> password);
 
@@ -161,12 +163,12 @@ public interface IInbound
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/validate-parameters-policy</summary>
     IInbound ValidateParameters(PolicyExpression<string> specifiedParameterAction, PolicyExpression<string> unspecifiedParameterAction, PolicyVariable? errorVariableName = null, Action<IValidateParameterActions>? parameterActions = null);
-
-
 }
 
 public interface IBackend
 {
+    IBackend Base();
+
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/cache-lookup-value-policy</summary>
     IBackend CacheLookupValue(string variableName, PolicyExpression<string> key, PolicyExpression<string>? defaultValue = null, CacheType? cacheType = null);
 
@@ -241,6 +243,8 @@ public interface IBackend
 
 public interface IOutbound
 {
+    IOutbound Base();
+
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/cache-lookup-value-policy</summary>
     IOutbound CacheLookupValue(string variableName, PolicyExpression<string> key, PolicyExpression<string>? defaultValue = null, CacheType? cacheType = null);
 
@@ -333,6 +337,8 @@ public interface IOutbound
 
 public interface IOnError
 {
+    IOnError Base();
+
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/cache-lookup-value-policy</summary>
     IOnError CacheLookupValue(string variableName, PolicyExpression<string> key, PolicyExpression<string>? defaultValue = null, CacheType? cacheType = null);
 

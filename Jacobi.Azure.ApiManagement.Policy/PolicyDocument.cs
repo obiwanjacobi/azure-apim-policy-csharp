@@ -40,11 +40,29 @@ public abstract partial class PolicyDocument : //IPolicyDocument
 
     // ------------------------------------------------------------------------
 
-    //protected IPolicyDocument Base()
-    //{
-    //    Writer.Base();
-    //    return this;
-    //}
+    IInbound IInbound.Base()
+    {
+        Writer.Base();
+        return this;
+    }
+
+    IBackend IBackend.Base()
+    {
+        Writer.Base();
+        return this;
+    }
+
+    IOutbound IOutbound.Base()
+    {
+        Writer.Base();
+        return this;
+    }
+
+    IOnError IOnError.Base()
+    {
+        Writer.Base();
+        return this;
+    }
 
     // ------------------------------------------------------------------------
 
