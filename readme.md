@@ -172,7 +172,6 @@ For transparency:
 - [ ] CodeExpression: `{{named-value}}` in code. Compiler will fail.
 - [ ] CodeExpression Compiler: `(string)Context.Variables["connectionId"]` error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement (suppressed for now)
 - [ ] Int32: validate non-negative or use uint.
-- [ ] Action objects: check for methods that can only be called once (due to the generated xml)
 - [ ] Fragment scope: unclear what policies can (not) go in fragments
 - [ ] XslTransform: represent the xslt as something else than a plain string?
 - [ ] 

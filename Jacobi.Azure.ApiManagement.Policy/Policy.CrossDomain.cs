@@ -96,27 +96,35 @@ partial class PolicyDocument
             return this;
         }
 
+        private bool _anyOriginsCalled = false;
         ICorsAllowedOrigins ICorsAllowedOrigins.Any()
         {
             _writer.CorsAllowedOrigin("*");
+            _anyOriginsCalled = true;
             return this;
         }
 
         ICorsAllowedOrigins ICorsAllowedOrigins.Add(params IEnumerable<string> origins)
         {
+            if (_anyOriginsCalled)
+                throw new InvalidOperationException("Only one Allowed-Origins entry allowed when Any (*) was used.");
             foreach (var origin in origins)
                 _writer.CorsAllowedOrigin(origin);
             return this;
         }
 
+        private bool _anyMethodsCalled = false;
         ICorsAllowedMethods ICorsAllowedMethods.Any()
         {
             _writer.CorsAllowedMethod("*");
+            _anyMethodsCalled = true;
             return this;
         }
 
         ICorsAllowedMethods ICorsAllowedMethods.Add(params IEnumerable<HttpMethod> methods)
         {
+            if (_anyMethodsCalled)
+                throw new InvalidOperationException("Only one Allowed-Methods entry allowed when Any (*) was used.");
             foreach (var method in methods)
                 _writer.CorsAllowedMethod(method.ToString());
             return this;

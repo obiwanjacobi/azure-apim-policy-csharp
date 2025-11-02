@@ -157,15 +157,24 @@ partial class PolicyDocument
             _document.SetHeader(name, existsAction, values);
             return this;
         }
+
+        bool _setBodyCalled = false;
         public IReturnResponseActions SetBody(PolicyExpression<string> body)
         {
+            if (_setBodyCalled)
+                throw new InvalidOperationException("SetBody can be called only once.");
             _document.SetBody(body);
+            _setBodyCalled = true;
             return this;
         }
 
+        bool _setStatusCalled = false;
         public IReturnResponseActions SetStatus(PolicyExpression<int> statusCode, PolicyExpression<string> reason)
         {
+            if (_setStatusCalled)
+                throw new InvalidOperationException("SetStatus can be called only once.");
             _document.SetStatus(statusCode, reason);
+            _setStatusCalled = true;
             return this;
         }
     }

@@ -91,10 +91,14 @@ partial class PolicyDocument
         private readonly PolicyXmlWriter _writer;
         public ValidateContentActions(PolicyXmlWriter writer) { _writer = writer; }
 
+        bool _contentTypeMapCalled = false;
         public IValidateContentActions ContentTypeMap(string? anyContentTypeValue = null, string? missingContentTypeValue = null, Action<IValidateContentTypeMapType>? types = null)
         {
+            if (_contentTypeMapCalled)
+                throw new InvalidOperationException("ContentTypeMap can be called only once.");
             Action? writeTypes = types is null ? null : () => types(this);
             _writer.ValidateContentTypeMap(anyContentTypeValue, missingContentTypeValue, writeTypes);
+            _contentTypeMapCalled = true;
             return this;
         }
 
@@ -151,7 +155,7 @@ partial class PolicyDocument
         }
     }
 
-    IInbound IInbound.ValidateODataRequest(PolicyVariable? errorVariableName , string? defaultODataVersion , string? minODataVersion , string? maxODataVersion , int? maxSizeBytes )
+    IInbound IInbound.ValidateODataRequest(PolicyVariable? errorVariableName, string? defaultODataVersion, string? minODataVersion, string? maxODataVersion, int? maxSizeBytes)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.Global | PolicyScopes.Workspace | PolicyScopes.Product | PolicyScopes.Api);
@@ -159,7 +163,7 @@ partial class PolicyDocument
         return this;
     }
 
-    IInbound IInbound.ValidateParameters(PolicyExpression<string> specifiedParameterAction, PolicyExpression<string> unspecifiedParameterAction, PolicyVariable? errorVariableName , Action<IValidateParameterActions>? parameterActions )
+    IInbound IInbound.ValidateParameters(PolicyExpression<string> specifiedParameterAction, PolicyExpression<string> unspecifiedParameterAction, PolicyVariable? errorVariableName, Action<IValidateParameterActions>? parameterActions)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.All);

@@ -261,12 +261,16 @@ partial class PolicyDocument
         private readonly PolicyXmlWriter _writer;
         public ValidateClientCertificateIdentities(PolicyXmlWriter writer) { _writer = writer; }
 
+        private int _identityCount = 0;
         public IValidateClientCertificateIdentities Add(string? thumbprint = null, string? serialNumber = null, string? commonName = null, string? subject = null, string? dnsName = null, string? issuerSubject = null, string? issuerThumbprint = null, string? issuerCertificateId = null)
         {
+            if (_identityCount >= 10)
+                throw new InvalidOperationException("A maximum of 10 identities can be specidied.");
             if (issuerCertificateId is not null && (issuerSubject is not null || issuerThumbprint is not null))
                 throw new ArgumentException($"Specifying {nameof(issuerCertificateId)} is mutually exclusive with other issuer parameters.", $"{nameof(issuerSubject)}+{nameof(issuerThumbprint)}");
 
             _writer.ValidateClientCertificateIdentity(thumbprint, serialNumber, commonName, subject, dnsName, issuerSubject, issuerThumbprint, issuerCertificateId);
+            _identityCount++;
             return this;
         }
     }
