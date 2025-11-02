@@ -68,7 +68,7 @@ public abstract partial class PolicyDocument : //IPolicyDocument
 
     internal void WriteTo(Stream stream)
     {
-        _writer = new PolicyXmlWriter(stream);
+        _writer = new PolicyXmlWriter(stream, GetType()?.FullName ?? "<unknown>");
 
         _section = PolicySection.Inbound;
         _writer.Inbound(() => Inbound(this));
