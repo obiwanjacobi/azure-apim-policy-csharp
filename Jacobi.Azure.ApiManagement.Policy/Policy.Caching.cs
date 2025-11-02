@@ -31,7 +31,7 @@ public interface ICacheLookupVaryBy
 {
     ICacheLookupVaryBy Header(string name);
     ICacheLookupVaryBy QueryParam(string name);
-    ICacheLookupVaryBy QueryParams(params IEnumerable<string> names);
+    ICacheLookupVaryBy QueryParams(params string[] names);
 }
 
 partial class PolicyDocument
@@ -124,7 +124,7 @@ partial class PolicyDocument
             return this;
         }
 
-        public ICacheLookupVaryBy QueryParams(params IEnumerable<string> names)
+        public ICacheLookupVaryBy QueryParams(params string[] names)
         {
             _writer.CacheLookup_VaryByHeader(String.Join(";", names));
             return this;

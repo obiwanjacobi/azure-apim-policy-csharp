@@ -40,16 +40,16 @@ public interface IIpFilterAddress
 
 public interface ICheckHeaderValues
 {
-    ICheckHeaderValues Add(params IEnumerable<string> values);
+    ICheckHeaderValues Add(params string[] values);
 }
 
 public interface IValidateAzureAdTokenActions
 {
-    IValidateAzureAdTokenActions BackendApplicationIds(params IEnumerable<string> appIds);
-    IValidateAzureAdTokenActions ClientApplicationIds(params IEnumerable<string> appIds);
-    IValidateAzureAdTokenActions Audiences(params IEnumerable<string> audiences);
+    IValidateAzureAdTokenActions BackendApplicationIds(params string[] appIds);
+    IValidateAzureAdTokenActions ClientApplicationIds(params string[] appIds);
+    IValidateAzureAdTokenActions Audiences(params string[] audiences);
     IValidateAzureAdTokenActions RequiredClaims(Action<IValidateAzureRequiredClaims> claims);
-    IValidateAzureAdTokenActions DecryptionKeys(params IEnumerable<string> certificateIds);
+    IValidateAzureAdTokenActions DecryptionKeys(params string[] certificateIds);
 }
 public interface IValidateAzureRequiredClaims
 {
@@ -67,11 +67,11 @@ public interface IValidateClientCertificateIdentities
 
 public interface IValidateJwtActions
 {
-    IValidateJwtActions OpenIdConfig(params IEnumerable<string> urls);
+    IValidateJwtActions OpenIdConfig(params string[] urls);
     IValidateJwtActions IssuerSigningKeys(Action<IValidateJwtIssuersSigningKeys> keys);
     IValidateJwtActions DecryptionKeys(Action<IValidateJwtDecryptionKeys> keys);
-    IValidateJwtActions Audiences(params IEnumerable<string> audiences);
-    IValidateJwtActions Issuers(params IEnumerable<string> issuers);
+    IValidateJwtActions Audiences(params string[] audiences);
+    IValidateJwtActions Issuers(params string[] issuers);
     IValidateJwtActions RequiredClaims(Action<IValidateAzureRequiredClaims> claims);
 }
 
@@ -137,7 +137,7 @@ partial class PolicyDocument
         private readonly PolicyXmlWriter _writer;
         internal CheckHeaderValues(PolicyXmlWriter writer) => _writer = writer;
 
-        public ICheckHeaderValues Add(params IEnumerable<string> values)
+        public ICheckHeaderValues Add(params string[] values)
         {
             foreach (var value in values)
                 _writer.CheckHeaderValue(value);
@@ -204,19 +204,19 @@ partial class PolicyDocument
         private readonly PolicyXmlWriter _writer;
         public ValidateAzureAdTokenActions(PolicyXmlWriter writer) { _writer = writer; }
 
-        public IValidateAzureAdTokenActions BackendApplicationIds(params IEnumerable<string> appIds)
+        public IValidateAzureAdTokenActions BackendApplicationIds(params string[] appIds)
         {
             _writer.ValidateAzureAdToken_BackendApplicationIds(appIds);
             return this;
         }
 
-        public IValidateAzureAdTokenActions ClientApplicationIds(params IEnumerable<string> appIds)
+        public IValidateAzureAdTokenActions ClientApplicationIds(params string[] appIds)
         {
             _writer.ValidateAzureAdToken_ClientApplicationIds(appIds);
             return this;
         }
 
-        public IValidateAzureAdTokenActions Audiences(params IEnumerable<string> audiences)
+        public IValidateAzureAdTokenActions Audiences(params string[] audiences)
         {
             _writer.ValidateAzureAdToken_Audiences(audiences);
             return this;
@@ -228,7 +228,7 @@ partial class PolicyDocument
             return this;
         }
 
-        public IValidateAzureAdTokenActions DecryptionKeys(params IEnumerable<string> certificateIds)
+        public IValidateAzureAdTokenActions DecryptionKeys(params string[] certificateIds)
         {
             _writer.ValidateAzureAdToken_CertificateIds(certificateIds);
             return this;
@@ -290,7 +290,7 @@ partial class PolicyDocument
         private readonly PolicyXmlWriter _writer;
         public ValidateJwtActions(PolicyXmlWriter writer) { _writer = writer; }
 
-        public IValidateJwtActions OpenIdConfig(params IEnumerable<string> urls)
+        public IValidateJwtActions OpenIdConfig(params string[] urls)
         {
             foreach (var url in urls)
                 _writer.ValidateJwtOpenIdConfig(url);
@@ -309,13 +309,13 @@ partial class PolicyDocument
             return this;
         }
 
-        public IValidateJwtActions Audiences(params IEnumerable<string> audiences)
+        public IValidateJwtActions Audiences(params string[] audiences)
         {
             _writer.ValidateJwtAudiences(audiences);
             return this;
         }
 
-        public IValidateJwtActions Issuers(params IEnumerable<string> issuers)
+        public IValidateJwtActions Issuers(params string[] issuers)
         {
             _writer.ValidateJwtIssuers(issuers);
             return this;

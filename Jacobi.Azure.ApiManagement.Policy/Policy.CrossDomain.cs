@@ -24,7 +24,7 @@ public interface ICorsAllowedOrigins
 {
     ICorsAllowedOrigins Any();
     // TODO: url templates?
-    ICorsAllowedOrigins Add(params IEnumerable<string> origins);
+    ICorsAllowedOrigins Add(params string[] origins);
 }
 
 public interface ICorsAllowedMethods
@@ -35,12 +35,12 @@ public interface ICorsAllowedMethods
 
 public interface ICorsAllowedHeaders
 {
-    ICorsAllowedHeaders Add(params IEnumerable<string> headers);
+    ICorsAllowedHeaders Add(params string[] headers);
 }
 
 public interface ICorsExposedHeaders
 {
-    ICorsExposedHeaders Add(params IEnumerable<string> headers);
+    ICorsExposedHeaders Add(params string[] headers);
 }
 
 public interface ICrossDomainActions
@@ -104,7 +104,7 @@ partial class PolicyDocument
             return this;
         }
 
-        ICorsAllowedOrigins ICorsAllowedOrigins.Add(params IEnumerable<string> origins)
+        ICorsAllowedOrigins ICorsAllowedOrigins.Add(params string[] origins)
         {
             if (_anyOriginsCalled)
                 throw new InvalidOperationException("Only one Allowed-Origins entry allowed when Any (*) was used.");
@@ -130,14 +130,14 @@ partial class PolicyDocument
             return this;
         }
 
-        ICorsAllowedHeaders ICorsAllowedHeaders.Add(params IEnumerable<string> headers)
+        ICorsAllowedHeaders ICorsAllowedHeaders.Add(params string[] headers)
         {
             foreach (var header in headers)
                 _writer.CorsHeader(header);
             return this;
         }
 
-        ICorsExposedHeaders ICorsExposedHeaders.Add(params IEnumerable<string> headers)
+        ICorsExposedHeaders ICorsExposedHeaders.Add(params string[] headers)
         {
             foreach (var header in headers)
                 _writer.CorsHeader(header);
