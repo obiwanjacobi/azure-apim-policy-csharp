@@ -21,6 +21,10 @@ public sealed class InboundPolicy : PolicyDocument
                     .AllowedOrigins(origin => origin.Any())
                     .AllowedMethods(methods => methods.Any())
                     .AllowedHeaders(headers => headers.Add("*")))
+            .CrossDomain(actions => actions
+                .AllowAccessFrom("https://localhost", "8080", secure: true)
+                .AllowHttpRequestHeadersFrom("*", "*", secure: false)
+                .AllowAccessFromIdentity("certFingerprint", "SHA256"))
             .EmitMetric("metricName", null, "metricValue",
                 dimensions => dimensions.Add("dim1", "val1").Add("dim2", "val2"))
             .GetAuthorizationContext("providerId", "authId", "authCtx")
@@ -147,6 +151,32 @@ public class InboundPolicyTest
         var headers = cors.Element("allowed-headers");
         Assert.NotNull(headers);
         Assert.NotNull(headers.Element("header"));
+    }
+
+    [Fact]
+    public void CrossDomain()
+    {
+        var inbound = _document.Descendants("inbound").Single();
+        var crossDomain = inbound.Element("cross-domain-policy");
+        Assert.NotNull(crossDomain);
+        var allowAccessFrom = crossDomain.Element("allow-access-from");
+        Assert.NotNull(allowAccessFrom);
+        Assert.Equal("https://localhost", allowAccessFrom.Attribute("domain").Value);
+        Assert.Equal("8080", allowAccessFrom.Attribute("to-ports").Value);
+        Assert.Equal("true", allowAccessFrom.Attribute("secure").Value);
+        var allowHttpRequestHeadersFrom = crossDomain.Element("allow-http-request-headers-from");
+        Assert.NotNull(allowHttpRequestHeadersFrom);
+        Assert.Equal("*", allowHttpRequestHeadersFrom.Attribute("domain").Value);
+        Assert.Equal("*", allowHttpRequestHeadersFrom.Attribute("headers").Value);
+        Assert.Equal("false", allowHttpRequestHeadersFrom.Attribute("secure").Value);
+        var allowAccessFromIdentity = crossDomain.Element("allow-access-from-identity");
+        Assert.NotNull(allowAccessFromIdentity);
+        var signatory = allowAccessFromIdentity.Element("signatory");
+        Assert.NotNull(signatory);
+        var certificate = signatory.Element("certificate");
+        Assert.NotNull(certificate);
+        Assert.Equal("certFingerprint", certificate.Attribute("fingerprint").Value);
+        Assert.Equal("SHA256", certificate.Attribute("fingerprint-algorithm").Value);
     }
 
     [Fact]

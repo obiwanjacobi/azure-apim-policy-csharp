@@ -87,7 +87,7 @@ Note the use of the `LiquidTemplate` struct. Support for Liquid-templates is ver
 - [x] [`choose`](https://learn.microsoft.com/en-us/azure/api-management/choose-policy)
 - [x] [`cors`](https://learn.microsoft.com/en-us/azure/api-management/cors-policy)
 - [ ] [`cosmosdb-data-source`](https://learn.microsoft.com/en-us/azure/api-management/cosmosdb-data-source-policy)
-- [ ] [`cross-domain`](https://learn.microsoft.com/en-us/azure/api-management/cross-domain-policy)
+- [x] [`cross-domain`](https://learn.microsoft.com/en-us/azure/api-management/cross-domain-policy)
 - [x] [`emit-metric`](https://learn.microsoft.com/en-us/azure/api-management/emit-metric-policy)
 - [x] [`find-and-replace`](https://learn.microsoft.com/en-us/azure/api-management/find-and-replace-policy)
 - [x] [`forward-request`](https://learn.microsoft.com/en-us/azure/api-management/forward-request-policy)

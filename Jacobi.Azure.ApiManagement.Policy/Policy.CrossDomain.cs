@@ -6,6 +6,10 @@ public interface ICrossDomain
 {
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/cors-policy</summary>
     IPolicyDocument Cors(Action<ICorsActions> cors, bool? allowCredentials = null, bool? terminateUnmatchedRequests = null);
+
+    /// <summary>https://learn.microsoft.com/en-us/azure/api-management/cross-domain-policy</summary>
+    /// <remarks>Xml Schema: https://www.adobe.com/xml/schemas/PolicyFile.xsd</remarks>
+    IPolicyDocument CrossDomain(Action<ICrossDomainActions> actions, CrossDomainPolicies? permittedCrossDomainPolicies = null);
 }
 
 public interface ICorsActions
@@ -37,6 +41,19 @@ public interface ICorsAllowedHeaders
 public interface ICorsExposedHeaders
 {
     ICorsExposedHeaders Add(params IEnumerable<string> headers);
+}
+
+public interface ICrossDomainActions
+{
+    ICrossDomainActions AllowAccessFrom(string domain, string? toPorts = null, bool? secure = null);
+    ICrossDomainActions AllowHttpRequestHeadersFrom(string domain, string headers, bool? secure = null);
+    /// <summary>Can only be called once.</summary>
+    ICrossDomainActions AllowAccessFromIdentity(string certificateFingerprint, string fingerprintAlgorithm);
+}
+
+public enum CrossDomainPolicies
+{
+    None, All, ByContentType, ByFtpFilename, MasterOnly
 }
 
 partial class PolicyDocument
@@ -119,6 +136,49 @@ partial class PolicyDocument
             return this;
         }
     }
+
+    public IPolicyDocument CrossDomain(Action<ICrossDomainActions> actions, CrossDomainPolicies? permittedCrossDomainPolicies = null)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.Global);
+        Writer.CrossDomain(() => actions(new CrossDomainActions(Writer)), CrossDomainPoliciesToString(permittedCrossDomainPolicies));
+        return this;
+
+        static string? CrossDomainPoliciesToString(CrossDomainPolicies? crossDomainPolicies)
+            => crossDomainPolicies switch
+            {
+                CrossDomainPolicies.None => "none",
+                CrossDomainPolicies.All => "all",
+                CrossDomainPolicies.ByContentType => "by-content-type",
+                CrossDomainPolicies.ByFtpFilename => "by-ftp-filename",
+                CrossDomainPolicies.MasterOnly => "master-only",
+                _ => null
+            };
+    }
+
+    private sealed class CrossDomainActions : ICrossDomainActions
+    {
+        private readonly PolicyXmlWriter _writer;
+        public CrossDomainActions(PolicyXmlWriter writer) { _writer = writer; }
+
+        public ICrossDomainActions AllowAccessFrom(string domain, string? toPorts = null, bool? secure = null)
+        {
+            _writer.CrossDomainAllowAccessFrom(domain, toPorts, secure);
+            return this;
+        }
+
+        public ICrossDomainActions AllowHttpRequestHeadersFrom(string domain, string headers, bool? secure = null)
+        {
+            _writer.CrossDomainAllowHttpRequestHeadersFrom(domain, headers, secure);
+            return this;
+        }
+
+        public ICrossDomainActions AllowAccessFromIdentity(string certificateFingerprint, string fingerprintAlgorithm)
+        {
+            _writer.CrossDomainAllowAccessFromIdentity(certificateFingerprint, fingerprintAlgorithm);
+            return this;
+        }
+    }
 }
 
 partial class PolicyXmlWriter
@@ -167,5 +227,45 @@ partial class PolicyXmlWriter
     internal void CorsHeader(string header)
     {
         _xmlWriter.WriteElementString("header", header);
+    }
+
+    public void CrossDomain(Action writeActions, string? permittedCrossDomainPolicies)
+    {
+        _xmlWriter.WriteStartElement("cross-domain-policy");
+        if (permittedCrossDomainPolicies is not null)
+        {
+            _xmlWriter.WriteStartElement("site-control");
+            _xmlWriter.WriteAttributeString("permitted-cross-domain-policies", permittedCrossDomainPolicies);
+            _xmlWriter.WriteEndElement();
+        }
+        writeActions();
+        _xmlWriter.WriteEndElement();
+    }
+    internal void CrossDomainAllowAccessFrom(string domain, string? toPorts, bool? secure)
+    {
+        _xmlWriter.WriteStartElement("allow-access-from");
+        _xmlWriter.WriteAttributeString("domain", domain);
+        _xmlWriter.WriteAttributeStringOpt("to-ports", toPorts);
+        _xmlWriter.WriteAttributeStringOpt("secure", BoolValue(secure));
+        _xmlWriter.WriteEndElement();
+    }
+    internal void CrossDomainAllowHttpRequestHeadersFrom(string domain, string headers, bool? secure)
+    {
+        _xmlWriter.WriteStartElement("allow-http-request-headers-from");
+        _xmlWriter.WriteAttributeString("domain", domain);
+        _xmlWriter.WriteAttributeStringOpt("headers", headers);
+        _xmlWriter.WriteAttributeStringOpt("secure", BoolValue(secure));
+        _xmlWriter.WriteEndElement();
+    }
+    internal void CrossDomainAllowAccessFromIdentity(string certificateFingerprint, string fingerprintAlgorithm)
+    {
+        _xmlWriter.WriteStartElement("allow-access-from-identity");
+        _xmlWriter.WriteStartElement("signatory");
+        _xmlWriter.WriteStartElement("certificate");
+        _xmlWriter.WriteAttributeString("fingerprint", certificateFingerprint);
+        _xmlWriter.WriteAttributeStringOpt("fingerprint-algorithm", fingerprintAlgorithm);
+        _xmlWriter.WriteEndElement();
+        _xmlWriter.WriteEndElement();
+        _xmlWriter.WriteEndElement();
     }
 }
