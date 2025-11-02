@@ -2,7 +2,7 @@
 
 // https://learn.microsoft.com/en-us/azure/api-management/api-management-policies#policy-control-and-flow
 
-public interface IControl
+internal interface IControl
 {
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/choose-policy</summary>
     IPolicyDocument Choose<DocumentT>(Action<IChooseActions<DocumentT>> choose);

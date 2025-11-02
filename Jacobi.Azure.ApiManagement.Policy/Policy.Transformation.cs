@@ -4,7 +4,7 @@ namespace Jacobi.Azure.ApiManagement.Policy;
 
 // https://learn.microsoft.com/en-us/azure/api-management/api-management-policies#transformation
 
-public interface ITransformation
+internal interface ITransformation
 {
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/find-and-replace-policy</summary>
     IPolicyDocument FindAndReplace(PolicyExpression<string> from, PolicyExpression<string> to);

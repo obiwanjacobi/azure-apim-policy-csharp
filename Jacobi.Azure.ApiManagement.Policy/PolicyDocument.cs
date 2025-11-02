@@ -2,11 +2,11 @@
 
 namespace Jacobi.Azure.ApiManagement.Policy;
 
-public interface IPolicyDocument : IAuthentication, ICaching, IControl, ICrossDomain, IGraphQL,
+internal interface IPolicyDocument : IAuthentication, ICaching, IControl, ICrossDomain, IGraphQL,
     IIngress, IIntegration, ILlm, ILogging, IRouting, ITransformation, IValidation
 { }
 
-public abstract partial class PolicyDocument : //IPolicyDocument
+public abstract partial class PolicyDocument :
     IInbound, IBackend, IOutbound, IOnError
 {
     private PolicySection _section = PolicySection.None;

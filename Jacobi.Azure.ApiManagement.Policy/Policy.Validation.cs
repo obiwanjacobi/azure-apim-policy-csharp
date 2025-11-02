@@ -2,7 +2,7 @@
 
 // https://learn.microsoft.com/en-us/azure/api-management/api-management-policies#content-validation
 
-public interface IValidation
+internal interface IValidation
 {
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/validate-content-policy</summary>
     IPolicyDocument ValidateContent(PolicyExpression<string> unspecifiedContentTypeAction, PolicyExpression<int> maxSizeBytes, PolicyExpression<string> sizeExceedAction, PolicyVariable? errorsVariableName = null, Action<IValidateContentActions>? validateActions = null);

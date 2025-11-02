@@ -2,7 +2,7 @@
 
 // https://learn.microsoft.com/en-us/azure/api-management/api-management-policies#caching
 
-public interface ICaching
+internal interface ICaching
 {
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/cache-lookup-policy</summary>
     IPolicyDocument CacheLookup(PolicyExpression<bool> varyByDeveloper, PolicyExpression<bool> VarByDeveloperGroup, PolicyExpression<bool>? allowPrivateResponseCaching = null, CacheType? cacheType = null, PolicyExpression<string>? downstreamCacheType = null, PolicyExpression<bool>? mustRevalidate = null, Action<ICacheLookupVaryBy>? varyBy = null);
