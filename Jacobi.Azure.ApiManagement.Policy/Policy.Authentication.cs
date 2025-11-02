@@ -87,7 +87,7 @@ public interface IValidateJwtDecryptionKeys
 
 partial class PolicyDocument
 {
-    public IPolicyDocument AuthenticationBasic(PolicyExpression<string> username, PolicyExpression<string> password)
+    IInbound IInbound.AuthenticationBasic(PolicyExpression<string> username, PolicyExpression<string> password)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.All);
@@ -95,14 +95,14 @@ partial class PolicyDocument
         return this;
     }
 
-    public IPolicyDocument AuthenticationCertificate(PolicyExpression<string> thumbprint, PolicyExpression<string> certificate, PolicyExpression<string>? body, PolicyExpression<string>? password)
+    IInbound IInbound.AuthenticationCertificate(PolicyExpression<string> thumbprint, PolicyExpression<string> certificate, PolicyExpression<string>? body, PolicyExpression<string>? password)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.All);
         AuthenticationCertificateInternal(thumbprint, certificate, body, password);
         return this;
     }
-    private IPolicyDocument AuthenticationCertificateInternal(PolicyExpression<string> thumbprint, PolicyExpression<string> certificate, PolicyExpression<string>? body, PolicyExpression<string>? password)
+    private PolicyDocument AuthenticationCertificateInternal(PolicyExpression<string> thumbprint, PolicyExpression<string> certificate, PolicyExpression<string>? body, PolicyExpression<string>? password)
     {
         if (!String.IsNullOrEmpty(thumbprint) && !String.IsNullOrEmpty(certificate))
             throw new ArgumentException("Specify either a thumbprint or a certificate. Not both.", $"{nameof(thumbprint)}+{nameof(certificate)}");
@@ -110,17 +110,20 @@ partial class PolicyDocument
         return this;
     }
 
-    public IPolicyDocument AuthenticationManagedIdentity(PolicyExpression<string> resource, string? clientId = null, PolicyVariable? outputTokenVariableName = null, bool? ignoreError = null)
+    IInbound IInbound.AuthenticationManagedIdentity(PolicyExpression<string> resource, string? clientId, PolicyVariable? outputTokenVariableName, bool? ignoreError)
     {
         AssertSection(PolicySection.Inbound);
+        return AuthenticationManagedIdentityInternal(resource, clientId, outputTokenVariableName, ignoreError);
+    }
+    private PolicyDocument AuthenticationManagedIdentityInternal(PolicyExpression<string> resource, string? clientId = null, PolicyVariable? outputTokenVariableName = null, bool? ignoreError = null)
+    {
         AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
-        // TODO: check variable exists
         Writer.AuthenticationManagedIdentity(resource, clientId, outputTokenVariableName, ignoreError);
         return this;
     }
 
-    public IPolicyDocument CheckHeader(PolicyExpression<string> name, PolicyExpression<int> failedCheckHttpCode,
-        PolicyExpression<string> failedCheckErrorMessage, PolicyExpression<bool> ignoreCase, Action<ICheckHeaderValues>? values = null)
+    IInbound IInbound.CheckHeader(PolicyExpression<string> name, PolicyExpression<int> failedCheckHttpCode,
+        PolicyExpression<string> failedCheckErrorMessage, PolicyExpression<bool> ignoreCase, Action<ICheckHeaderValues>? values)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.All);
@@ -142,7 +145,7 @@ partial class PolicyDocument
         }
     }
 
-    public IPolicyDocument GetAuthorizationContext(PolicyExpression<string> providerId, PolicyExpression<string> authorizationId, PolicyVariable contextVariableName, PolicyExpression<string>? identity = null, PolicyExpression<bool>? ignoreError = null)
+    IInbound IInbound.GetAuthorizationContext(PolicyExpression<string> providerId, PolicyExpression<string> authorizationId, PolicyVariable contextVariableName, PolicyExpression<string>? identity, PolicyExpression<bool>? ignoreError)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
@@ -151,7 +154,7 @@ partial class PolicyDocument
         return this;
     }
 
-    public IPolicyDocument IpFilter(PolicyExpression<string> action, Action<IIpFilterAddress> address)
+    IInbound IInbound.IpFilter(PolicyExpression<string> action, Action<IIpFilterAddress> address)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
@@ -178,7 +181,7 @@ partial class PolicyDocument
         }
     }
 
-    public IPolicyDocument ValidateAzureAdToken(PolicyExpression<string> tenantIdOrUrl, PolicyExpression<string>? headerName = null, PolicyExpression<string>? queryParameterName = null, PolicyExpression<string>? tokenValue = null, string? authenticationEndpoint = null, PolicyExpression<int>? failedValidationHttpCode = null, PolicyExpression<string>? failedValidationErrorMessage = null, PolicyVariable? outputTokenVariableName = null, Action<IValidateAzureAdTokenActions>? validationActions = null)
+    IInbound IInbound.ValidateAzureAdToken(PolicyExpression<string> tenantIdOrUrl, PolicyExpression<string>? headerName, PolicyExpression<string>? queryParameterName, PolicyExpression<string>? tokenValue, string? authenticationEndpoint, PolicyExpression<int>? failedValidationHttpCode, PolicyExpression<string>? failedValidationErrorMessage, PolicyVariable? outputTokenVariableName, Action<IValidateAzureAdTokenActions>? validationActions)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.All);
@@ -244,7 +247,7 @@ partial class PolicyDocument
         }
     }
 
-    public IPolicyDocument ValidateClientCertificate(bool? validateRevocation = null, bool? validateTrust = null, bool? validateNotBefore = null, bool? validateNotAfter = null, bool? ignoreError = null, Action<IValidateClientCertificateIdentities>? identities = null)
+    IInbound IInbound.ValidateClientCertificate(bool? validateRevocation, bool? validateTrust, bool? validateNotBefore, bool? validateNotAfter, bool? ignoreError, Action<IValidateClientCertificateIdentities>? identities)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.All);
@@ -268,7 +271,7 @@ partial class PolicyDocument
         }
     }
 
-    public IPolicyDocument ValidateJwt(PolicyExpression<string>? headerName = null, PolicyExpression<string>? queryParameterName = null, PolicyExpression<string>? tokenValue = null, PolicyExpression<int>? failedValidationHttpCode = null, PolicyExpression<string>? failedValidationErrorMessage = null, PolicyExpression<bool>? requireExpirationTime = null, PolicyExpression<string>? requireScheme = null, PolicyExpression<bool>? requireSignedTokens = null, PolicyExpression<int>? clockSkewSeconds = null, PolicyVariable? outputTokenVariableName = null, Action<IValidateJwtActions>? jwtActions = null)
+    IInbound IInbound.ValidateJwt(PolicyExpression<string>? headerName, PolicyExpression<string>? queryParameterName, PolicyExpression<string>? tokenValue, PolicyExpression<int>? failedValidationHttpCode, PolicyExpression<string>? failedValidationErrorMessage, PolicyExpression<bool>? requireExpirationTime, PolicyExpression<string>? requireScheme, PolicyExpression<bool>? requireSignedTokens, PolicyExpression<int>? clockSkewSeconds, PolicyVariable? outputTokenVariableName, Action<IValidateJwtActions>? jwtActions)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.All);

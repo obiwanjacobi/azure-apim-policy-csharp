@@ -7,9 +7,9 @@ namespace AzureApimPolicy.Tests;
 
 public sealed class BackendPolicy : PolicyDocument
 {
-    protected override void Backend()
+    protected override void Backend(IBackend backend)
     {
-        this
+        backend
             .ForwardRequest(timeoutSeconds: 30)
             .IncludeFragment("myFragment")
             .LimitConcurrency(PolicyExpression.FromCode("""(string)Context.Variables["connectionId"]"""), 120,
@@ -34,7 +34,7 @@ public sealed class BackendPolicy : PolicyDocument
                 "any")
             ;
 
-        base.Backend();
+        base.Backend(backend);
     }
 }
 

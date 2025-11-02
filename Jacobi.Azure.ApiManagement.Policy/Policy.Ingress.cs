@@ -44,14 +44,22 @@ public interface IRateLimitApiOperation
 
 partial class PolicyDocument
 {
-    public IPolicyDocument LimitConcurrency(PolicyExpression<string> key, int maxCount, Action<IPolicyDocument> actions)
+    IInbound IInbound.LimitConcurrency(PolicyExpression<string> key, int maxCount, Action<IInbound> actions)
+        => LimitConcurrency(key, maxCount, actions);
+    IBackend IBackend.LimitConcurrency(PolicyExpression<string> key, int maxCount, Action<IBackend> actions)
+        => LimitConcurrency(key, maxCount, actions);
+    IOutbound IOutbound.LimitConcurrency(PolicyExpression<string> key, int maxCount, Action<IOutbound> actions)
+        => LimitConcurrency(key, maxCount, actions);
+    IOnError IOnError.LimitConcurrency(PolicyExpression<string> key, int maxCount, Action<IOnError> actions)
+        => LimitConcurrency(key, maxCount, actions);
+    private PolicyDocument LimitConcurrency(PolicyExpression<string> key, int maxCount, Action<PolicyDocument> actions)
     {
         AssertScopes(PolicyScopes.All);
         Writer.LimitConcurrency(key, maxCount.ToString(), () => actions(this));
         return this;
     }
 
-    public IPolicyDocument Quota(int numberOfCalls, int bandwidthKB, int renewalPeriodSeconds, Action<IQuotaApi> apis)
+    IInbound IInbound.Quota(int numberOfCalls, int bandwidthKB, int renewalPeriodSeconds, Action<IQuotaApi> apis)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.Product);
@@ -102,7 +110,7 @@ partial class PolicyDocument
         }
     }
 
-    public IPolicyDocument QuotaByKey(PolicyExpression<string> counterKey, int numberOfCalls, int bandwidthKB, int renewalPeriodSeconds, PolicyExpression<int>? incrementCount = null, PolicyExpression<string>? incrementCondition = null, DateTime? firstPeriodStart = null)
+    IInbound IInbound.QuotaByKey(PolicyExpression<string> counterKey, int numberOfCalls, int bandwidthKB, int renewalPeriodSeconds, PolicyExpression<int>? incrementCount, PolicyExpression<string>? incrementCondition, DateTime? firstPeriodStart)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.All);
@@ -114,7 +122,7 @@ partial class PolicyDocument
         return this;
     }
 
-    public IPolicyDocument RateLimit(int numberOfCalls, int renewalPeriodSeconds, PolicyVariable? retryAfterVariableName = null, string? retryAfterHeaderName = null, PolicyVariable? remainingCallsVariableName = null, string? remainingCallsHeaderName = null, string? totalCallsHeaderName = null, Action<IRateLimitApi>? apis = null)
+    IInbound IInbound.RateLimit(int numberOfCalls, int renewalPeriodSeconds, PolicyVariable? retryAfterVariableName, string? retryAfterHeaderName, PolicyVariable? remainingCallsVariableName, string? remainingCallsHeaderName, string? totalCallsHeaderName, Action<IRateLimitApi>? apis)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
@@ -148,7 +156,7 @@ partial class PolicyDocument
         }
     }
 
-    public IPolicyDocument RateLimitByKey(PolicyExpression<string> counterKey, PolicyExpression<int> numberOfCalls, PolicyExpression<int> renewalPeriodSeconds, PolicyExpression<int>? incrementCount = null, PolicyExpression<string>? incrementCondition = null, PolicyVariable? retryAfterVariableName = null, string? retryAfterHeaderName = null, PolicyVariable? remainingCallsVariableName = null, string? remainingCallsHeaderName = null, string? totalCallsHeaderName = null)
+    IInbound IInbound.RateLimitByKey(PolicyExpression<string> counterKey, PolicyExpression<int> numberOfCalls, PolicyExpression<int> renewalPeriodSeconds, PolicyExpression<int>? incrementCount, PolicyExpression<string>? incrementCondition, PolicyVariable? retryAfterVariableName, string? retryAfterHeaderName, PolicyVariable? remainingCallsVariableName, string? remainingCallsHeaderName, string? totalCallsHeaderName)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.All);

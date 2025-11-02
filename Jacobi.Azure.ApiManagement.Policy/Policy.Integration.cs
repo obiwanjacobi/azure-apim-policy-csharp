@@ -40,14 +40,14 @@ public interface ISendServiceBusMessageProperties
 
 partial class PolicyDocument
 {
-    public IPolicyDocument PublishToDapr(PolicyExpression<string> message, PolicyExpression<string> topic, PolicyExpression<string>? pubSubName = null, PolicyVariable? responseVariableName = null, PolicyExpression<int>? timeoutSeconds = null, string? contentType = null, bool? ignoreError = null)
+    IInbound IInbound.PublishToDapr(PolicyExpression<string> message, PolicyExpression<string> topic, PolicyExpression<string>? pubSubName, PolicyVariable? responseVariableName, PolicyExpression<int>? timeoutSeconds, string? contentType, bool? ignoreError)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
         Writer.PublishToDapr(message, topic, null, pubSubName, responseVariableName, timeoutSeconds, contentType, ignoreError);
         return this;
     }
-    public IPolicyDocument PublishToDapr(LiquidTemplate template, PolicyExpression<string> topic, PolicyExpression<string>? pubSubName = null, PolicyVariable? responseVariableName = null, PolicyExpression<int>? timeoutSeconds = null, string? contentType = null, bool? ignoreError = null)
+    IInbound IInbound.PublishToDapr(LiquidTemplate template, PolicyExpression<string> topic, PolicyExpression<string>? pubSubName, PolicyVariable? responseVariableName, PolicyExpression<int>? timeoutSeconds, string? contentType, bool? ignoreError)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
@@ -55,8 +55,17 @@ partial class PolicyDocument
         return this;
     }
 
-    public IPolicyDocument SendOneWayRequest(Action<ISendRequestActions> request, PolicyExpression<string>? mode = null, PolicyExpression<int>? timeoutSeconds = null)
+    IInbound IInbound.SendOneWayRequest(Action<ISendRequestActions> request, PolicyExpression<string>? mode, PolicyExpression<int>? timeoutSeconds)
+        => SendOneWayRequest(request, mode, timeoutSeconds);
+    IBackend IBackend.SendOneWayRequest(Action<ISendRequestActions> request, PolicyExpression<string>? mode, PolicyExpression<int>? timeoutSeconds)
+        => SendOneWayRequest(request, mode, timeoutSeconds);
+    IOutbound IOutbound.SendOneWayRequest(Action<ISendRequestActions> request, PolicyExpression<string>? mode, PolicyExpression<int>? timeoutSeconds)
+        => SendOneWayRequest(request, mode, timeoutSeconds);
+    IOnError IOnError.SendOneWayRequest(Action<ISendRequestActions> request, PolicyExpression<string>? mode, PolicyExpression<int>? timeoutSeconds)
+        => SendOneWayRequest(request, mode, timeoutSeconds);
+    private PolicyDocument SendOneWayRequest(Action<ISendRequestActions> request, PolicyExpression<string>? mode = null, PolicyExpression<int>? timeoutSeconds = null)
     {
+        AssertScopes(PolicyScopes.All);
         Writer.SendOneWayRequest(mode, timeoutSeconds, () => request(new SendRequestActions(this, Writer)));
         return this;
     }
@@ -103,7 +112,7 @@ partial class PolicyDocument
 
         public ISendRequestActions AuthenticationManagedIdentity(PolicyExpression<string> resource, string? clientId = null, PolicyVariable? outputTokenVariableName = null, bool? ignoreError = false)
         {
-            _document.AuthenticationManagedIdentity(resource, clientId, outputTokenVariableName, ignoreError);
+            _document.AuthenticationManagedIdentityInternal(resource, clientId, outputTokenVariableName, ignoreError);
             return this;
         }
 
@@ -114,7 +123,13 @@ partial class PolicyDocument
         }
     }
 
-    public IPolicyDocument SendServiceBusMessage(PolicyExpression<string> @namespace, PolicyExpression<string> message, Action<ISendServiceBusMessageProperties>? messageProperties, PolicyExpression<string>? queueName = null, PolicyExpression<string>? topicName = null, PolicyExpression<string>? clientId = null)
+    IInbound IInbound.SendServiceBusMessage(PolicyExpression<string> @namespace, PolicyExpression<string> message, Action<ISendServiceBusMessageProperties>? messageProperties, PolicyExpression<string>? queueName, PolicyExpression<string>? topicName, PolicyExpression<string>? clientId)
+        => SendServiceBusMessage(@namespace, message, messageProperties, queueName, topicName, clientId);
+    IOutbound IOutbound.SendServiceBusMessage(PolicyExpression<string> @namespace, PolicyExpression<string> message, Action<ISendServiceBusMessageProperties>? messageProperties, PolicyExpression<string>? queueName, PolicyExpression<string>? topicName, PolicyExpression<string>? clientId)
+        => SendServiceBusMessage(@namespace, message, messageProperties, queueName, topicName, clientId);
+    IOnError IOnError.SendServiceBusMessage(PolicyExpression<string> @namespace, PolicyExpression<string> message, Action<ISendServiceBusMessageProperties>? messageProperties, PolicyExpression<string>? queueName, PolicyExpression<string>? topicName, PolicyExpression<string>? clientId)
+        => SendServiceBusMessage(@namespace, message, messageProperties, queueName, topicName, clientId);
+    private PolicyDocument SendServiceBusMessage(PolicyExpression<string> @namespace, PolicyExpression<string> message, Action<ISendServiceBusMessageProperties>? messageProperties, PolicyExpression<string>? queueName = null, PolicyExpression<string>? topicName = null, PolicyExpression<string>? clientId = null)
     {
         AssertSection([PolicySection.Inbound, PolicySection.Outbound, PolicySection.OnError]);
         AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
@@ -140,14 +155,22 @@ partial class PolicyDocument
         }
     }
 
-    public IPolicyDocument SendRequest(PolicyExpression<string> responseVariableName, Action<ISendRequestActions> request, PolicyExpression<string>? mode = null, PolicyExpression<int>? timeoutSeconds = null, bool? ignoreError = null)
+    IInbound IInbound.SendRequest(PolicyExpression<string> responseVariableName, Action<ISendRequestActions> request, PolicyExpression<string>? mode, PolicyExpression<int>? timeoutSeconds, bool? ignoreError)
+        => SendRequest(responseVariableName, request, mode, timeoutSeconds, ignoreError);
+    IBackend IBackend.SendRequest(PolicyExpression<string> responseVariableName, Action<ISendRequestActions> request, PolicyExpression<string>? mode, PolicyExpression<int>? timeoutSeconds, bool? ignoreError)
+        => SendRequest(responseVariableName, request, mode, timeoutSeconds, ignoreError);
+    IOutbound IOutbound.SendRequest(PolicyExpression<string> responseVariableName, Action<ISendRequestActions> request, PolicyExpression<string>? mode, PolicyExpression<int>? timeoutSeconds, bool? ignoreError)
+        => SendRequest(responseVariableName, request, mode, timeoutSeconds, ignoreError);
+    IOnError IOnError.SendRequest(PolicyExpression<string> responseVariableName, Action<ISendRequestActions> request, PolicyExpression<string>? mode, PolicyExpression<int>? timeoutSeconds, bool? ignoreError)
+        => SendRequest(responseVariableName, request, mode, timeoutSeconds, ignoreError);
+    private PolicyDocument SendRequest(PolicyExpression<string> responseVariableName, Action<ISendRequestActions> request, PolicyExpression<string>? mode = null, PolicyExpression<int>? timeoutSeconds = null, bool? ignoreError = null)
     {
         AssertScopes(PolicyScopes.All);
         Writer.SendRequest(responseVariableName, mode, timeoutSeconds, ignoreError, () => request(new SendRequestActions(this, Writer)));
         return this;
     }
 
-    public IPolicyDocument SetBackendService(PolicyExpression<string> daprAppId, PolicyExpression<string> daprMethod, PolicyExpression<string>? daprNamespace = null)
+    IInbound IInbound.SetBackendService(PolicyExpression<string> daprAppId, PolicyExpression<string> daprMethod, PolicyExpression<string>? daprNamespace)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);

@@ -9,32 +9,33 @@ You implement a class for each Policy Xml file you whish to generate. The method
 ```csharp
 public sealed class MyPolicy : Jacobi.Azure.ApiManagement.Policy.PolicyDocument
 {
-    protected override void Inbound()
+    protected override void Inbound(IInbound inbound)
     {
+      inbound
         .CheckHeader(...)
         .IpFilter(...)
         // other policies
         ;
 
-        base.Inbound(); // generates the <Base/> implicitly.
+        base.Inbound(inbound); // generates the <Base/> implicitly.
     }
 
-    protected override void Backend()
+    protected override void Backend(IBackend backend)
     {
         // add your policies here
-        base.Backend();
+        base.Backend(backend);
     }
 
-    protected override void Outbound()
+    protected override void Outbound(IOutbound outbound)
     {
         // add your policies here
-        base.Outbound();
+        base.Outbound(outbound);
     }
 
-    protected override void OnError()
+    protected override void OnError(IOnError onError)
     {
         // add your policies here
-        base.OnError();
+        base.OnError(onError);
     }
 }
 ```
@@ -57,12 +58,13 @@ An example of specifying a code expression using the `PolicyExpression.FromCode`
 ```csharp
 public sealed class MyPolicy : Jacobi.Azure.ApiManagement.Policy.PolicyDocument
 {
-    protected override void Inbound()
+    protected override void Inbound(IInbound inbound)
     {
+      inbound
         .Choose(choose =>
             choose.When(PolicyExpression.FromCode("""Context.Variables.GetValueOrDefault<bool>("myvar", true)"""),
                 actions => actions.SetBody(LiquidTemplate.From(""" body """))))
-        base.Inbound();
+        base.Inbound(inbound);
     }
 }
 ```

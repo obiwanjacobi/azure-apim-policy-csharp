@@ -6,7 +6,8 @@ public interface IPolicyDocument : IAuthentication, ICaching, IControl, ICrossDo
     IIngress, IIntegration, ILlm, ILogging, IRouting, ITransformation, IValidation
 { }
 
-public abstract partial class PolicyDocument : IPolicyDocument
+public abstract partial class PolicyDocument : //IPolicyDocument
+    IInbound, IBackend, IOutbound, IOnError
 {
     private PolicySection _section = PolicySection.None;
     private PolicyScopes _scopes;
@@ -17,33 +18,33 @@ public abstract partial class PolicyDocument : IPolicyDocument
     protected PolicyDocument(PolicyScopes policyScopes = PolicyScopes.All)
         => _scopes = policyScopes;
 
-    protected virtual void Inbound()
+    protected virtual void Inbound(IInbound inbound)
     {
         Writer.Base();
     }
 
-    protected virtual void Backend()
+    protected virtual void Backend(IBackend backend)
     {
         Writer.Base();
     }
 
-    protected virtual void Outbound()
+    protected virtual void Outbound(IOutbound outbound)
     {
         Writer.Base();
     }
 
-    protected virtual void OnError()
+    protected virtual void OnError(IOnError onError)
     {
         Writer.Base();
     }
 
     // ------------------------------------------------------------------------
 
-    protected IPolicyDocument Base()
-    {
-        Writer.Base();
-        return this;
-    }
+    //protected IPolicyDocument Base()
+    //{
+    //    Writer.Base();
+    //    return this;
+    //}
 
     // ------------------------------------------------------------------------
 
@@ -52,16 +53,16 @@ public abstract partial class PolicyDocument : IPolicyDocument
         _writer = new PolicyXmlWriter(stream);
 
         _section = PolicySection.Inbound;
-        _writer.Inbound(Inbound);
+        _writer.Inbound(() => Inbound(this));
 
         _section = PolicySection.Backend;
-        _writer.Backend(Backend);
+        _writer.Backend(() => Backend(this));
 
         _section = PolicySection.Outbound;
-        _writer.Outbound(Outbound);
+        _writer.Outbound(() => Outbound(this));
 
         _section = PolicySection.OnError;
-        _writer.OnError(OnError);
+        _writer.OnError(() => OnError(this));
 
         _writer.Close();
 

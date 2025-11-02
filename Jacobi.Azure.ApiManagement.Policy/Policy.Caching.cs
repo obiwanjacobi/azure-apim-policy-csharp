@@ -37,7 +37,7 @@ public interface ICacheLookupVaryBy
 partial class PolicyDocument
 {
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/cache-lookup-policy</summary>
-    public IPolicyDocument CacheLookup(PolicyExpression<bool> varyByDeveloper, PolicyExpression<bool> varyByDeveloperGroups, PolicyExpression<bool>? allowPrivateResponseCaching = null, CacheType? cacheType = null, PolicyExpression<string>? downstreamCacheType = null, PolicyExpression<bool>? mustRevalidate = null, Action<ICacheLookupVaryBy>? varyBy = null)
+    IInbound IInbound.CacheLookup(PolicyExpression<bool> varyByDeveloper, PolicyExpression<bool> varyByDeveloperGroups, PolicyExpression<bool>? allowPrivateResponseCaching, CacheType? cacheType, PolicyExpression<string>? downstreamCacheType, PolicyExpression<bool>? mustRevalidate, Action<ICacheLookupVaryBy>? varyBy)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.All);
@@ -47,8 +47,16 @@ partial class PolicyDocument
         return this;
     }
 
+    IInbound IInbound.CacheLookupValue(string variableName, PolicyExpression<string> key, PolicyExpression<string>? defaultValue, CacheType? cacheType)
+        => CacheLookupValue(variableName, key, defaultValue, cacheType);
+    IBackend IBackend.CacheLookupValue(string variableName, PolicyExpression<string> key, PolicyExpression<string>? defaultValue, CacheType? cacheType)
+        => CacheLookupValue(variableName, key, defaultValue, cacheType);
+    IOutbound IOutbound.CacheLookupValue(string variableName, PolicyExpression<string> key, PolicyExpression<string>? defaultValue, CacheType? cacheType)
+        => CacheLookupValue(variableName, key, defaultValue, cacheType);
+    IOnError IOnError.CacheLookupValue(string variableName, PolicyExpression<string> key, PolicyExpression<string>? defaultValue, CacheType? cacheType)
+        => CacheLookupValue(variableName, key, defaultValue, cacheType);
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/cache-lookup-value-policy</summary>
-    public IPolicyDocument CacheLookupValue(string variableName, PolicyExpression<string> key, PolicyExpression<string>? defaultValue = null, CacheType? cacheType = null)
+    private PolicyDocument CacheLookupValue(string variableName, PolicyExpression<string> key, PolicyExpression<string>? defaultValue = null, CacheType? cacheType = null)
     {
         // allowed in all sections
         AssertScopes(PolicyScopes.All);
@@ -57,7 +65,7 @@ partial class PolicyDocument
     }
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/cache-store-policy</summary>
-    public IPolicyDocument CacheStore(PolicyExpression<int> durationSeconds, PolicyExpression<bool>? cacheResponse = null)
+    IOutbound IOutbound.CacheStore(PolicyExpression<int> durationSeconds, PolicyExpression<bool>? cacheResponse)
     {
         AssertSection(PolicySection.Outbound);
         AssertScopes(PolicyScopes.All);
@@ -65,8 +73,16 @@ partial class PolicyDocument
         return this;
     }
 
+    IInbound IInbound.CacheStoreValue(PolicyExpression<int> durationSeconds, PolicyExpression<string> key, PolicyExpression<string> value, CacheType? cacheType)
+        => CacheStoreValue(durationSeconds, key, value, cacheType);
+    IBackend IBackend.CacheStoreValue(PolicyExpression<int> durationSeconds, PolicyExpression<string> key, PolicyExpression<string> value, CacheType? cacheType)
+        => CacheStoreValue(durationSeconds, key, value, cacheType);
+    IOutbound IOutbound.CacheStoreValue(PolicyExpression<int> durationSeconds, PolicyExpression<string> key, PolicyExpression<string> value, CacheType? cacheType)
+        => CacheStoreValue(durationSeconds, key, value, cacheType);
+    IOnError IOnError.CacheStoreValue(PolicyExpression<int> durationSeconds, PolicyExpression<string> key, PolicyExpression<string> value, CacheType? cacheType)
+        => CacheStoreValue(durationSeconds, key, value, cacheType);
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/cache-store-value-policy</summary>
-    public IPolicyDocument CacheStoreValue(PolicyExpression<int> durationSeconds, PolicyExpression<string> key, PolicyExpression<string> value, CacheType? cacheType = null)
+    private PolicyDocument CacheStoreValue(PolicyExpression<int> durationSeconds, PolicyExpression<string> key, PolicyExpression<string> value, CacheType? cacheType = null)
     {
         // allowed in all sections
         AssertScopes(PolicyScopes.All);
@@ -74,8 +90,16 @@ partial class PolicyDocument
         return this;
     }
 
+    IInbound IInbound.CacheRemoveValue(PolicyExpression<string> key, CacheType? cacheType)
+        => CacheRemoveValue(key, cacheType);
+    IBackend IBackend.CacheRemoveValue(PolicyExpression<string> key, CacheType? cacheType)
+        => CacheRemoveValue(key, cacheType);
+    IOutbound IOutbound.CacheRemoveValue(PolicyExpression<string> key, CacheType? cacheType)
+        => CacheRemoveValue(key, cacheType);
+    IOnError IOnError.CacheRemoveValue(PolicyExpression<string> key, CacheType? cacheType)
+        => CacheRemoveValue(key, cacheType);
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/cache-remove-value-policy</summary>
-    public IPolicyDocument CacheRemoveValue(PolicyExpression<string> key, CacheType? cacheType = null)
+    private PolicyDocument CacheRemoveValue(PolicyExpression<string> key, CacheType? cacheType = null)
     {
         // allowed in all sections
         AssertScopes(PolicyScopes.All);

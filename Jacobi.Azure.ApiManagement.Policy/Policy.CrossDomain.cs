@@ -58,7 +58,7 @@ public enum CrossDomainPolicies
 
 partial class PolicyDocument
 {
-    public IPolicyDocument Cors(Action<ICorsActions> actions, bool? allowCredentials = null, bool? terminateUnmatchedRequests = null)
+    IInbound IInbound.Cors(Action<ICorsActions> actions, bool? allowCredentials, bool? terminateUnmatchedRequests)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.All);
@@ -137,7 +137,7 @@ partial class PolicyDocument
         }
     }
 
-    public IPolicyDocument CrossDomain(Action<ICrossDomainActions> actions, CrossDomainPolicies? permittedCrossDomainPolicies = null)
+    IInbound IInbound.CrossDomain(Action<ICrossDomainActions> actions, CrossDomainPolicies? permittedCrossDomainPolicies)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.Global);
