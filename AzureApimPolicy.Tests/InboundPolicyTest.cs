@@ -6,9 +6,9 @@ namespace AzureApimPolicy.Tests;
 
 public sealed class InboundPolicy : PolicyDocument
 {
-    protected override void Inbound()
+    protected override void Inbound(IInbound inbound)
     {
-        this
+        inbound
             .AuthenticationBasic("username", "password")
             .CacheLookup(false, false,
                 varyBy: varyBy => varyBy.Header("Content-Type").QueryParam("page"))
@@ -71,7 +71,7 @@ public sealed class InboundPolicy : PolicyDocument
 
         ;
 
-        base.Inbound();
+        base.Inbound(inbound);
     }
 }
 

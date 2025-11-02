@@ -2,7 +2,7 @@
 
 // https://learn.microsoft.com/en-us/azure/api-management/api-management-policies#authentication-and-authorization
 
-public interface IAuthentication
+internal interface IAuthentication
 {
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/authentication-basic-policy</summary>
     IPolicyDocument AuthenticationBasic(PolicyExpression<string> username, PolicyExpression<string> password);
@@ -40,16 +40,16 @@ public interface IIpFilterAddress
 
 public interface ICheckHeaderValues
 {
-    ICheckHeaderValues Add(params IEnumerable<string> values);
+    ICheckHeaderValues Add(params string[] values);
 }
 
 public interface IValidateAzureAdTokenActions
 {
-    IValidateAzureAdTokenActions BackendApplicationIds(params IEnumerable<string> appIds);
-    IValidateAzureAdTokenActions ClientApplicationIds(params IEnumerable<string> appIds);
-    IValidateAzureAdTokenActions Audiences(params IEnumerable<string> audiences);
+    IValidateAzureAdTokenActions BackendApplicationIds(params string[] appIds);
+    IValidateAzureAdTokenActions ClientApplicationIds(params string[] appIds);
+    IValidateAzureAdTokenActions Audiences(params string[] audiences);
     IValidateAzureAdTokenActions RequiredClaims(Action<IValidateAzureRequiredClaims> claims);
-    IValidateAzureAdTokenActions DecryptionKeys(params IEnumerable<string> certificateIds);
+    IValidateAzureAdTokenActions DecryptionKeys(params string[] certificateIds);
 }
 public interface IValidateAzureRequiredClaims
 {
@@ -67,11 +67,11 @@ public interface IValidateClientCertificateIdentities
 
 public interface IValidateJwtActions
 {
-    IValidateJwtActions OpenIdConfig(params IEnumerable<string> urls);
+    IValidateJwtActions OpenIdConfig(params string[] urls);
     IValidateJwtActions IssuerSigningKeys(Action<IValidateJwtIssuersSigningKeys> keys);
     IValidateJwtActions DecryptionKeys(Action<IValidateJwtDecryptionKeys> keys);
-    IValidateJwtActions Audiences(params IEnumerable<string> audiences);
-    IValidateJwtActions Issuers(params IEnumerable<string> issuers);
+    IValidateJwtActions Audiences(params string[] audiences);
+    IValidateJwtActions Issuers(params string[] issuers);
     IValidateJwtActions RequiredClaims(Action<IValidateAzureRequiredClaims> claims);
 }
 
@@ -87,7 +87,7 @@ public interface IValidateJwtDecryptionKeys
 
 partial class PolicyDocument
 {
-    public IPolicyDocument AuthenticationBasic(PolicyExpression<string> username, PolicyExpression<string> password)
+    IInbound IInbound.AuthenticationBasic(PolicyExpression<string> username, PolicyExpression<string> password)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.All);
@@ -95,14 +95,14 @@ partial class PolicyDocument
         return this;
     }
 
-    public IPolicyDocument AuthenticationCertificate(PolicyExpression<string> thumbprint, PolicyExpression<string> certificate, PolicyExpression<string>? body, PolicyExpression<string>? password)
+    IInbound IInbound.AuthenticationCertificate(PolicyExpression<string> thumbprint, PolicyExpression<string> certificate, PolicyExpression<string>? body, PolicyExpression<string>? password)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.All);
         AuthenticationCertificateInternal(thumbprint, certificate, body, password);
         return this;
     }
-    private IPolicyDocument AuthenticationCertificateInternal(PolicyExpression<string> thumbprint, PolicyExpression<string> certificate, PolicyExpression<string>? body, PolicyExpression<string>? password)
+    private PolicyDocument AuthenticationCertificateInternal(PolicyExpression<string> thumbprint, PolicyExpression<string> certificate, PolicyExpression<string>? body, PolicyExpression<string>? password)
     {
         if (!String.IsNullOrEmpty(thumbprint) && !String.IsNullOrEmpty(certificate))
             throw new ArgumentException("Specify either a thumbprint or a certificate. Not both.", $"{nameof(thumbprint)}+{nameof(certificate)}");
@@ -110,17 +110,20 @@ partial class PolicyDocument
         return this;
     }
 
-    public IPolicyDocument AuthenticationManagedIdentity(PolicyExpression<string> resource, string? clientId = null, PolicyVariable? outputTokenVariableName = null, bool? ignoreError = null)
+    IInbound IInbound.AuthenticationManagedIdentity(PolicyExpression<string> resource, string? clientId, PolicyVariable? outputTokenVariableName, bool? ignoreError)
     {
         AssertSection(PolicySection.Inbound);
+        return AuthenticationManagedIdentityInternal(resource, clientId, outputTokenVariableName, ignoreError);
+    }
+    private PolicyDocument AuthenticationManagedIdentityInternal(PolicyExpression<string> resource, string? clientId = null, PolicyVariable? outputTokenVariableName = null, bool? ignoreError = null)
+    {
         AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
-        // TODO: check variable exists
         Writer.AuthenticationManagedIdentity(resource, clientId, outputTokenVariableName, ignoreError);
         return this;
     }
 
-    public IPolicyDocument CheckHeader(PolicyExpression<string> name, PolicyExpression<int> failedCheckHttpCode,
-        PolicyExpression<string> failedCheckErrorMessage, PolicyExpression<bool> ignoreCase, Action<ICheckHeaderValues>? values = null)
+    IInbound IInbound.CheckHeader(PolicyExpression<string> name, PolicyExpression<int> failedCheckHttpCode,
+        PolicyExpression<string> failedCheckErrorMessage, PolicyExpression<bool> ignoreCase, Action<ICheckHeaderValues>? values)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.All);
@@ -134,7 +137,7 @@ partial class PolicyDocument
         private readonly PolicyXmlWriter _writer;
         internal CheckHeaderValues(PolicyXmlWriter writer) => _writer = writer;
 
-        public ICheckHeaderValues Add(params IEnumerable<string> values)
+        public ICheckHeaderValues Add(params string[] values)
         {
             foreach (var value in values)
                 _writer.CheckHeaderValue(value);
@@ -142,7 +145,7 @@ partial class PolicyDocument
         }
     }
 
-    public IPolicyDocument GetAuthorizationContext(PolicyExpression<string> providerId, PolicyExpression<string> authorizationId, PolicyVariable contextVariableName, PolicyExpression<string>? identity = null, PolicyExpression<bool>? ignoreError = null)
+    IInbound IInbound.GetAuthorizationContext(PolicyExpression<string> providerId, PolicyExpression<string> authorizationId, PolicyVariable contextVariableName, PolicyExpression<string>? identity, PolicyExpression<bool>? ignoreError)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
@@ -151,7 +154,7 @@ partial class PolicyDocument
         return this;
     }
 
-    public IPolicyDocument IpFilter(PolicyExpression<string> action, Action<IIpFilterAddress> address)
+    IInbound IInbound.IpFilter(PolicyExpression<string> action, Action<IIpFilterAddress> address)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
@@ -178,7 +181,7 @@ partial class PolicyDocument
         }
     }
 
-    public IPolicyDocument ValidateAzureAdToken(PolicyExpression<string> tenantIdOrUrl, PolicyExpression<string>? headerName = null, PolicyExpression<string>? queryParameterName = null, PolicyExpression<string>? tokenValue = null, string? authenticationEndpoint = null, PolicyExpression<int>? failedValidationHttpCode = null, PolicyExpression<string>? failedValidationErrorMessage = null, PolicyVariable? outputTokenVariableName = null, Action<IValidateAzureAdTokenActions>? validationActions = null)
+    IInbound IInbound.ValidateAzureAdToken(PolicyExpression<string> tenantIdOrUrl, PolicyExpression<string>? headerName, PolicyExpression<string>? queryParameterName, PolicyExpression<string>? tokenValue, string? authenticationEndpoint, PolicyExpression<int>? failedValidationHttpCode, PolicyExpression<string>? failedValidationErrorMessage, PolicyVariable? outputTokenVariableName, Action<IValidateAzureAdTokenActions>? validationActions)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.All);
@@ -201,19 +204,19 @@ partial class PolicyDocument
         private readonly PolicyXmlWriter _writer;
         public ValidateAzureAdTokenActions(PolicyXmlWriter writer) { _writer = writer; }
 
-        public IValidateAzureAdTokenActions BackendApplicationIds(params IEnumerable<string> appIds)
+        public IValidateAzureAdTokenActions BackendApplicationIds(params string[] appIds)
         {
             _writer.ValidateAzureAdToken_BackendApplicationIds(appIds);
             return this;
         }
 
-        public IValidateAzureAdTokenActions ClientApplicationIds(params IEnumerable<string> appIds)
+        public IValidateAzureAdTokenActions ClientApplicationIds(params string[] appIds)
         {
             _writer.ValidateAzureAdToken_ClientApplicationIds(appIds);
             return this;
         }
 
-        public IValidateAzureAdTokenActions Audiences(params IEnumerable<string> audiences)
+        public IValidateAzureAdTokenActions Audiences(params string[] audiences)
         {
             _writer.ValidateAzureAdToken_Audiences(audiences);
             return this;
@@ -225,7 +228,7 @@ partial class PolicyDocument
             return this;
         }
 
-        public IValidateAzureAdTokenActions DecryptionKeys(params IEnumerable<string> certificateIds)
+        public IValidateAzureAdTokenActions DecryptionKeys(params string[] certificateIds)
         {
             _writer.ValidateAzureAdToken_CertificateIds(certificateIds);
             return this;
@@ -244,7 +247,7 @@ partial class PolicyDocument
         }
     }
 
-    public IPolicyDocument ValidateClientCertificate(bool? validateRevocation = null, bool? validateTrust = null, bool? validateNotBefore = null, bool? validateNotAfter = null, bool? ignoreError = null, Action<IValidateClientCertificateIdentities>? identities = null)
+    IInbound IInbound.ValidateClientCertificate(bool? validateRevocation, bool? validateTrust, bool? validateNotBefore, bool? validateNotAfter, bool? ignoreError, Action<IValidateClientCertificateIdentities>? identities)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.All);
@@ -258,17 +261,21 @@ partial class PolicyDocument
         private readonly PolicyXmlWriter _writer;
         public ValidateClientCertificateIdentities(PolicyXmlWriter writer) { _writer = writer; }
 
+        private int _identityCount = 0;
         public IValidateClientCertificateIdentities Add(string? thumbprint = null, string? serialNumber = null, string? commonName = null, string? subject = null, string? dnsName = null, string? issuerSubject = null, string? issuerThumbprint = null, string? issuerCertificateId = null)
         {
+            if (_identityCount >= 10)
+                throw new InvalidOperationException("A maximum of 10 identities can be specidied.");
             if (issuerCertificateId is not null && (issuerSubject is not null || issuerThumbprint is not null))
                 throw new ArgumentException($"Specifying {nameof(issuerCertificateId)} is mutually exclusive with other issuer parameters.", $"{nameof(issuerSubject)}+{nameof(issuerThumbprint)}");
 
             _writer.ValidateClientCertificateIdentity(thumbprint, serialNumber, commonName, subject, dnsName, issuerSubject, issuerThumbprint, issuerCertificateId);
+            _identityCount++;
             return this;
         }
     }
 
-    public IPolicyDocument ValidateJwt(PolicyExpression<string>? headerName = null, PolicyExpression<string>? queryParameterName = null, PolicyExpression<string>? tokenValue = null, PolicyExpression<int>? failedValidationHttpCode = null, PolicyExpression<string>? failedValidationErrorMessage = null, PolicyExpression<bool>? requireExpirationTime = null, PolicyExpression<string>? requireScheme = null, PolicyExpression<bool>? requireSignedTokens = null, PolicyExpression<int>? clockSkewSeconds = null, PolicyVariable? outputTokenVariableName = null, Action<IValidateJwtActions>? jwtActions = null)
+    IInbound IInbound.ValidateJwt(PolicyExpression<string>? headerName, PolicyExpression<string>? queryParameterName, PolicyExpression<string>? tokenValue, PolicyExpression<int>? failedValidationHttpCode, PolicyExpression<string>? failedValidationErrorMessage, PolicyExpression<bool>? requireExpirationTime, PolicyExpression<string>? requireScheme, PolicyExpression<bool>? requireSignedTokens, PolicyExpression<int>? clockSkewSeconds, PolicyVariable? outputTokenVariableName, Action<IValidateJwtActions>? jwtActions)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.All);
@@ -283,7 +290,7 @@ partial class PolicyDocument
         private readonly PolicyXmlWriter _writer;
         public ValidateJwtActions(PolicyXmlWriter writer) { _writer = writer; }
 
-        public IValidateJwtActions OpenIdConfig(params IEnumerable<string> urls)
+        public IValidateJwtActions OpenIdConfig(params string[] urls)
         {
             foreach (var url in urls)
                 _writer.ValidateJwtOpenIdConfig(url);
@@ -302,13 +309,13 @@ partial class PolicyDocument
             return this;
         }
 
-        public IValidateJwtActions Audiences(params IEnumerable<string> audiences)
+        public IValidateJwtActions Audiences(params string[] audiences)
         {
             _writer.ValidateJwtAudiences(audiences);
             return this;
         }
 
-        public IValidateJwtActions Issuers(params IEnumerable<string> issuers)
+        public IValidateJwtActions Issuers(params string[] issuers)
         {
             _writer.ValidateJwtIssuers(issuers);
             return this;

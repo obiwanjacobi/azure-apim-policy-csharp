@@ -2,7 +2,7 @@
 
 // https://learn.microsoft.com/en-us/azure/api-management/api-management-policies#cross-domain
 
-public interface ICrossDomain
+internal interface ICrossDomain
 {
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/cors-policy</summary>
     IPolicyDocument Cors(Action<ICorsActions> cors, bool? allowCredentials = null, bool? terminateUnmatchedRequests = null);
@@ -24,7 +24,7 @@ public interface ICorsAllowedOrigins
 {
     ICorsAllowedOrigins Any();
     // TODO: url templates?
-    ICorsAllowedOrigins Add(params IEnumerable<string> origins);
+    ICorsAllowedOrigins Add(params string[] origins);
 }
 
 public interface ICorsAllowedMethods
@@ -35,12 +35,12 @@ public interface ICorsAllowedMethods
 
 public interface ICorsAllowedHeaders
 {
-    ICorsAllowedHeaders Add(params IEnumerable<string> headers);
+    ICorsAllowedHeaders Add(params string[] headers);
 }
 
 public interface ICorsExposedHeaders
 {
-    ICorsExposedHeaders Add(params IEnumerable<string> headers);
+    ICorsExposedHeaders Add(params string[] headers);
 }
 
 public interface ICrossDomainActions
@@ -58,7 +58,7 @@ public enum CrossDomainPolicies
 
 partial class PolicyDocument
 {
-    public IPolicyDocument Cors(Action<ICorsActions> actions, bool? allowCredentials = null, bool? terminateUnmatchedRequests = null)
+    IInbound IInbound.Cors(Action<ICorsActions> actions, bool? allowCredentials, bool? terminateUnmatchedRequests)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.All);
@@ -96,40 +96,48 @@ partial class PolicyDocument
             return this;
         }
 
+        private bool _anyOriginsCalled = false;
         ICorsAllowedOrigins ICorsAllowedOrigins.Any()
         {
             _writer.CorsAllowedOrigin("*");
+            _anyOriginsCalled = true;
             return this;
         }
 
-        ICorsAllowedOrigins ICorsAllowedOrigins.Add(params IEnumerable<string> origins)
+        ICorsAllowedOrigins ICorsAllowedOrigins.Add(params string[] origins)
         {
+            if (_anyOriginsCalled)
+                throw new InvalidOperationException("Only one Allowed-Origins entry allowed when Any (*) was used.");
             foreach (var origin in origins)
                 _writer.CorsAllowedOrigin(origin);
             return this;
         }
 
+        private bool _anyMethodsCalled = false;
         ICorsAllowedMethods ICorsAllowedMethods.Any()
         {
             _writer.CorsAllowedMethod("*");
+            _anyMethodsCalled = true;
             return this;
         }
 
         ICorsAllowedMethods ICorsAllowedMethods.Add(params IEnumerable<HttpMethod> methods)
         {
+            if (_anyMethodsCalled)
+                throw new InvalidOperationException("Only one Allowed-Methods entry allowed when Any (*) was used.");
             foreach (var method in methods)
                 _writer.CorsAllowedMethod(method.ToString());
             return this;
         }
 
-        ICorsAllowedHeaders ICorsAllowedHeaders.Add(params IEnumerable<string> headers)
+        ICorsAllowedHeaders ICorsAllowedHeaders.Add(params string[] headers)
         {
             foreach (var header in headers)
                 _writer.CorsHeader(header);
             return this;
         }
 
-        ICorsExposedHeaders ICorsExposedHeaders.Add(params IEnumerable<string> headers)
+        ICorsExposedHeaders ICorsExposedHeaders.Add(params string[] headers)
         {
             foreach (var header in headers)
                 _writer.CorsHeader(header);
@@ -137,7 +145,7 @@ partial class PolicyDocument
         }
     }
 
-    public IPolicyDocument CrossDomain(Action<ICrossDomainActions> actions, CrossDomainPolicies? permittedCrossDomainPolicies = null)
+    IInbound IInbound.CrossDomain(Action<ICrossDomainActions> actions, CrossDomainPolicies? permittedCrossDomainPolicies)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.Global);

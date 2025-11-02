@@ -7,9 +7,9 @@ namespace AzureApimPolicy.Tests;
 
 public sealed class OutboundPolicy : PolicyDocument
 {
-    protected override void Outbound()
+    protected override void Outbound(IOutbound outbound)
     {
-        this
+        outbound
             .JsonToXml("always", considerAcceptHeader: false, parseDate: false,
                 namespaceSeparator: ":", namespacePrefix: "xmlns", attributeBlockName: "#attrs")
             .MockResponse(200, MediaTypeNames.Application.Json)
@@ -31,7 +31,7 @@ public sealed class OutboundPolicy : PolicyDocument
                 parameters => parameters.Add("param", "42"))
         ;
 
-        base.Outbound();
+        base.Outbound(outbound);
     }
 }
 

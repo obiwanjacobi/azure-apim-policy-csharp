@@ -2,11 +2,12 @@
 
 namespace Jacobi.Azure.ApiManagement.Policy;
 
-public interface IPolicyDocument : IAuthentication, ICaching, IControl, ICrossDomain, IGraphQL,
+internal interface IPolicyDocument : IAuthentication, ICaching, IControl, ICrossDomain, IGraphQL,
     IIngress, IIntegration, ILlm, ILogging, IRouting, ITransformation, IValidation
 { }
 
-public abstract partial class PolicyDocument : IPolicyDocument
+public abstract partial class PolicyDocument :
+    IInbound, IBackend, IOutbound, IOnError
 {
     private PolicySection _section = PolicySection.None;
     private PolicyScopes _scopes;
@@ -17,29 +18,47 @@ public abstract partial class PolicyDocument : IPolicyDocument
     protected PolicyDocument(PolicyScopes policyScopes = PolicyScopes.All)
         => _scopes = policyScopes;
 
-    protected virtual void Inbound()
+    protected virtual void Inbound(IInbound inbound)
     {
         Writer.Base();
     }
 
-    protected virtual void Backend()
+    protected virtual void Backend(IBackend backend)
     {
         Writer.Base();
     }
 
-    protected virtual void Outbound()
+    protected virtual void Outbound(IOutbound outbound)
     {
         Writer.Base();
     }
 
-    protected virtual void OnError()
+    protected virtual void OnError(IOnError onError)
     {
         Writer.Base();
     }
 
     // ------------------------------------------------------------------------
 
-    protected IPolicyDocument Base()
+    IInbound IInbound.Base()
+    {
+        Writer.Base();
+        return this;
+    }
+
+    IBackend IBackend.Base()
+    {
+        Writer.Base();
+        return this;
+    }
+
+    IOutbound IOutbound.Base()
+    {
+        Writer.Base();
+        return this;
+    }
+
+    IOnError IOnError.Base()
     {
         Writer.Base();
         return this;
@@ -49,19 +68,19 @@ public abstract partial class PolicyDocument : IPolicyDocument
 
     internal void WriteTo(Stream stream)
     {
-        _writer = new PolicyXmlWriter(stream);
+        _writer = new PolicyXmlWriter(stream, GetType()?.FullName ?? "<unknown>");
 
         _section = PolicySection.Inbound;
-        _writer.Inbound(Inbound);
+        _writer.Inbound(() => Inbound(this));
 
         _section = PolicySection.Backend;
-        _writer.Backend(Backend);
+        _writer.Backend(() => Backend(this));
 
         _section = PolicySection.Outbound;
-        _writer.Outbound(Outbound);
+        _writer.Outbound(() => Outbound(this));
 
         _section = PolicySection.OnError;
-        _writer.OnError(OnError);
+        _writer.OnError(() => OnError(this));
 
         _writer.Close();
 

@@ -2,10 +2,10 @@
 
 // https://learn.microsoft.com/en-us/azure/api-management/api-management-policies#policy-control-and-flow
 
-public interface IControl
+internal interface IControl
 {
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/choose-policy</summary>
-    IPolicyDocument Choose(Action<IChooseActions> choose);
+    IPolicyDocument Choose<DocumentT>(Action<IChooseActions<DocumentT>> choose);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/include-fragment-policy</summary>
     IPolicyDocument IncludeFragment(string fragmentId);
@@ -14,95 +14,175 @@ public interface IControl
     IPolicyDocument Retry(PolicyExpression<string> condition, PolicyExpression<int> numberOfRetries, PolicyExpression<int> intervalSeconds, PolicyExpression<int>? maxIntervalSeconds = null, int? deltaSeconds = null, PolicyExpression<bool>? firstFastRetry = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/wait-policy</summary>
-    IPolicyDocument Wait(Action<IWaitActions> actions, PolicyExpression<string>? waitFor = null);
+    IPolicyDocument Wait<DocumentT>(Action<IWaitActions<DocumentT>> actions, PolicyExpression<string>? waitFor = null);
 }
 
-public interface IChooseActions
+public interface IChooseActions<DocumentT>
 {
-    IChooseActions When(PolicyExpression<string> condition, Action<IPolicyDocument> whenActions);
-    IChooseActions Otherwise(Action<IPolicyDocument> otherwiseActions);
+    IChooseActions<DocumentT> When(PolicyExpression<string> condition, Action<DocumentT> whenActions);
+    IChooseActions<DocumentT> Otherwise(Action<DocumentT> otherwiseActions);
 }
 
-public interface IWaitActions
+public interface IWaitActions<DocumentT>
 {
-    IWaitActions Choose(Action<IChooseActions> choose);
-    IWaitActions CacheLookupValue(string variableName, PolicyExpression<string> key, PolicyExpression<string>? defaultValue = null, CacheType? cacheType = null);
-    IWaitActions SendRequest(PolicyExpression<string> responseVariableName, Action<ISendRequestActions> request, PolicyExpression<string>? mode = null, PolicyExpression<int>? timeoutSeconds = null, bool? ignoreError = null);
+    IWaitActions<DocumentT> Choose(Action<IChooseActions<DocumentT>> choose);
+    IWaitActions<DocumentT> CacheLookupValue(string variableName, PolicyExpression<string> key, PolicyExpression<string>? defaultValue = null, CacheType? cacheType = null);
+    IWaitActions<DocumentT> SendRequest(PolicyExpression<string> responseVariableName, Action<ISendRequestActions> request, PolicyExpression<string>? mode = null, PolicyExpression<int>? timeoutSeconds = null, bool? ignoreError = null);
 }
 
 partial class PolicyDocument
 {
-    public IPolicyDocument Choose(Action<IChooseActions> choose)
+    IInbound IInbound.Choose(Action<IChooseActions<IInbound>> choose)
     {
-        // allowed in all sections
         AssertScopes(PolicyScopes.All);
-        Writer.Choose(() => choose(new ChooseActions(this)));
+        Writer.Choose(() => choose(new ChooseActions<IInbound>(this, Writer)));
+        return this;
+    }
+    IBackend IBackend.Choose(Action<IChooseActions<IBackend>> choose)
+    {
+        AssertScopes(PolicyScopes.All);
+        Writer.Choose(() => choose(new ChooseActions<IBackend>(this, Writer)));
+        return this;
+    }
+    IOutbound IOutbound.Choose(Action<IChooseActions<IOutbound>> choose)
+    {
+        AssertScopes(PolicyScopes.All);
+        Writer.Choose(() => choose(new ChooseActions<IOutbound>(this, Writer)));
+        return this;
+    }
+    IOnError IOnError.Choose(Action<IChooseActions<IOnError>> choose)
+    {
+        AssertScopes(PolicyScopes.All);
+        Writer.Choose(() => choose(new ChooseActions<IOnError>(this, Writer)));
         return this;
     }
 
-    private sealed class ChooseActions : IChooseActions
+    private sealed class ChooseActions<DocumentT> : IChooseActions<DocumentT>
     {
         private bool _otherwiseCalled = false;
-        private readonly PolicyDocument _document;
-        internal ChooseActions(PolicyDocument document) => _document = document;
+        private readonly DocumentT _document;
+        private readonly PolicyXmlWriter _writer;
 
-        public IChooseActions When(PolicyExpression<string> condition, Action<IPolicyDocument> whenActions)
+        internal ChooseActions(DocumentT document, PolicyXmlWriter writer)
         {
-            _document.Writer.ChooseWhen(condition, () => whenActions(_document));
+            _document = document;
+            _writer = writer;
+        }
+        public IChooseActions<DocumentT> When(PolicyExpression<string> condition, Action<DocumentT> whenActions)
+        {
+            _writer.ChooseWhen(condition, () => whenActions(_document));
             return this;
         }
 
-        public IChooseActions Otherwise(Action<IPolicyDocument> otherwiseActions)
+        public IChooseActions<DocumentT> Otherwise(Action<DocumentT> otherwiseActions)
         {
             if (_otherwiseCalled)
                 throw new InvalidOperationException("Otherwise can only be called once.");
 
-            _document.Writer.ChooseOtherwise(() => otherwiseActions(_document));
+            _writer.ChooseOtherwise(() => otherwiseActions(_document));
             _otherwiseCalled = true;
             return this;
         }
     }
 
-    public IPolicyDocument IncludeFragment(string fragmentId)
+    IInbound IInbound.IncludeFragment(string fragmentId)
+        => IncludeFragment(fragmentId);
+    IBackend IBackend.IncludeFragment(string fragmentId)
+        => IncludeFragment(fragmentId);
+    IOutbound IOutbound.IncludeFragment(string fragmentId)
+        => IncludeFragment(fragmentId);
+    IOnError IOnError.IncludeFragment(string fragmentId)
+        => IncludeFragment(fragmentId);
+    private PolicyDocument IncludeFragment(string fragmentId)
     {
         AssertScopes(PolicyScopes.All);
         Writer.IncludeFragment(fragmentId);
         return this;
     }
 
-    public IPolicyDocument Retry(PolicyExpression<string> condition, PolicyExpression<int> numberOfRetries, PolicyExpression<int> intervalSeconds, PolicyExpression<int>? maxIntervalSeconds = null, int? deltaSeconds = null, PolicyExpression<bool>? firstFastRetry = null)
+    IInbound IInbound.Retry(PolicyExpression<string> condition, PolicyExpression<int> numberOfRetries, PolicyExpression<int> intervalSeconds, PolicyExpression<int>? maxIntervalSeconds, int? deltaSeconds, PolicyExpression<bool>? firstFastRetry)
+        => Retry(condition, numberOfRetries, intervalSeconds, maxIntervalSeconds, deltaSeconds, firstFastRetry);
+    IBackend IBackend.Retry(PolicyExpression<string> condition, PolicyExpression<int> numberOfRetries, PolicyExpression<int> intervalSeconds, PolicyExpression<int>? maxIntervalSeconds, int? deltaSeconds, PolicyExpression<bool>? firstFastRetry)
+        => Retry(condition, numberOfRetries, intervalSeconds, maxIntervalSeconds, deltaSeconds, firstFastRetry);
+    IOutbound IOutbound.Retry(PolicyExpression<string> condition, PolicyExpression<int> numberOfRetries, PolicyExpression<int> intervalSeconds, PolicyExpression<int>? maxIntervalSeconds, int? deltaSeconds, PolicyExpression<bool>? firstFastRetry)
+        => Retry(condition, numberOfRetries, intervalSeconds, maxIntervalSeconds, deltaSeconds, firstFastRetry);
+    IOnError IOnError.Retry(PolicyExpression<string> condition, PolicyExpression<int> numberOfRetries, PolicyExpression<int> intervalSeconds, PolicyExpression<int>? maxIntervalSeconds, int? deltaSeconds, PolicyExpression<bool>? firstFastRetry)
+        => Retry(condition, numberOfRetries, intervalSeconds, maxIntervalSeconds, deltaSeconds, firstFastRetry);
+    private PolicyDocument Retry(PolicyExpression<string> condition, PolicyExpression<int> numberOfRetries, PolicyExpression<int> intervalSeconds, PolicyExpression<int>? maxIntervalSeconds = null, int? deltaSeconds = null, PolicyExpression<bool>? firstFastRetry = null)
     {
         AssertScopes(PolicyScopes.All);
         Writer.Retry(condition, numberOfRetries, intervalSeconds, maxIntervalSeconds, deltaSeconds.ToString(), firstFastRetry);
         return this;
     }
 
-    public IPolicyDocument Wait(Action<IWaitActions> actions, PolicyExpression<string>? waitFor = null)
+    IInbound IInbound.Wait(Action<IWaitActions<IInbound>> actions, PolicyExpression<string>? waitFor)
     {
-        AssertSection([PolicySection.Inbound, PolicySection.Outbound, PolicySection.Backend]);
+        AssertScopes(PolicyScopes.All);
+        Writer.Wait(waitFor, () => actions(new WaitActions(this)));
+        return this;
+    }
+    IBackend IBackend.Wait(Action<IWaitActions<IBackend>> actions, PolicyExpression<string>? waitFor)
+    {
+        AssertScopes(PolicyScopes.All);
+        Writer.Wait(waitFor, () => actions(new WaitActions(this)));
+        return this;
+    }
+    IOutbound IOutbound.Wait(Action<IWaitActions<IOutbound>> actions, PolicyExpression<string>? waitFor)
+    {
         AssertScopes(PolicyScopes.All);
         Writer.Wait(waitFor, () => actions(new WaitActions(this)));
         return this;
     }
 
-    private sealed class WaitActions : IWaitActions
+    private sealed class WaitActions : IWaitActions<IInbound>, IWaitActions<IBackend>, IWaitActions<IOutbound>
     {
-        private readonly IPolicyDocument _document;
-        public WaitActions(IPolicyDocument document) { _document = document; }
+        private readonly PolicyDocument _document;
+        public WaitActions(PolicyDocument document) { _document = document; }
 
-        public IWaitActions Choose(Action<IChooseActions> choose)
+        IWaitActions<IInbound> IWaitActions<IInbound>.Choose(Action<IChooseActions<IInbound>> choose)
         {
-            _document.Choose(choose);
+            ((IInbound)_document).Choose(choose);
+            return this;
+        }
+        IWaitActions<IInbound> IWaitActions<IInbound>.CacheLookupValue(string variableName, PolicyExpression<string> key, PolicyExpression<string>? defaultValue, CacheType? cacheType)
+        {
+            _document.CacheLookupValue(variableName, key, defaultValue, cacheType);
+            return this;
+        }
+        IWaitActions<IInbound> IWaitActions<IInbound>.SendRequest(PolicyExpression<string> responseVariableName, Action<ISendRequestActions> request, PolicyExpression<string>? mode, PolicyExpression<int>? timeoutSeconds, bool? ignoreError)
+        {
+            _document.SendRequest(responseVariableName, request, mode, timeoutSeconds, ignoreError);
             return this;
         }
 
-        public IWaitActions CacheLookupValue(string variableName, PolicyExpression<string> key, PolicyExpression<string>? defaultValue = null, CacheType? cacheType = null)
+        IWaitActions<IBackend> IWaitActions<IBackend>.Choose(Action<IChooseActions<IBackend>> choose)
+        {
+            ((IBackend)_document).Choose(choose);
+            return this;
+        }
+        IWaitActions<IBackend> IWaitActions<IBackend>.CacheLookupValue(string variableName, PolicyExpression<string> key, PolicyExpression<string>? defaultValue, CacheType? cacheType)
+        {
+            _document.CacheLookupValue(variableName, key, defaultValue, cacheType);
+            return this;
+        }
+        IWaitActions<IBackend> IWaitActions<IBackend>.SendRequest(PolicyExpression<string> responseVariableName, Action<ISendRequestActions> request, PolicyExpression<string>? mode, PolicyExpression<int>? timeoutSeconds, bool? ignoreError)
+        {
+            _document.SendRequest(responseVariableName, request, mode, timeoutSeconds, ignoreError);
+            return this;
+        }
+
+        IWaitActions<IOutbound> IWaitActions<IOutbound>.Choose(Action<IChooseActions<IOutbound>> choose)
+        {
+            ((IOutbound)_document).Choose(choose);
+            return this;
+        }
+        IWaitActions<IOutbound> IWaitActions<IOutbound>.CacheLookupValue(string variableName, PolicyExpression<string> key, PolicyExpression<string>? defaultValue, CacheType? cacheType)
         {
             _document.CacheLookupValue(variableName, key, defaultValue, cacheType);
             return this;
         }
 
-        public IWaitActions SendRequest(PolicyExpression<string> responseVariableName, Action<ISendRequestActions> request, PolicyExpression<string>? mode = null, PolicyExpression<int>? timeoutSeconds = null, bool? ignoreError = null)
+        IWaitActions<IOutbound> IWaitActions<IOutbound>.SendRequest(PolicyExpression<string> responseVariableName, Action<ISendRequestActions> request, PolicyExpression<string>? mode, PolicyExpression<int>? timeoutSeconds, bool? ignoreError)
         {
             _document.SendRequest(responseVariableName, request, mode, timeoutSeconds, ignoreError);
             return this;

@@ -6,9 +6,9 @@ namespace AzureApimPolicy.Tests;
 
 public sealed class OnErrorPolicy : PolicyDocument
 {
-    protected override void OnError()
+    protected override void OnError(IOnError onError)
     {
-        this
+        onError
             .LogToEventHub("loggerId", null, partitionKey: "partitionKey", message: "Error")
             .SetVariable("hasError", PolicyExpression.FromCode("true"))
             .ValidateHeaders("detect", "prevent", "errorVar",
@@ -16,7 +16,7 @@ public sealed class OnErrorPolicy : PolicyDocument
             .ValidateStatusCode("detect", "errorVar", codes => codes.Add(401, "ignore"))
         ;
 
-        base.OnError();
+        base.OnError(onError);
     }
 }
 

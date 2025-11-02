@@ -9,32 +9,33 @@ You implement a class for each Policy Xml file you whish to generate. The method
 ```csharp
 public sealed class MyPolicy : Jacobi.Azure.ApiManagement.Policy.PolicyDocument
 {
-    protected override void Inbound()
+    protected override void Inbound(IInbound inbound)
     {
+      inbound
         .CheckHeader(...)
         .IpFilter(...)
         // other policies
         ;
 
-        base.Inbound(); // generates the <Base/> implicitly.
+        base.Inbound(inbound); // generates the <Base/> implicitly.
     }
 
-    protected override void Backend()
+    protected override void Backend(IBackend backend)
     {
         // add your policies here
-        base.Backend();
+        base.Backend(backend);
     }
 
-    protected override void Outbound()
+    protected override void Outbound(IOutbound outbound)
     {
         // add your policies here
-        base.Outbound();
+        base.Outbound(outbound);
     }
 
-    protected override void OnError()
+    protected override void OnError(IOnError onError)
     {
         // add your policies here
-        base.OnError();
+        base.OnError(onError);
     }
 }
 ```
@@ -57,12 +58,13 @@ An example of specifying a code expression using the `PolicyExpression.FromCode`
 ```csharp
 public sealed class MyPolicy : Jacobi.Azure.ApiManagement.Policy.PolicyDocument
 {
-    protected override void Inbound()
+    protected override void Inbound(IInbound inbound)
     {
+      inbound
         .Choose(choose =>
             choose.When(PolicyExpression.FromCode("""Context.Variables.GetValueOrDefault<bool>("myvar", true)"""),
                 actions => actions.SetBody(LiquidTemplate.From(""" body """))))
-        base.Inbound();
+        base.Inbound(inbound);
     }
 }
 ```
@@ -170,7 +172,6 @@ For transparency:
 - [ ] CodeExpression: `{{named-value}}` in code. Compiler will fail.
 - [ ] CodeExpression Compiler: `(string)Context.Variables["connectionId"]` error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement (suppressed for now)
 - [ ] Int32: validate non-negative or use uint.
-- [ ] Action objects: check for methods that can only be called once (due to the generated xml)
 - [ ] Fragment scope: unclear what policies can (not) go in fragments
 - [ ] XslTransform: represent the xslt as something else than a plain string?
 - [ ] 
