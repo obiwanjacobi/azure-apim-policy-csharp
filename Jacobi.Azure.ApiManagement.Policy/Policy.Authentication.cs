@@ -2,7 +2,7 @@
 
 // https://learn.microsoft.com/en-us/azure/api-management/api-management-policies#authentication-and-authorization
 
-internal interface IAuthentication
+public interface IAuthentication
 {
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/authentication-basic-policy</summary>
     IPolicyFragment AuthenticationBasic(PolicyExpression<string> username, PolicyExpression<string> password);

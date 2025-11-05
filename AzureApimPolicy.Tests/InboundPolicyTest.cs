@@ -83,7 +83,7 @@ public class InboundPolicyTest
 
     public InboundPolicyTest(ITestOutputHelper output)
     {
-        _document = PolicyXml.ToXDocument<InboundPolicy>();
+        _document = PolicyXml.PolicyToXDocument<InboundPolicy>();
         output.WriteLine(_document.ToPolicyXmlString());
     }
 

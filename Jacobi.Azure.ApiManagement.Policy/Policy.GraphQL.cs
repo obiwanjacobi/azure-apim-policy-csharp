@@ -2,7 +2,7 @@
 
 // https://learn.microsoft.com/en-us/azure/api-management/api-management-policies#graphql-resolvers
 
-internal interface IGraphQL
+public interface IGraphQL
 {
 
 }

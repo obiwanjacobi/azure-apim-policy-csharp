@@ -2,7 +2,7 @@
 
 // https://learn.microsoft.com/en-us/azure/api-management/api-management-policies#cross-domain
 
-internal interface ICrossDomain
+public interface ICrossDomain
 {
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/cors-policy</summary>
     IPolicyFragment Cors(Action<ICorsActions> cors, bool? allowCredentials = null, bool? terminateUnmatchedRequests = null);

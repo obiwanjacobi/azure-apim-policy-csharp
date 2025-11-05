@@ -46,7 +46,7 @@ public class BackendPolicyTest
 
     public BackendPolicyTest(ITestOutputHelper output)
     {
-        _document = PolicyXml.ToXDocument<BackendPolicy>();
+        _document = PolicyXml.PolicyToXDocument<BackendPolicy>();
         output.WriteLine(_document.ToPolicyXmlString());
     }
 

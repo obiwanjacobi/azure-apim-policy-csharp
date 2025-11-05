@@ -43,7 +43,7 @@ public class OutboundPolicyTest
 
     public OutboundPolicyTest(ITestOutputHelper output)
     {
-        _document = PolicyXml.ToXDocument<OutboundPolicy>();
+        _document = PolicyXml.PolicyToXDocument<OutboundPolicy>();
         output.WriteLine(_document.ToPolicyXmlString());
     }
 

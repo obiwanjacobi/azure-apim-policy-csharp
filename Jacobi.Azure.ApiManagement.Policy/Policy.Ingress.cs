@@ -4,7 +4,7 @@ namespace Jacobi.Azure.ApiManagement.Policy;
 
 //https://learn.microsoft.com/en-us/azure/api-management/api-management-policies#rate-limiting-and-quotas
 
-internal interface IIngress
+public interface IIngress
 {
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/limit-concurrency-policy</summary>
     IPolicyFragment LimitConcurrency(PolicyExpression<string> key, int maxCount, Action<IPolicyFragment> actions);

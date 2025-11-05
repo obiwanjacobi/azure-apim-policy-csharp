@@ -2,7 +2,7 @@
 
 // https://learn.microsoft.com/en-us/azure/api-management/api-management-policies#logging
 
-internal interface ILogging
+public interface ILogging
 {
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/emit-metric-policy</summary>
     IPolicyFragment EmitMetric(string name, string? @namespace, string? value, Action<IEmitMetricDimensions> dimensions);

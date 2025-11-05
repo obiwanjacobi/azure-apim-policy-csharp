@@ -5,17 +5,16 @@ namespace Jacobi.Azure.ApiManagement.Policy;
 public abstract partial class PolicyDocumentBase
 {
     private PolicyXmlWriter? _writer;
-    internal IDisposable CreateWriter(Stream stream)
+    internal IDisposable CreateWriter(Stream stream, bool isFragment)
     {
-        _writer = new PolicyXmlWriter(stream, GetType()?.FullName ?? "<unknown>");
+        _writer = new PolicyXmlWriter(stream, GetType()?.FullName ?? "<unknown>", isFragment);
         return _writer;
     }
     internal PolicyXmlWriter Writer => _writer
         ?? throw new InvalidOperationException("PolicyXmlWriter was not initialized.");
 }
 
-public abstract partial class PolicyDocument : PolicyDocumentBase,
-    IInbound, IBackend, IOutbound, IOnError
+public abstract partial class PolicyDocument : PolicyDocumentBase
 {
     private PolicySection _section = PolicySection.None;
     private PolicyScopes _scopes;
@@ -78,7 +77,7 @@ public abstract partial class PolicyDocument : PolicyDocumentBase,
 
     internal void WriteTo(Stream stream)
     {
-        using var scope = CreateWriter(stream);
+        using var scope = CreateWriter(stream, isFragment: false);
 
         _section = PolicySection.Inbound;
         Writer.Inbound(() => Inbound(this));

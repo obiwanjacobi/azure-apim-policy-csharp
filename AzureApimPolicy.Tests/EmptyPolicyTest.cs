@@ -36,7 +36,7 @@ public class EmptyPolicyTest
 
     public EmptyPolicyTest(ITestOutputHelper output)
     {
-        _document = PolicyXml.ToXDocument<EmptyPolicy>();
+        _document = PolicyXml.PolicyToXDocument<EmptyPolicy>();
         output.WriteLine(_document.ToPolicyXmlString());
     }
 

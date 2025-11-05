@@ -28,7 +28,7 @@ public class OnErrorPolicyTest
 
     public OnErrorPolicyTest(ITestOutputHelper output)
     {
-        _document = PolicyXml.ToXDocument<OnErrorPolicy>();
+        _document = PolicyXml.PolicyToXDocument<OnErrorPolicy>();
         output.WriteLine(_document.ToPolicyXmlString());
     }
 

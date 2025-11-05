@@ -1,5 +1,8 @@
 ﻿namespace Jacobi.Azure.ApiManagement.Policy;
 
+partial class PolicyDocument : IInbound, IBackend, IOutbound, IOnError
+{ }
+
 public interface IInbound
 {
     IInbound Base();
