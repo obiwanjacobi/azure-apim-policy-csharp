@@ -181,9 +181,13 @@ partial class PolicyDocument
             return this;
         }
 
+        private bool _AllowAccessFromIdentityCalled = false;
         public ICrossDomainActions AllowAccessFromIdentity(string certificateFingerprint, string fingerprintAlgorithm)
         {
+            if (_AllowAccessFromIdentityCalled)
+                throw new InvalidOperationException($"{nameof(AllowAccessFromIdentity)} can only be called once.");
             _writer.CrossDomainAllowAccessFromIdentity(certificateFingerprint, fingerprintAlgorithm);
+            _AllowAccessFromIdentityCalled = true;
             return this;
         }
     }
