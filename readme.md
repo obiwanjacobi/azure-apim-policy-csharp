@@ -40,6 +40,24 @@ public sealed class MyPolicy : Jacobi.Azure.ApiManagement.Policy.PolicyDocument
 }
 ```
 
+Simularly for a policy fragment:
+
+```csharp
+public sealed class MyFragment : Jacobi.Azure.ApiManagement.Policy.PolicyFragment
+{
+    protected override void Fragment(IPolicyFragment fragment)
+    {
+      fragment
+        .CheckHeader(...)
+        .IpFilter(...)
+        // other policies
+        ;
+      
+      // no need to call the base
+    }
+}
+
+
 When the project is built (successfully) a Policy XML file will be generated for each class - with the same file name (.xml) as the class.
 
 Note that the resulting dotnet assembly is not used in anyway.
