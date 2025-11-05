@@ -3,6 +3,7 @@ using Xunit.Abstractions;
 
 namespace AzureApimPolicy.Tests;
 
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
 
 public class FragmentPolicyTest
 {
@@ -45,3 +46,4 @@ public class FragmentPolicyTest
     }
 }
 
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
