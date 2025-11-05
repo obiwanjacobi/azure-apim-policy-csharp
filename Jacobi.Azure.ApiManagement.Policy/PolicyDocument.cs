@@ -38,6 +38,11 @@ public abstract partial class PolicyDocument :
         Writer.Base();
     }
 
+    protected void Comment(string comment)
+    {
+        Writer.Comment($" {comment} ");
+    }
+
     // ------------------------------------------------------------------------
 
     IInbound IInbound.Base()

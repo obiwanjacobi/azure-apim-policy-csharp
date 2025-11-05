@@ -23,6 +23,11 @@ internal sealed partial class PolicyXmlWriter : IDisposable
         _xmlWriter.WriteStartElement("policies");
     }
 
+    public void Comment(string comment)
+    {
+        _xmlWriter.WriteComment(comment);
+    }
+
     public void Base()
     {
         if (_baseCalled) return;
