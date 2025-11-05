@@ -7,19 +7,19 @@ namespace Jacobi.Azure.ApiManagement.Policy;
 internal interface IIngress
 {
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/limit-concurrency-policy</summary>
-    IPolicyDocument LimitConcurrency(PolicyExpression<string> key, int maxCount, Action<IPolicyDocument> actions);
+    IPolicyFragment LimitConcurrency(PolicyExpression<string> key, int maxCount, Action<IPolicyFragment> actions);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/quota-policy</summary>
-    IPolicyDocument Quota(int numberOfCalls, int bandwidthKB, int renewalPeriodSeconds, Action<IQuotaApi> apis);
+    IPolicyFragment Quota(int numberOfCalls, int bandwidthKB, int renewalPeriodSeconds, Action<IQuotaApi> apis);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/quota-by-key-policy</summary>
-    IPolicyDocument QuotaByKey(PolicyExpression<string> counterKey, int numberOfCalls, int bandwidthKB, int renewalPeriodSeconds, PolicyExpression<int>? incrementCount = null, PolicyExpression<string>? incrementCondition = null, DateTime? firstPeriodStart = null);
+    IPolicyFragment QuotaByKey(PolicyExpression<string> counterKey, int numberOfCalls, int bandwidthKB, int renewalPeriodSeconds, PolicyExpression<int>? incrementCount = null, PolicyExpression<string>? incrementCondition = null, DateTime? firstPeriodStart = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/rate-limit-policy</summary>
-    IPolicyDocument RateLimit(int numberOfCalls, int renewalPeriodSeconds, PolicyVariable? retryAfterVariableName = null, string? retryAfterHeaderName = null, PolicyVariable? remainingCallsVariableName = null, string? remainingCallsHeaderName = null, string? totalCallsHeaderName = null, Action<IRateLimitApi>? apis = null);
+    IPolicyFragment RateLimit(int numberOfCalls, int renewalPeriodSeconds, PolicyVariable? retryAfterVariableName = null, string? retryAfterHeaderName = null, PolicyVariable? remainingCallsVariableName = null, string? remainingCallsHeaderName = null, string? totalCallsHeaderName = null, Action<IRateLimitApi>? apis = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/rate-limit-by-key-policy</summary>
-    IPolicyDocument RateLimitByKey(PolicyExpression<string> counterKey, PolicyExpression<int> numberOfCalls, PolicyExpression<int> renewalPeriodSeconds, PolicyExpression<int>? incrementCount = null, PolicyExpression<string>? incrementCondition = null, PolicyVariable? retryAfterVariableName = null, string? retryAfterHeaderName = null, PolicyVariable? remainingCallsVariableName = null, string? remainingCallsHeaderName = null, string? totalCallsHeaderName = null);
+    IPolicyFragment RateLimitByKey(PolicyExpression<string> counterKey, PolicyExpression<int> numberOfCalls, PolicyExpression<int> renewalPeriodSeconds, PolicyExpression<int>? incrementCount = null, PolicyExpression<string>? incrementCondition = null, PolicyVariable? retryAfterVariableName = null, string? retryAfterHeaderName = null, PolicyVariable? remainingCallsVariableName = null, string? remainingCallsHeaderName = null, string? totalCallsHeaderName = null);
 }
 
 public interface IQuotaApi
@@ -44,11 +44,11 @@ public interface IRateLimitApiOperation
 
 partial class PolicyDocumentBase
 {
-    internal PolicyDocumentBase LimitConcurrency(PolicyExpression<string> key, int maxCount, Action<PolicyDocumentBase> actions)
-    {
-        Writer.LimitConcurrency(key, maxCount.ToString(), () => actions(this));
-        return this;
-    }
+    //internal PolicyDocumentBase LimitConcurrency(PolicyExpression<string> key, int maxCount, Action<PolicyDocumentBase> actions)
+    //{
+    //    Writer.LimitConcurrency(key, maxCount.ToString(), () => actions(this));
+    //    return this;
+    //}
 
     internal PolicyDocumentBase Quota(int numberOfCalls, int bandwidthKB, int renewalPeriodSeconds, Action<IQuotaApi> apis)
     {

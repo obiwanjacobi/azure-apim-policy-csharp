@@ -5,19 +5,19 @@
 internal interface IValidation
 {
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/validate-content-policy</summary>
-    IPolicyDocument ValidateContent(PolicyExpression<string> unspecifiedContentTypeAction, PolicyExpression<int> maxSizeBytes, PolicyExpression<string> sizeExceedAction, PolicyVariable? errorsVariableName = null, Action<IValidateContentActions>? validateActions = null);
+    IPolicyFragment ValidateContent(PolicyExpression<string> unspecifiedContentTypeAction, PolicyExpression<int> maxSizeBytes, PolicyExpression<string> sizeExceedAction, PolicyVariable? errorsVariableName = null, Action<IValidateContentActions>? validateActions = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/validate-headers-policy</summary>
-    IPolicyDocument ValidateHeaders(PolicyExpression<string> specifiedHeaderAction, PolicyExpression<string> unspecifiedHeaderAction, PolicyVariable? errorsVariableName = null, Action<IValidateHeaderActions>? headers = null);
+    IPolicyFragment ValidateHeaders(PolicyExpression<string> specifiedHeaderAction, PolicyExpression<string> unspecifiedHeaderAction, PolicyVariable? errorsVariableName = null, Action<IValidateHeaderActions>? headers = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/validate-odata-request-policy</summary>
-    IPolicyDocument ValidateODataRequest(PolicyVariable? errorVariableName = null, string? defaultODataVersion = null, string? minODataVersion = null, string? maxODataVersion = null, int? maxSizeBytes = null);
+    IPolicyFragment ValidateODataRequest(PolicyVariable? errorVariableName = null, string? defaultODataVersion = null, string? minODataVersion = null, string? maxODataVersion = null, int? maxSizeBytes = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/validate-parameters-policy</summary>
-    IPolicyDocument ValidateParameters(PolicyExpression<string> specifiedParameterAction, PolicyExpression<string> unspecifiedParameterAction, PolicyVariable? errorVariableName = null, Action<IValidateParameterActions>? parameterActions = null);
+    IPolicyFragment ValidateParameters(PolicyExpression<string> specifiedParameterAction, PolicyExpression<string> unspecifiedParameterAction, PolicyVariable? errorVariableName = null, Action<IValidateParameterActions>? parameterActions = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/validate-status-code-policy</summary>
-    IPolicyDocument ValidateStatusCode(PolicyExpression<string> unspecifiedStatusCodeAction, PolicyVariable? errorVariableName = null, Action<IValidateStatusCodes>? statusCodes = null);
+    IPolicyFragment ValidateStatusCode(PolicyExpression<string> unspecifiedStatusCodeAction, PolicyVariable? errorVariableName = null, Action<IValidateStatusCodes>? statusCodes = null);
 }
 
 public interface IValidateContentActions

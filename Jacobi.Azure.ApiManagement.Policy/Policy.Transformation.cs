@@ -7,48 +7,48 @@ namespace Jacobi.Azure.ApiManagement.Policy;
 internal interface ITransformation
 {
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/find-and-replace-policy</summary>
-    IPolicyDocument FindAndReplace(PolicyExpression<string> from, PolicyExpression<string> to);
+    IPolicyFragment FindAndReplace(PolicyExpression<string> from, PolicyExpression<string> to);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/json-to-xml-policy</summary>
-    IPolicyDocument JsonToXml(PolicyExpression<string> apply, PolicyExpression<bool>? considerAcceptHeader = null, bool? parseDate = null, PolicyExpression<string>? namespaceSeparator = null, PolicyExpression<string>? namespacePrefix = null, PolicyExpression<string>? attributeBlockName = null);
+    IPolicyFragment JsonToXml(PolicyExpression<string> apply, PolicyExpression<bool>? considerAcceptHeader = null, bool? parseDate = null, PolicyExpression<string>? namespaceSeparator = null, PolicyExpression<string>? namespacePrefix = null, PolicyExpression<string>? attributeBlockName = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/mock-response-policy</summary>
-    IPolicyDocument MockResponse(int? statusCode = null, string? contentType = null);
+    IPolicyFragment MockResponse(int? statusCode = null, string? contentType = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/redirect-content-urls-policy</summary>
-    IPolicyDocument RedirectContentUrls();
+    IPolicyFragment RedirectContentUrls();
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/return-response-policy</summary>
-    IPolicyDocument ReturnResponse(Action<IReturnResponseActions> response, PolicyVariable? responseVariableName = null);
+    IPolicyFragment ReturnResponse(Action<IReturnResponseActions> response, PolicyVariable? responseVariableName = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/rewrite-uri-policy</summary>
-    IPolicyDocument RewriteUri(PolicyExpression<string> template, bool? copyUnmatchedParams = null);
+    IPolicyFragment RewriteUri(PolicyExpression<string> template, bool? copyUnmatchedParams = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-body-policy</summary>
-    IPolicyDocument SetBody(PolicyExpression<string> body);
+    IPolicyFragment SetBody(PolicyExpression<string> body);
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-body-policy#using-liquid-templates-with-set-body</summary>
-    IPolicyDocument SetBody(LiquidTemplate body);
+    IPolicyFragment SetBody(LiquidTemplate body);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-header-policy</summary>
-    IPolicyDocument SetHeader(PolicyExpression<string> name, PolicyExpression<string>? existsAction = null, Action<ISetHeaderValue>? values = null);
+    IPolicyFragment SetHeader(PolicyExpression<string> name, PolicyExpression<string>? existsAction = null, Action<ISetHeaderValue>? values = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-method-policy</summary>
-    IPolicyDocument SetMethod(PolicyExpression<string> method);
+    IPolicyFragment SetMethod(PolicyExpression<string> method);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-status-policy</summary>
-    IPolicyDocument SetStatus(PolicyExpression<int> statusCode, PolicyExpression<string> reason);
+    IPolicyFragment SetStatus(PolicyExpression<int> statusCode, PolicyExpression<string> reason);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-query-parameter-policy</summary>
-    IPolicyDocument SetQueryParameter(PolicyExpression<string> name, Action<ISetQueryParameterValue> values, PolicyExpression<string>? existsAction = null);
+    IPolicyFragment SetQueryParameter(PolicyExpression<string> name, Action<ISetQueryParameterValue> values, PolicyExpression<string>? existsAction = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-variable-policy</summary>
-    IPolicyDocument SetVariable(string name, PolicyExpression<string> value);
+    IPolicyFragment SetVariable(string name, PolicyExpression<string> value);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/xml-to-json-policy</summary>
-    IPolicyDocument XmlToJson(PolicyExpression<string> kind, PolicyExpression<string> apply, PolicyExpression<bool>? considerAcceptHeader = null, PolicyExpression<bool>? alwaysArrayChildElements = null);
+    IPolicyFragment XmlToJson(PolicyExpression<string> kind, PolicyExpression<string> apply, PolicyExpression<bool>? considerAcceptHeader = null, PolicyExpression<bool>? alwaysArrayChildElements = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/xsl-transform-policy</summary>
-    IPolicyDocument XslTransform(string xslt, Action<IXslTransformParameters>? parameters = null);
+    IPolicyFragment XslTransform(string xslt, Action<IXslTransformParameters>? parameters = null);
 }
 
 public interface IReturnResponseActions

@@ -5,15 +5,15 @@
 internal interface IRouting
 {
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/forward-request-policy</summary>
-    IPolicyDocument ForwardRequest(HttpVersion? httpVersion = null, PolicyExpression<int>? timeoutSeconds = null, PolicyExpression<int>? timeoutMilliseconds = null, PolicyExpression<int>? continueTimeout = null, bool? followRedirects = null, bool? bufferRequestBody = null, bool? bufferResponse = null, bool? failOnErrorStatusCode = null);
+    IPolicyFragment ForwardRequest(HttpVersion? httpVersion = null, PolicyExpression<int>? timeoutSeconds = null, PolicyExpression<int>? timeoutMilliseconds = null, PolicyExpression<int>? continueTimeout = null, bool? followRedirects = null, bool? bufferRequestBody = null, bool? bufferResponse = null, bool? failOnErrorStatusCode = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/proxy-policy</summary>
-    IPolicyDocument Proxy(PolicyExpression<string> url, PolicyExpression<string>? username = null, PolicyExpression<string>? password = null);
+    IPolicyFragment Proxy(PolicyExpression<string> url, PolicyExpression<string>? username = null, PolicyExpression<string>? password = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-backend-service-policy</summary>
-    IPolicyDocument SetBackendService(PolicyExpression<string> baseUrl);
+    IPolicyFragment SetBackendService(PolicyExpression<string> baseUrl);
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/set-backend-service-policy</summary>
-    IPolicyDocument SetBackendService(PolicyExpression<string> backendId, PolicyExpression<string>? sfResolveCondition = null, PolicyExpression<string>? sfServiceInstanceName = null, PolicyExpression<string>? sfPartitionKey = null, PolicyExpression<string>? sfListenerName = null);
+    IPolicyFragment SetBackendService(PolicyExpression<string> backendId, PolicyExpression<string>? sfResolveCondition = null, PolicyExpression<string>? sfServiceInstanceName = null, PolicyExpression<string>? sfPartitionKey = null, PolicyExpression<string>? sfListenerName = null);
 }
 
 public enum HttpVersion

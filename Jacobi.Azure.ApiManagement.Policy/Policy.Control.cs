@@ -5,16 +5,16 @@
 internal interface IControl
 {
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/choose-policy</summary>
-    IPolicyDocument Choose<DocumentT>(Action<IChooseActions<DocumentT>> choose);
+    IPolicyFragment Choose(Action<IChooseActions<IPolicyFragment>> choose);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/include-fragment-policy</summary>
-    IPolicyDocument IncludeFragment(string fragmentId);
+    IPolicyFragment IncludeFragment(string fragmentId);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/retry-policy</summary>
-    IPolicyDocument Retry(PolicyExpression<string> condition, PolicyExpression<int> numberOfRetries, PolicyExpression<int> intervalSeconds, PolicyExpression<int>? maxIntervalSeconds = null, int? deltaSeconds = null, PolicyExpression<bool>? firstFastRetry = null);
+    IPolicyFragment Retry(PolicyExpression<string> condition, PolicyExpression<int> numberOfRetries, PolicyExpression<int> intervalSeconds, PolicyExpression<int>? maxIntervalSeconds = null, int? deltaSeconds = null, PolicyExpression<bool>? firstFastRetry = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/wait-policy</summary>
-    IPolicyDocument Wait<DocumentT>(Action<IWaitActions<DocumentT>> actions, PolicyExpression<string>? waitFor = null);
+    IPolicyFragment Wait(Action<IWaitActions<IPolicyFragment>> actions, PolicyExpression<string>? waitFor = null);
 }
 
 public interface IChooseActions<DocumentT>
@@ -32,9 +32,9 @@ public interface IWaitActions<DocumentT>
 
 partial class PolicyDocumentBase
 {
-    internal PolicyDocumentBase Choose(Action<IChooseActions<PolicyDocumentBase>> choose)
+    internal PolicyDocumentBase Choose(IPolicyFragment document, Action<IChooseActions<IPolicyFragment>> choose)
     {
-        Writer.Choose(() => choose(new ChooseActions<PolicyDocumentBase>(this, Writer)));
+        Writer.Choose(() => choose(new ChooseActions<IPolicyFragment>(document, Writer)));
         return this;
     }
 
@@ -78,28 +78,28 @@ partial class PolicyDocumentBase
         return this;
     }
 
-    internal PolicyDocumentBase Wait(Action<IWaitActions<PolicyDocumentBase>> actions, PolicyExpression<string>? waitFor)
+    internal PolicyDocumentBase Wait(IPolicyFragment document, Action<IWaitActions<IPolicyFragment>> actions, PolicyExpression<string>? waitFor)
     {
-        Writer.Wait(waitFor, () => actions(new WaitActions(this)));
+        Writer.Wait(waitFor, () => actions(new WaitActions(document)));
         return this;
     }
 
-    private sealed class WaitActions : IWaitActions<PolicyDocumentBase>
+    private sealed class WaitActions : IWaitActions<IPolicyFragment>
     {
-        private readonly PolicyDocumentBase _document;
-        public WaitActions(PolicyDocumentBase document) { _document = document; }
+        private readonly IPolicyFragment _document;
+        public WaitActions(IPolicyFragment document) { _document = document; }
 
-        IWaitActions<PolicyDocumentBase> IWaitActions<PolicyDocumentBase>.Choose(Action<IChooseActions<PolicyDocumentBase>> choose)
+        IWaitActions<IPolicyFragment> IWaitActions<IPolicyFragment>.Choose(Action<IChooseActions<IPolicyFragment>> choose)
         {
             _document.Choose(choose);
             return this;
         }
-        IWaitActions<PolicyDocumentBase> IWaitActions<PolicyDocumentBase>.CacheLookupValue(string variableName, PolicyExpression<string> key, PolicyExpression<string>? defaultValue, CacheType? cacheType)
+        IWaitActions<IPolicyFragment> IWaitActions<IPolicyFragment>.CacheLookupValue(string variableName, PolicyExpression<string> key, PolicyExpression<string>? defaultValue, CacheType? cacheType)
         {
             _document.CacheLookupValue(variableName, key, defaultValue, cacheType);
             return this;
         }
-        IWaitActions<PolicyDocumentBase> IWaitActions<PolicyDocumentBase>.SendRequest(PolicyExpression<string> responseVariableName, Action<ISendRequestActions> request, PolicyExpression<string>? mode, PolicyExpression<int>? timeoutSeconds, bool? ignoreError)
+        IWaitActions<IPolicyFragment> IWaitActions<IPolicyFragment>.SendRequest(PolicyExpression<string> responseVariableName, Action<ISendRequestActions> request, PolicyExpression<string>? mode, PolicyExpression<int>? timeoutSeconds, bool? ignoreError)
         {
             _document.SendRequest(responseVariableName, request, mode, timeoutSeconds, ignoreError);
             return this;

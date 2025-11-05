@@ -5,31 +5,31 @@
 internal interface IAuthentication
 {
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/authentication-basic-policy</summary>
-    IPolicyDocument AuthenticationBasic(PolicyExpression<string> username, PolicyExpression<string> password);
+    IPolicyFragment AuthenticationBasic(PolicyExpression<string> username, PolicyExpression<string> password);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/authentication-certificate-policy</summary>
-    IPolicyDocument AuthenticationCertificate(PolicyExpression<string> thumbprint, PolicyExpression<string> certificate, PolicyExpression<string>? body = null, PolicyExpression<string>? password = null);
+    IPolicyFragment AuthenticationCertificate(PolicyExpression<string> thumbprint, PolicyExpression<string> certificate, PolicyExpression<string>? body = null, PolicyExpression<string>? password = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/authentication-managed-identity-policy</summary>
-    IPolicyDocument AuthenticationManagedIdentity(PolicyExpression<string> resource, string? clientId = null, PolicyVariable? outputTokenVariableName = null, bool? ignoreError = false);
+    IPolicyFragment AuthenticationManagedIdentity(PolicyExpression<string> resource, string? clientId = null, PolicyVariable? outputTokenVariableName = null, bool? ignoreError = false);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/check-header-policy</summary>
-    IPolicyDocument CheckHeader(PolicyExpression<string> name, PolicyExpression<int> failedCheckHttpCode, PolicyExpression<string> failedCheckErrorMessage, PolicyExpression<bool> ignoreCase, Action<ICheckHeaderValues>? values = null);
+    IPolicyFragment CheckHeader(PolicyExpression<string> name, PolicyExpression<int> failedCheckHttpCode, PolicyExpression<string> failedCheckErrorMessage, PolicyExpression<bool> ignoreCase, Action<ICheckHeaderValues>? values = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/get-authorization-context-policy</summary>
-    IPolicyDocument GetAuthorizationContext(PolicyExpression<string> providerId, PolicyExpression<string> authorizationId, PolicyVariable contextVariableName, PolicyExpression<string>? identity = null, PolicyExpression<bool>? ignoreError = null);
+    IPolicyFragment GetAuthorizationContext(PolicyExpression<string> providerId, PolicyExpression<string> authorizationId, PolicyVariable contextVariableName, PolicyExpression<string>? identity = null, PolicyExpression<bool>? ignoreError = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/ip-filter-policy</summary>
-    IPolicyDocument IpFilter(PolicyExpression<string> action, Action<IIpFilterAddress> address);
+    IPolicyFragment IpFilter(PolicyExpression<string> action, Action<IIpFilterAddress> address);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/validate-azure-ad-token-policy</summary>
-    IPolicyDocument ValidateAzureAdToken(PolicyExpression<string> tenantIdOrUrl, PolicyExpression<string>? headerName = null, PolicyExpression<string>? queryParameterName = null, PolicyExpression<string>? tokenValue = null, string? authenticationEndpoint = null, PolicyExpression<int>? failedValidationHttpCode = null, PolicyExpression<string>? failedValidationErrorMessage = null, PolicyVariable? outputTokenVariableName = null, Action<IValidateAzureAdTokenActions>? validationActions = null);
+    IPolicyFragment ValidateAzureAdToken(PolicyExpression<string> tenantIdOrUrl, PolicyExpression<string>? headerName = null, PolicyExpression<string>? queryParameterName = null, PolicyExpression<string>? tokenValue = null, string? authenticationEndpoint = null, PolicyExpression<int>? failedValidationHttpCode = null, PolicyExpression<string>? failedValidationErrorMessage = null, PolicyVariable? outputTokenVariableName = null, Action<IValidateAzureAdTokenActions>? validationActions = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/validate-client-certificate-policy</summary>
-    IPolicyDocument ValidateClientCertificate(bool? validateRevocation = null, bool? validateTrust = null, bool? validateNotBefore = null, bool? validateNotAfter = null, bool? ignoreError = null, Action<IValidateClientCertificateIdentities>? identities = null);
+    IPolicyFragment ValidateClientCertificate(bool? validateRevocation = null, bool? validateTrust = null, bool? validateNotBefore = null, bool? validateNotAfter = null, bool? ignoreError = null, Action<IValidateClientCertificateIdentities>? identities = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/validate-jwt-policy</summary>
-    IPolicyDocument ValidateJwt(PolicyExpression<string>? headerName = null, PolicyExpression<string>? queryParameterName = null, PolicyExpression<string>? tokenValue = null, PolicyExpression<int>? failedValidationHttpCode = null, PolicyExpression<string>? failedValidationErrorMessage = null, PolicyExpression<bool>? requireExpirationTime = null, PolicyExpression<string>? requireScheme = null, PolicyExpression<bool>? requireSignedTokens = null, PolicyExpression<int>? clockSkewSeconds = null, PolicyVariable? outputTokenVariableName = null, Action<IValidateJwtActions>? jwtActions = null);
+    IPolicyFragment ValidateJwt(PolicyExpression<string>? headerName = null, PolicyExpression<string>? queryParameterName = null, PolicyExpression<string>? tokenValue = null, PolicyExpression<int>? failedValidationHttpCode = null, PolicyExpression<string>? failedValidationErrorMessage = null, PolicyExpression<bool>? requireExpirationTime = null, PolicyExpression<string>? requireScheme = null, PolicyExpression<bool>? requireSignedTokens = null, PolicyExpression<int>? clockSkewSeconds = null, PolicyVariable? outputTokenVariableName = null, Action<IValidateJwtActions>? jwtActions = null);
 }
 
 public interface IIpFilterAddress

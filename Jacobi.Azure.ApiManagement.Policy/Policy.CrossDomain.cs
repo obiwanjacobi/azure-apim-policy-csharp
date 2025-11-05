@@ -5,11 +5,11 @@
 internal interface ICrossDomain
 {
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/cors-policy</summary>
-    IPolicyDocument Cors(Action<ICorsActions> cors, bool? allowCredentials = null, bool? terminateUnmatchedRequests = null);
+    IPolicyFragment Cors(Action<ICorsActions> cors, bool? allowCredentials = null, bool? terminateUnmatchedRequests = null);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/cross-domain-policy</summary>
     /// <remarks>Xml Schema: https://www.adobe.com/xml/schemas/PolicyFile.xsd</remarks>
-    IPolicyDocument CrossDomain(Action<ICrossDomainActions> actions, CrossDomainPolicies? permittedCrossDomainPolicies = null);
+    IPolicyFragment CrossDomain(Action<ICrossDomainActions> actions, CrossDomainPolicies? permittedCrossDomainPolicies = null);
 }
 
 public interface ICorsActions

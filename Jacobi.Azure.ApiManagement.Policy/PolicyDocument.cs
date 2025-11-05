@@ -2,10 +2,6 @@
 
 namespace Jacobi.Azure.ApiManagement.Policy;
 
-internal interface IPolicyDocument : IAuthentication, ICaching, IControl, ICrossDomain, IGraphQL,
-    IIngress, IIntegration, ILlm, ILogging, IRouting, ITransformation, IValidation
-{ }
-
 public abstract partial class PolicyDocumentBase
 {
     private PolicyXmlWriter? _writer;

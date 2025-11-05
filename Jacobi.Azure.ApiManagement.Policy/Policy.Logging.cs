@@ -5,13 +5,13 @@
 internal interface ILogging
 {
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/emit-metric-policy</summary>
-    IPolicyDocument EmitMetric(string name, string? @namespace, string? value, Action<IEmitMetricDimensions> dimensions);
+    IPolicyFragment EmitMetric(string name, string? @namespace, string? value, Action<IEmitMetricDimensions> dimensions);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/log-to-eventhub-policy</summary>
-    IPolicyDocument LogToEventHub(string loggerId, string? partitionId, string? partitionKey, PolicyExpression<string> message);
+    IPolicyFragment LogToEventHub(string loggerId, string? partitionId, string? partitionKey, PolicyExpression<string> message);
 
     /// <summary>https://learn.microsoft.com/en-us/azure/api-management/trace-policy</summary>
-    IPolicyDocument Trace(string source, PolicyExpression<string> message, TraceSeverity severity = TraceSeverity.Verbose, string? metadataName = null, string? metadataValue = null);
+    IPolicyFragment Trace(string source, PolicyExpression<string> message, TraceSeverity severity = TraceSeverity.Verbose, string? metadataName = null, string? metadataValue = null);
 }
 
 public interface IEmitMetricDimensions
