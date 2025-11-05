@@ -28,15 +28,14 @@ public sealed class PolicyXmlGenerator
         GenerateXml(policyDocuments);
     }
 
-    public List<PolicyDocument> GatherPolicyDocuments(Assembly assembly)
+    public List<PolicyDocumentBase> GatherPolicyDocuments(Assembly assembly)
         => assembly.GetTypes()
             .Where(t => t.IsPolicyDocument())
-            .Select(t => (PolicyDocument?)Activator.CreateInstance(t) ??
-                throw new Exception($"Could not instantiate PolicyDocument: {t.Name}."))
+            .Select(t => (PolicyDocumentBase?)Activator.CreateInstance(t) ??
+                throw new Exception($"Could not instantiate PolicyDocument or PolicyFragment: {t.Name}."))
             .ToList();
 
-
-    public void GenerateXml(List<PolicyDocument> policyDocuments)
+    public void GenerateXml(List<PolicyDocumentBase> policyDocuments)
     {
         foreach (var policyDocument in policyDocuments)
         {
@@ -44,12 +43,15 @@ public sealed class PolicyXmlGenerator
         }
     }
 
-    public void GenerateXml(PolicyDocument policyDocument)
+    public void GenerateXml(PolicyDocumentBase policyDocument)
     {
         var path = Path.Combine(_basePath, $"{policyDocument.GetType().Name}.xml");
         using (var stream = File.OpenWrite(path))
         {
-            policyDocument.WriteTo(stream);
+            if (policyDocument is PolicyDocument policy)
+                policy.WriteTo(stream);
+            if (policyDocument is PolicyFragment fragment)
+                fragment.WriteTo(stream);
         }
 
         var unescapedPath = path + ".unescaped";
@@ -90,5 +92,5 @@ public sealed class PolicyXmlGenerator
 internal static class ReflectionExtensions
 {
     public static bool IsPolicyDocument(this Type type)
-        => type.IsAssignableTo(typeof(PolicyDocument));
+        => type.IsAssignableTo(typeof(PolicyDocument)) || type.IsAssignableTo(typeof(PolicyFragment));
 }
