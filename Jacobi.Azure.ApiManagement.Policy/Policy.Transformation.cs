@@ -74,83 +74,44 @@ public interface IXslTransformParameters
 }
 
 
-partial class PolicyDocument
+partial class PolicyDocumentBase
 {
-    IInbound IInbound.FindAndReplace(PolicyExpression<string> from, PolicyExpression<string> to)
-        => FindAndReplace(from, to);
-    IBackend IBackend.FindAndReplace(PolicyExpression<string> from, PolicyExpression<string> to)
-        => FindAndReplace(from, to);
-    IOutbound IOutbound.FindAndReplace(PolicyExpression<string> from, PolicyExpression<string> to)
-        => FindAndReplace(from, to);
-    IOnError IOnError.FindAndReplace(PolicyExpression<string> from, PolicyExpression<string> to)
-        => FindAndReplace(from, to);
-    private PolicyDocument FindAndReplace(PolicyExpression<string> from, PolicyExpression<string> to)
+    internal PolicyDocumentBase FindAndReplace(PolicyExpression<string> from, PolicyExpression<string> to)
     {
         // allowed in all sections
-        AssertScopes(PolicyScopes.All);
+
         Writer.FindAndReplace(from, to);
         return this;
     }
 
-    IInbound IInbound.JsonToXml(PolicyExpression<string> apply, PolicyExpression<bool>? considerAcceptHeader, bool? parseDate, PolicyExpression<string>? namespaceSeparator, PolicyExpression<string>? namespacePrefix, PolicyExpression<string>? attributeBlockName)
-        => JsonToXml(apply, considerAcceptHeader, parseDate, namespaceSeparator, namespacePrefix, attributeBlockName);
-    IOutbound IOutbound.JsonToXml(PolicyExpression<string> apply, PolicyExpression<bool>? considerAcceptHeader, bool? parseDate, PolicyExpression<string>? namespaceSeparator, PolicyExpression<string>? namespacePrefix, PolicyExpression<string>? attributeBlockName)
-        => JsonToXml(apply, considerAcceptHeader, parseDate, namespaceSeparator, namespacePrefix, attributeBlockName);
-    IOnError IOnError.JsonToXml(PolicyExpression<string> apply, PolicyExpression<bool>? considerAcceptHeader, bool? parseDate, PolicyExpression<string>? namespaceSeparator, PolicyExpression<string>? namespacePrefix, PolicyExpression<string>? attributeBlockName)
-        => JsonToXml(apply, considerAcceptHeader, parseDate, namespaceSeparator, namespacePrefix, attributeBlockName);
-    private PolicyDocument JsonToXml(PolicyExpression<string> apply, PolicyExpression<bool>? considerAcceptHeader = null, bool? parseDate = null, PolicyExpression<string>? namespaceSeparator = null, PolicyExpression<string>? namespacePrefix = null, PolicyExpression<string>? attributeBlockName = null)
+    internal PolicyDocumentBase JsonToXml(PolicyExpression<string> apply, PolicyExpression<bool>? considerAcceptHeader = null, bool? parseDate = null, PolicyExpression<string>? namespaceSeparator = null, PolicyExpression<string>? namespacePrefix = null, PolicyExpression<string>? attributeBlockName = null)
     {
-        AssertSection([PolicySection.Inbound, PolicySection.Outbound, PolicySection.OnError]);
-        AssertScopes(PolicyScopes.All);
         Writer.JsonToXml(apply, considerAcceptHeader, parseDate, namespaceSeparator, namespacePrefix, attributeBlockName);
         return this;
     }
 
-    IInbound IInbound.MockResponse(int? statusCode, string? contentType)
-        => MockResponse(statusCode, contentType);
-    IOutbound IOutbound.MockResponse(int? statusCode, string? contentType)
-        => MockResponse(statusCode, contentType);
-    IOnError IOnError.MockResponse(int? statusCode, string? contentType)
-        => MockResponse(statusCode, contentType);
-    private PolicyDocument MockResponse(int? statusCode = null, string? contentType = null)
+    internal PolicyDocumentBase MockResponse(int? statusCode = null, string? contentType = null)
     {
-        AssertSection([PolicySection.Inbound, PolicySection.Outbound, PolicySection.OnError]);
-        AssertScopes(PolicyScopes.All);
         Writer.MockResponse(statusCode.ToString(), contentType);
         return this;
     }
 
-    IInbound IInbound.RedirectContentUrls()
-        => RedirectContentUrls();
-    IOutbound IOutbound.RedirectContentUrls()
-        => RedirectContentUrls();
-    private PolicyDocument RedirectContentUrls()
+    internal PolicyDocumentBase RedirectContentUrls()
     {
-        AssertSection([PolicySection.Inbound, PolicySection.Outbound]);
-        AssertScopes(PolicyScopes.All);
         Writer.RedirectContentUrls();
         return this;
     }
 
-    IInbound IInbound.ReturnResponse(Action<IReturnResponseActions> response, PolicyVariable? responseVariableName)
-        => ReturnResponse(response, responseVariableName);
-    IBackend IBackend.ReturnResponse(Action<IReturnResponseActions> response, PolicyVariable? responseVariableName)
-        => ReturnResponse(response, responseVariableName);
-    IOutbound IOutbound.ReturnResponse(Action<IReturnResponseActions> response, PolicyVariable? responseVariableName)
-        => ReturnResponse(response, responseVariableName);
-    IOnError IOnError.ReturnResponse(Action<IReturnResponseActions> response, PolicyVariable? responseVariableName)
-        => ReturnResponse(response, responseVariableName);
-    private PolicyDocument ReturnResponse(Action<IReturnResponseActions> response, PolicyVariable? responseVariableName = null)
+    internal PolicyDocumentBase ReturnResponse(Action<IReturnResponseActions> response, PolicyVariable? responseVariableName = null)
     {
-        AssertScopes(PolicyScopes.All);
         Writer.ReturnResponse(responseVariableName, () => response(new ReturnResponseActions(this)));
         return this;
     }
 
     private sealed class ReturnResponseActions : IReturnResponseActions
     {
-        private readonly PolicyDocument _document;
-        public ReturnResponseActions(PolicyDocument document) { _document = document; }
+        private readonly PolicyDocumentBase _document;
+        public ReturnResponseActions(PolicyDocumentBase document) { _document = document; }
 
         public IReturnResponseActions SetHeader(PolicyExpression<string> name, PolicyExpression<string>? existsAction = null, Action<ISetHeaderValue>? values = null)
         {
@@ -179,52 +140,25 @@ partial class PolicyDocument
         }
     }
 
-    IInbound IInbound.RewriteUri(PolicyExpression<string> template, bool? copyUnmatchedParams)
+    internal PolicyDocumentBase RewriteUri(PolicyExpression<string> template, bool? copyUnmatchedParams)
     {
-        AssertSection(PolicySection.Inbound);
-        AssertScopes(PolicyScopes.All);
         Writer.RewriteUri(template, copyUnmatchedParams);
         return this;
     }
 
-    IInbound IInbound.SetBody(PolicyExpression<string> body)
-        => SetBody(body);
-    IBackend IBackend.SetBody(PolicyExpression<string> body)
-        => SetBody(body);
-    IOutbound IOutbound.SetBody(PolicyExpression<string> body)
-        => SetBody(body);
-    private PolicyDocument SetBody(PolicyExpression<string> body)
+    internal PolicyDocumentBase SetBody(PolicyExpression<string> body)
     {
-        AssertSection([PolicySection.Inbound, PolicySection.Outbound, PolicySection.Backend]);
-        AssertScopes(PolicyScopes.All);
         Writer.SetBody(body);
         return this;
     }
-    IInbound IInbound.SetBody(LiquidTemplate body)
-        => SetBody(body);
-    IBackend IBackend.SetBody(LiquidTemplate body)
-        => SetBody(body);
-    IOutbound IOutbound.SetBody(LiquidTemplate body)
-        => SetBody(body);
-    private PolicyDocument SetBody(LiquidTemplate body)
+    internal PolicyDocumentBase SetBody(LiquidTemplate body)
     {
-        AssertSection([PolicySection.Inbound, PolicySection.Outbound, PolicySection.Backend]);
-        AssertScopes(PolicyScopes.All);
         Writer.SetBody(body, liquidTemplate: true);
         return this;
     }
 
-    IInbound IInbound.SetHeader(PolicyExpression<string> name, PolicyExpression<string>? existsAction, Action<ISetHeaderValue>? values)
-        => SetHeader(name, existsAction, values);
-    IBackend IBackend.SetHeader(PolicyExpression<string> name, PolicyExpression<string>? existsAction, Action<ISetHeaderValue>? values)
-        => SetHeader(name, existsAction, values);
-    IOutbound IOutbound.SetHeader(PolicyExpression<string> name, PolicyExpression<string>? existsAction, Action<ISetHeaderValue>? values)
-        => SetHeader(name, existsAction, values);
-    IOnError IOnError.SetHeader(PolicyExpression<string> name, PolicyExpression<string>? existsAction, Action<ISetHeaderValue>? values)
-        => SetHeader(name, existsAction, values);
-    private PolicyDocument SetHeader(PolicyExpression<string> name, PolicyExpression<string>? existsAction = null, Action<ISetHeaderValue>? values = null)
+    internal PolicyDocumentBase SetHeader(PolicyExpression<string> name, PolicyExpression<string>? existsAction = null, Action<ISetHeaderValue>? values = null)
     {
-        AssertScopes(PolicyScopes.All);
         Writer.SetHeader(name, existsAction, values is null ? null : () => values(new SetHeaderValue(Writer)));
         return this;
     }
@@ -242,41 +176,20 @@ partial class PolicyDocument
         }
     }
 
-    IInbound IInbound.SetMethod(PolicyExpression<string> method)
-        => SetMethod(method);
-    IOnError IOnError.SetMethod(PolicyExpression<string> method)
-        => SetMethod(method);
-    private PolicyDocument SetMethod(PolicyExpression<string> method)
+    internal PolicyDocumentBase SetMethod(PolicyExpression<string> method)
     {
-        AssertSection([PolicySection.Inbound, PolicySection.OnError]);
-        AssertScopes(PolicyScopes.All);
         Writer.SetMethod(method);
         return this;
     }
 
-    IInbound IInbound.SetStatus(PolicyExpression<int> statusCode, PolicyExpression<string> reason)
-        => SetStatus(statusCode, reason);
-    IBackend IBackend.SetStatus(PolicyExpression<int> statusCode, PolicyExpression<string> reason)
-        => SetStatus(statusCode, reason);
-    IOutbound IOutbound.SetStatus(PolicyExpression<int> statusCode, PolicyExpression<string> reason)
-        => SetStatus(statusCode, reason);
-    IOnError IOnError.SetStatus(PolicyExpression<int> statusCode, PolicyExpression<string> reason)
-        => SetStatus(statusCode, reason);
-    private PolicyDocument SetStatus(PolicyExpression<int> statusCode, PolicyExpression<string> reason)
+    internal PolicyDocumentBase SetStatus(PolicyExpression<int> statusCode, PolicyExpression<string> reason)
     {
-        AssertScopes(PolicyScopes.All);
         Writer.SetStatus(statusCode, reason);
         return this;
     }
 
-    IInbound IInbound.SetQueryParameter(PolicyExpression<string> name, Action<ISetQueryParameterValue> values, PolicyExpression<string>? existsAction)
-        => SetQueryParameter(name, values, existsAction);
-    IBackend IBackend.SetQueryParameter(PolicyExpression<string> name, Action<ISetQueryParameterValue> values, PolicyExpression<string>? existsAction)
-        => SetQueryParameter(name, values, existsAction);
-    private PolicyDocument SetQueryParameter(PolicyExpression<string> name, Action<ISetQueryParameterValue> values, PolicyExpression<string>? existsAction = null)
+    internal PolicyDocumentBase SetQueryParameter(PolicyExpression<string> name, Action<ISetQueryParameterValue> values, PolicyExpression<string>? existsAction = null)
     {
-        AssertSection([PolicySection.Inbound, PolicySection.Backend]);
-        AssertScopes(PolicyScopes.All);
         Writer.SetQueryParameter(name, existsAction, () => values(new SetQueryParameterValue(Writer)));
         return this;
     }
@@ -294,43 +207,20 @@ partial class PolicyDocument
         }
     }
 
-    IInbound IInbound.SetVariable(string name, PolicyExpression<string> value)
-        => SetVariable(name, value);
-    IBackend IBackend.SetVariable(string name, PolicyExpression<string> value)
-        => SetVariable(name, value);
-    IOutbound IOutbound.SetVariable(string name, PolicyExpression<string> value)
-        => SetVariable(name, value);
-    IOnError IOnError.SetVariable(string name, PolicyExpression<string> value)
-        => SetVariable(name, value);
-    private PolicyDocument SetVariable(string name, PolicyExpression<string> value)
+    internal PolicyDocumentBase SetVariable(string name, PolicyExpression<string> value)
     {
-        AssertScopes(PolicyScopes.All);
         Writer.SetVariable(name, value);
         return this;
     }
 
-    IInbound IInbound.XmlToJson(PolicyExpression<string> kind, PolicyExpression<string> apply, PolicyExpression<bool>? considerAcceptHeader, PolicyExpression<bool>? alwaysArrayChildElements)
-        => XmlToJson(kind, apply, considerAcceptHeader, alwaysArrayChildElements);
-    IOutbound IOutbound.XmlToJson(PolicyExpression<string> kind, PolicyExpression<string> apply, PolicyExpression<bool>? considerAcceptHeader, PolicyExpression<bool>? alwaysArrayChildElements)
-        => XmlToJson(kind, apply, considerAcceptHeader, alwaysArrayChildElements);
-    IOnError IOnError.XmlToJson(PolicyExpression<string> kind, PolicyExpression<string> apply, PolicyExpression<bool>? considerAcceptHeader, PolicyExpression<bool>? alwaysArrayChildElements)
-        => XmlToJson(kind, apply, considerAcceptHeader, alwaysArrayChildElements);
-    private PolicyDocument XmlToJson(PolicyExpression<string> kind, PolicyExpression<string> apply, PolicyExpression<bool>? considerAcceptHeader = null, PolicyExpression<bool>? alwaysArrayChildElements = null)
+    internal PolicyDocumentBase XmlToJson(PolicyExpression<string> kind, PolicyExpression<string> apply, PolicyExpression<bool>? considerAcceptHeader = null, PolicyExpression<bool>? alwaysArrayChildElements = null)
     {
-        AssertSection([PolicySection.Inbound, PolicySection.Outbound, PolicySection.OnError]);
-        AssertScopes(PolicyScopes.All);
         Writer.XmlToJson(kind, apply, considerAcceptHeader, alwaysArrayChildElements);
         return this;
     }
 
-    IInbound IInbound.XslTransform(string xslt, Action<IXslTransformParameters>? parameters)
-        => XslTransform(xslt, parameters);
-    IOutbound IOutbound.XslTransform(string xslt, Action<IXslTransformParameters>? parameters)
-        => XslTransform(xslt, parameters);
-    private PolicyDocument XslTransform(string xslt, Action<IXslTransformParameters>? parameters = null)
+    internal PolicyDocumentBase XslTransform(string xslt, Action<IXslTransformParameters>? parameters = null)
     {
-        AssertSection([PolicySection.Inbound, PolicySection.Outbound]);
-        AssertScopes(PolicyScopes.All);
         Action? writeParams = parameters is null ? null : () => parameters(new XslTransformParameters(Writer));
         var xsltDoc = XDocument.Parse(xslt);
         Writer.XslTransform(xsltDoc, writeParams);
@@ -347,6 +237,331 @@ partial class PolicyDocument
             _writer.XslTransformParameter(name, value);
             return this;
         }
+    }
+}
+
+partial class PolicyDocument
+{
+    IInbound IInbound.FindAndReplace(PolicyExpression<string> from, PolicyExpression<string> to)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        FindAndReplace(from, to);
+        return this;
+    }
+    IBackend IBackend.FindAndReplace(PolicyExpression<string> from, PolicyExpression<string> to)
+    {
+        AssertSection(PolicySection.Backend);
+        AssertScopes(PolicyScopes.All);
+        FindAndReplace(from, to);
+        return this;
+    }
+    IOutbound IOutbound.FindAndReplace(PolicyExpression<string> from, PolicyExpression<string> to)
+    {
+        AssertSection(PolicySection.Outbound);
+        AssertScopes(PolicyScopes.All);
+        FindAndReplace(from, to);
+        return this;
+    }
+    IOnError IOnError.FindAndReplace(PolicyExpression<string> from, PolicyExpression<string> to)
+    {
+        AssertSection(PolicySection.OnError);
+        AssertScopes(PolicyScopes.All);
+        FindAndReplace(from, to);
+        return this;
+    }
+
+    IInbound IInbound.JsonToXml(PolicyExpression<string> apply, PolicyExpression<bool>? considerAcceptHeader, bool? parseDate, PolicyExpression<string>? namespaceSeparator, PolicyExpression<string>? namespacePrefix, PolicyExpression<string>? attributeBlockName)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        JsonToXml(apply, considerAcceptHeader, parseDate, namespaceSeparator, namespacePrefix, attributeBlockName);
+        return this;
+    }
+    IOutbound IOutbound.JsonToXml(PolicyExpression<string> apply, PolicyExpression<bool>? considerAcceptHeader, bool? parseDate, PolicyExpression<string>? namespaceSeparator, PolicyExpression<string>? namespacePrefix, PolicyExpression<string>? attributeBlockName)
+    {
+        AssertSection(PolicySection.Outbound);
+        AssertScopes(PolicyScopes.All);
+        JsonToXml(apply, considerAcceptHeader, parseDate, namespaceSeparator, namespacePrefix, attributeBlockName);
+        return this;
+    }
+    IOnError IOnError.JsonToXml(PolicyExpression<string> apply, PolicyExpression<bool>? considerAcceptHeader, bool? parseDate, PolicyExpression<string>? namespaceSeparator, PolicyExpression<string>? namespacePrefix, PolicyExpression<string>? attributeBlockName)
+    {
+        AssertSection(PolicySection.OnError);
+        AssertScopes(PolicyScopes.All);
+        JsonToXml(apply, considerAcceptHeader, parseDate, namespaceSeparator, namespacePrefix, attributeBlockName);
+        return this;
+    }
+
+    IInbound IInbound.MockResponse(int? statusCode, string? contentType)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        MockResponse(statusCode, contentType);
+        return this;
+    }
+    IOutbound IOutbound.MockResponse(int? statusCode, string? contentType)
+    {
+        AssertSection(PolicySection.Outbound);
+        AssertScopes(PolicyScopes.All);
+        MockResponse(statusCode, contentType);
+        return this;
+    }
+    IOnError IOnError.MockResponse(int? statusCode, string? contentType)
+    {
+        AssertSection(PolicySection.OnError);
+        AssertScopes(PolicyScopes.All);
+        MockResponse(statusCode, contentType);
+        return this;
+    }
+
+    IInbound IInbound.RedirectContentUrls()
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        RedirectContentUrls();
+        return this;
+    }
+    IOutbound IOutbound.RedirectContentUrls()
+    {
+        AssertSection(PolicySection.Outbound);
+        AssertScopes(PolicyScopes.All);
+        RedirectContentUrls();
+        return this;
+    }
+
+    IInbound IInbound.ReturnResponse(Action<IReturnResponseActions> response, PolicyVariable? responseVariableName)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        ReturnResponse(response, responseVariableName);
+        return this;
+    }
+    IBackend IBackend.ReturnResponse(Action<IReturnResponseActions> response, PolicyVariable? responseVariableName)
+    {
+        AssertSection(PolicySection.Backend);
+        AssertScopes(PolicyScopes.All);
+        ReturnResponse(response, responseVariableName);
+        return this;
+    }
+    IOutbound IOutbound.ReturnResponse(Action<IReturnResponseActions> response, PolicyVariable? responseVariableName)
+    {
+        AssertSection(PolicySection.Outbound);
+        AssertScopes(PolicyScopes.All);
+        ReturnResponse(response, responseVariableName);
+        return this;
+    }
+    IOnError IOnError.ReturnResponse(Action<IReturnResponseActions> response, PolicyVariable? responseVariableName)
+    {
+        AssertSection(PolicySection.OnError);
+        AssertScopes(PolicyScopes.All);
+        ReturnResponse(response, responseVariableName);
+        return this;
+    }
+
+    IInbound IInbound.RewriteUri(PolicyExpression<string> template, bool? copyUnmatchedParams)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        RewriteUri(template, copyUnmatchedParams);
+        return this;
+    }
+
+    IInbound IInbound.SetBody(PolicyExpression<string> body)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        SetBody(body);
+        return this;
+    }
+    IBackend IBackend.SetBody(PolicyExpression<string> body)
+    {
+        AssertSection(PolicySection.Backend);
+        AssertScopes(PolicyScopes.All);
+        SetBody(body);
+        return this;
+    }
+    IOutbound IOutbound.SetBody(PolicyExpression<string> body)
+    {
+        AssertSection(PolicySection.Outbound);
+        AssertScopes(PolicyScopes.All);
+        SetBody(body);
+        return this;
+    }
+    IInbound IInbound.SetBody(LiquidTemplate body)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        SetBody(body);
+        return this;
+    }
+    IBackend IBackend.SetBody(LiquidTemplate body)
+    {
+        AssertSection(PolicySection.Backend);
+        AssertScopes(PolicyScopes.All);
+        SetBody(body);
+        return this;
+    }
+    IOutbound IOutbound.SetBody(LiquidTemplate body)
+    {
+        AssertSection(PolicySection.Outbound);
+        AssertScopes(PolicyScopes.All);
+        SetBody(body);
+        return this;
+    }
+
+    IInbound IInbound.SetHeader(PolicyExpression<string> name, PolicyExpression<string>? existsAction, Action<ISetHeaderValue>? values)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        SetHeader(name, existsAction, values);
+        return this;
+    }
+    IBackend IBackend.SetHeader(PolicyExpression<string> name, PolicyExpression<string>? existsAction, Action<ISetHeaderValue>? values)
+    {
+        AssertSection(PolicySection.Backend);
+        AssertScopes(PolicyScopes.All);
+        SetHeader(name, existsAction, values);
+        return this;
+    }
+    IOutbound IOutbound.SetHeader(PolicyExpression<string> name, PolicyExpression<string>? existsAction, Action<ISetHeaderValue>? values)
+    {
+        AssertSection(PolicySection.Outbound);
+        AssertScopes(PolicyScopes.All);
+        SetHeader(name, existsAction, values);
+        return this;
+    }
+    IOnError IOnError.SetHeader(PolicyExpression<string> name, PolicyExpression<string>? existsAction, Action<ISetHeaderValue>? values)
+    {
+        AssertSection(PolicySection.OnError);
+        AssertScopes(PolicyScopes.All);
+        SetHeader(name, existsAction, values);
+        return this;
+    }
+
+    IInbound IInbound.SetMethod(PolicyExpression<string> method)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        SetMethod(method);
+        return this;
+    }
+    IOnError IOnError.SetMethod(PolicyExpression<string> method)
+    {
+        AssertSection(PolicySection.OnError);
+        AssertScopes(PolicyScopes.All);
+        SetMethod(method);
+        return this;
+    }
+
+    IInbound IInbound.SetStatus(PolicyExpression<int> statusCode, PolicyExpression<string> reason)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        SetStatus(statusCode, reason);
+        return this;
+    }
+    IBackend IBackend.SetStatus(PolicyExpression<int> statusCode, PolicyExpression<string> reason)
+    {
+        AssertSection(PolicySection.Backend);
+        AssertScopes(PolicyScopes.All);
+        SetStatus(statusCode, reason);
+        return this;
+    }
+    IOutbound IOutbound.SetStatus(PolicyExpression<int> statusCode, PolicyExpression<string> reason)
+    {
+        AssertSection(PolicySection.Outbound);
+        AssertScopes(PolicyScopes.All);
+        SetStatus(statusCode, reason);
+        return this;
+    }
+    IOnError IOnError.SetStatus(PolicyExpression<int> statusCode, PolicyExpression<string> reason)
+    {
+        AssertSection(PolicySection.OnError);
+        AssertScopes(PolicyScopes.All);
+        SetStatus(statusCode, reason);
+        return this;
+    }
+
+    IInbound IInbound.SetQueryParameter(PolicyExpression<string> name, Action<ISetQueryParameterValue> values, PolicyExpression<string>? existsAction)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        SetQueryParameter(name, values, existsAction);
+        return this;
+    }
+    IBackend IBackend.SetQueryParameter(PolicyExpression<string> name, Action<ISetQueryParameterValue> values, PolicyExpression<string>? existsAction)
+    {
+        AssertSection(PolicySection.Backend);
+        AssertScopes(PolicyScopes.All);
+        SetQueryParameter(name, values, existsAction);
+        return this;
+    }
+
+    IInbound IInbound.SetVariable(string name, PolicyExpression<string> value)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        SetVariable(name, value);
+        return this;
+    }
+    IBackend IBackend.SetVariable(string name, PolicyExpression<string> value)
+    {
+        AssertSection(PolicySection.Backend);
+        AssertScopes(PolicyScopes.All);
+        SetVariable(name, value);
+        return this;
+    }
+    IOutbound IOutbound.SetVariable(string name, PolicyExpression<string> value)
+    {
+        AssertSection(PolicySection.Outbound);
+        AssertScopes(PolicyScopes.All);
+        SetVariable(name, value);
+        return this;
+    }
+    IOnError IOnError.SetVariable(string name, PolicyExpression<string> value)
+    {
+        AssertSection(PolicySection.OnError);
+        AssertScopes(PolicyScopes.All);
+        SetVariable(name, value);
+        return this;
+    }
+
+    IInbound IInbound.XmlToJson(PolicyExpression<string> kind, PolicyExpression<string> apply, PolicyExpression<bool>? considerAcceptHeader, PolicyExpression<bool>? alwaysArrayChildElements)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        XmlToJson(kind, apply, considerAcceptHeader, alwaysArrayChildElements);
+        return this;
+    }
+    IOutbound IOutbound.XmlToJson(PolicyExpression<string> kind, PolicyExpression<string> apply, PolicyExpression<bool>? considerAcceptHeader, PolicyExpression<bool>? alwaysArrayChildElements)
+    {
+        AssertSection(PolicySection.Outbound);
+        AssertScopes(PolicyScopes.All);
+        XmlToJson(kind, apply, considerAcceptHeader, alwaysArrayChildElements);
+        return this;
+    }
+    IOnError IOnError.XmlToJson(PolicyExpression<string> kind, PolicyExpression<string> apply, PolicyExpression<bool>? considerAcceptHeader, PolicyExpression<bool>? alwaysArrayChildElements)
+    {
+        AssertSection(PolicySection.OnError);
+        AssertScopes(PolicyScopes.All);
+        XmlToJson(kind, apply, considerAcceptHeader, alwaysArrayChildElements);
+        return this;
+    }
+
+    IInbound IInbound.XslTransform(string xslt, Action<IXslTransformParameters>? parameters)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        XslTransform(xslt, parameters);
+        return this;
+    }
+    IOutbound IOutbound.XslTransform(string xslt, Action<IXslTransformParameters>? parameters)
+    {
+        AssertSection(PolicySection.Outbound);
+        AssertScopes(PolicyScopes.All);
+        XslTransform(xslt, parameters);
+        return this;
     }
 }
 

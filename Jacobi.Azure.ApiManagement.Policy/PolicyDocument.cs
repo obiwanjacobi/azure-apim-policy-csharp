@@ -6,14 +6,23 @@ internal interface IPolicyDocument : IAuthentication, ICaching, IControl, ICross
     IIngress, IIntegration, ILlm, ILogging, IRouting, ITransformation, IValidation
 { }
 
-public abstract partial class PolicyDocument :
+public abstract partial class PolicyDocumentBase
+{
+    private PolicyXmlWriter? _writer;
+    internal IDisposable CreateWriter(Stream stream)
+    {
+        _writer = new PolicyXmlWriter(stream, GetType()?.FullName ?? "<unknown>");
+        return _writer;
+    }
+    internal PolicyXmlWriter Writer => _writer
+        ?? throw new InvalidOperationException("PolicyXmlWriter was not initialized.");
+}
+
+public abstract partial class PolicyDocument : PolicyDocumentBase,
     IInbound, IBackend, IOutbound, IOnError
 {
     private PolicySection _section = PolicySection.None;
     private PolicyScopes _scopes;
-    private PolicyXmlWriter? _writer;
-    private PolicyXmlWriter Writer => _writer
-        ?? throw new InvalidOperationException("PolicyXmlWriter was not initialized.");
 
     protected PolicyDocument(PolicyScopes policyScopes = PolicyScopes.All)
         => _scopes = policyScopes;
@@ -73,23 +82,20 @@ public abstract partial class PolicyDocument :
 
     internal void WriteTo(Stream stream)
     {
-        _writer = new PolicyXmlWriter(stream, GetType()?.FullName ?? "<unknown>");
+        using var scope = CreateWriter(stream);
 
         _section = PolicySection.Inbound;
-        _writer.Inbound(() => Inbound(this));
+        Writer.Inbound(() => Inbound(this));
 
         _section = PolicySection.Backend;
-        _writer.Backend(() => Backend(this));
+        Writer.Backend(() => Backend(this));
 
         _section = PolicySection.Outbound;
-        _writer.Outbound(() => Outbound(this));
+        Writer.Outbound(() => Outbound(this));
 
         _section = PolicySection.OnError;
-        _writer.OnError(() => OnError(this));
+        Writer.OnError(() => OnError(this));
 
-        _writer.Close();
-
-        _writer = null;
         _section = PolicySection.None;
     }
 
@@ -98,11 +104,6 @@ public abstract partial class PolicyDocument :
     private void AssertSection(PolicySection expected, [CallerMemberName] string callerName = "")
     {
         if (_section != expected)
-            throw new InvalidOperationException($"Function '{callerName}' cannot be called in section {_section.ToString()}.");
-    }
-    private void AssertSection(PolicySection[] expected, [CallerMemberName] string callerName = "")
-    {
-        if (!expected.Contains(_section))
             throw new InvalidOperationException($"Function '{callerName}' cannot be called in section {_section.ToString()}.");
     }
     private void AssertScopes(PolicyScopes policyScopes, [CallerMemberName] string callerName = "")

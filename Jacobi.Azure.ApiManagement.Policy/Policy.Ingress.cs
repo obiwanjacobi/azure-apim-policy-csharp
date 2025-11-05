@@ -42,27 +42,16 @@ public interface IRateLimitApiOperation
     IRateLimitApiOperation Add(string? id, string? name, int numberOfCalls, int renewalPeriodSeconds);
 }
 
-partial class PolicyDocument
+partial class PolicyDocumentBase
 {
-    IInbound IInbound.LimitConcurrency(PolicyExpression<string> key, int maxCount, Action<IInbound> actions)
-        => LimitConcurrency(key, maxCount, actions);
-    IBackend IBackend.LimitConcurrency(PolicyExpression<string> key, int maxCount, Action<IBackend> actions)
-        => LimitConcurrency(key, maxCount, actions);
-    IOutbound IOutbound.LimitConcurrency(PolicyExpression<string> key, int maxCount, Action<IOutbound> actions)
-        => LimitConcurrency(key, maxCount, actions);
-    IOnError IOnError.LimitConcurrency(PolicyExpression<string> key, int maxCount, Action<IOnError> actions)
-        => LimitConcurrency(key, maxCount, actions);
-    private PolicyDocument LimitConcurrency(PolicyExpression<string> key, int maxCount, Action<PolicyDocument> actions)
+    internal PolicyDocumentBase LimitConcurrency(PolicyExpression<string> key, int maxCount, Action<PolicyDocumentBase> actions)
     {
-        AssertScopes(PolicyScopes.All);
         Writer.LimitConcurrency(key, maxCount.ToString(), () => actions(this));
         return this;
     }
 
-    IInbound IInbound.Quota(int numberOfCalls, int bandwidthKB, int renewalPeriodSeconds, Action<IQuotaApi> apis)
+    internal PolicyDocumentBase Quota(int numberOfCalls, int bandwidthKB, int renewalPeriodSeconds, Action<IQuotaApi> apis)
     {
-        AssertSection(PolicySection.Inbound);
-        AssertScopes(PolicyScopes.Product);
         QuotaValidate(numberOfCalls, bandwidthKB);
         Writer.Quota(QuotaIntToString(numberOfCalls), QuotaIntToString(bandwidthKB), renewalPeriodSeconds.ToString(), () => apis(new QuotaApi(Writer)));
         return this;
@@ -110,10 +99,8 @@ partial class PolicyDocument
         }
     }
 
-    IInbound IInbound.QuotaByKey(PolicyExpression<string> counterKey, int numberOfCalls, int bandwidthKB, int renewalPeriodSeconds, PolicyExpression<int>? incrementCount, PolicyExpression<string>? incrementCondition, DateTime? firstPeriodStart)
+    internal PolicyDocumentBase QuotaByKey(PolicyExpression<string> counterKey, int numberOfCalls, int bandwidthKB, int renewalPeriodSeconds, PolicyExpression<int>? incrementCount, PolicyExpression<string>? incrementCondition, DateTime? firstPeriodStart)
     {
-        AssertSection(PolicySection.Inbound);
-        AssertScopes(PolicyScopes.All);
         QuotaValidate(numberOfCalls, bandwidthKB);
         if (renewalPeriodSeconds < 300 && renewalPeriodSeconds != 0)
             throw new ArgumentOutOfRangeException(nameof(renewalPeriodSeconds), "Value must be 300 minimum or 0.");
@@ -122,10 +109,8 @@ partial class PolicyDocument
         return this;
     }
 
-    IInbound IInbound.RateLimit(int numberOfCalls, int renewalPeriodSeconds, PolicyVariable? retryAfterVariableName, string? retryAfterHeaderName, PolicyVariable? remainingCallsVariableName, string? remainingCallsHeaderName, string? totalCallsHeaderName, Action<IRateLimitApi>? apis)
+    internal PolicyDocumentBase RateLimit(int numberOfCalls, int renewalPeriodSeconds, PolicyVariable? retryAfterVariableName, string? retryAfterHeaderName, PolicyVariable? remainingCallsVariableName, string? remainingCallsHeaderName, string? totalCallsHeaderName, Action<IRateLimitApi>? apis)
     {
-        AssertSection(PolicySection.Inbound);
-        AssertScopes(PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
         if (renewalPeriodSeconds > 300)
             throw new ArgumentOutOfRangeException(nameof(renewalPeriodSeconds), "Value cannot exceed 300.");
         Writer.RateLimit(numberOfCalls.ToString(), renewalPeriodSeconds.ToString(),
@@ -156,11 +141,74 @@ partial class PolicyDocument
         }
     }
 
+    internal PolicyDocumentBase RateLimitByKey(PolicyExpression<string> counterKey, PolicyExpression<int> numberOfCalls, PolicyExpression<int> renewalPeriodSeconds, PolicyExpression<int>? incrementCount, PolicyExpression<string>? incrementCondition, PolicyVariable? retryAfterVariableName, string? retryAfterHeaderName, PolicyVariable? remainingCallsVariableName, string? remainingCallsHeaderName, string? totalCallsHeaderName)
+    {
+        Writer.RateLimitByKey(counterKey, numberOfCalls, renewalPeriodSeconds, incrementCount, incrementCondition,
+            retryAfterVariableName, retryAfterHeaderName, remainingCallsVariableName, remainingCallsHeaderName, totalCallsHeaderName);
+        return this;
+    }
+}
+
+partial class PolicyDocument
+{
+    IInbound IInbound.LimitConcurrency(PolicyExpression<string> key, int maxCount, Action<IInbound> actions)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        Writer.LimitConcurrency(key, maxCount.ToString(), () => actions(this));
+        return this;
+    }
+    IBackend IBackend.LimitConcurrency(PolicyExpression<string> key, int maxCount, Action<IBackend> actions)
+    {
+        AssertSection(PolicySection.Backend);
+        AssertScopes(PolicyScopes.All);
+        Writer.LimitConcurrency(key, maxCount.ToString(), () => actions(this));
+        return this;
+    }
+    IOutbound IOutbound.LimitConcurrency(PolicyExpression<string> key, int maxCount, Action<IOutbound> actions)
+    {
+        AssertSection(PolicySection.Outbound);
+        AssertScopes(PolicyScopes.All);
+        Writer.LimitConcurrency(key, maxCount.ToString(), () => actions(this));
+        return this;
+    }
+    IOnError IOnError.LimitConcurrency(PolicyExpression<string> key, int maxCount, Action<IOnError> actions)
+    {
+        AssertSection(PolicySection.OnError);
+        AssertScopes(PolicyScopes.All);
+        Writer.LimitConcurrency(key, maxCount.ToString(), () => actions(this));
+        return this;
+    }
+
+    IInbound IInbound.Quota(int numberOfCalls, int bandwidthKB, int renewalPeriodSeconds, Action<IQuotaApi> apis)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.Product);
+        Quota(numberOfCalls, bandwidthKB, renewalPeriodSeconds, apis);
+        return this;
+    }
+
+    IInbound IInbound.QuotaByKey(PolicyExpression<string> counterKey, int numberOfCalls, int bandwidthKB, int renewalPeriodSeconds, PolicyExpression<int>? incrementCount, PolicyExpression<string>? incrementCondition, DateTime? firstPeriodStart)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        QuotaByKey(counterKey, numberOfCalls, bandwidthKB, renewalPeriodSeconds, incrementCount, incrementCondition, firstPeriodStart);
+        return this;
+    }
+
+    IInbound IInbound.RateLimit(int numberOfCalls, int renewalPeriodSeconds, PolicyVariable? retryAfterVariableName, string? retryAfterHeaderName, PolicyVariable? remainingCallsVariableName, string? remainingCallsHeaderName, string? totalCallsHeaderName, Action<IRateLimitApi>? apis)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
+        RateLimit(numberOfCalls, renewalPeriodSeconds, retryAfterVariableName, retryAfterHeaderName, remainingCallsVariableName, remainingCallsHeaderName, totalCallsHeaderName, apis);
+        return this;
+    }
+
     IInbound IInbound.RateLimitByKey(PolicyExpression<string> counterKey, PolicyExpression<int> numberOfCalls, PolicyExpression<int> renewalPeriodSeconds, PolicyExpression<int>? incrementCount, PolicyExpression<string>? incrementCondition, PolicyVariable? retryAfterVariableName, string? retryAfterHeaderName, PolicyVariable? remainingCallsVariableName, string? remainingCallsHeaderName, string? totalCallsHeaderName)
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.All);
-        Writer.RateLimitByKey(counterKey, numberOfCalls, renewalPeriodSeconds, incrementCount, incrementCondition,
+        RateLimitByKey(counterKey, numberOfCalls, renewalPeriodSeconds, incrementCount, incrementCondition,
             retryAfterVariableName, retryAfterHeaderName, remainingCallsVariableName, remainingCallsHeaderName, totalCallsHeaderName);
         return this;
     }

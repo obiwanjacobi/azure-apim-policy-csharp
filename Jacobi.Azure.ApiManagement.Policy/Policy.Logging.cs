@@ -26,19 +26,10 @@ public enum TraceSeverity
     Error
 }
 
-partial class PolicyDocument
+partial class PolicyDocumentBase
 {
-    IInbound IInbound.EmitMetric(string name, string? @namespace, string? value, Action<IEmitMetricDimensions> dimensions)
-        => EmitMetric(name, @namespace, value, dimensions);
-    IBackend IBackend.EmitMetric(string name, string? @namespace, string? value, Action<IEmitMetricDimensions> dimensions)
-        => EmitMetric(name, @namespace, value, dimensions);
-    IOutbound IOutbound.EmitMetric(string name, string? @namespace, string? value, Action<IEmitMetricDimensions> dimensions)
-        => EmitMetric(name, @namespace, value, dimensions);
-    IOnError IOnError.EmitMetric(string name, string? @namespace, string? value, Action<IEmitMetricDimensions> dimensions)
-        => EmitMetric(name, @namespace, value, dimensions);
-    private PolicyDocument EmitMetric(string name, string? @namespace, string? value, Action<IEmitMetricDimensions> dimensions)
+    internal PolicyDocumentBase EmitMetric(string name, string? @namespace, string? value, Action<IEmitMetricDimensions> dimensions)
     {
-        AssertScopes(PolicyScopes.All);
         Writer.EmitMetric(name, @namespace, value, () => dimensions(new EmitMetricDimensions(Writer)));
         return this;
     }
@@ -61,17 +52,8 @@ partial class PolicyDocument
         }
     }
 
-    IInbound IInbound.LogToEventHub(string loggerId, string? partitionId, string? partitionKey, PolicyExpression<string> message)
-        => LogToEventHub(loggerId, partitionId, partitionKey, message);
-    IBackend IBackend.LogToEventHub(string loggerId, string? partitionId, string? partitionKey, PolicyExpression<string> message)
-        => LogToEventHub(loggerId, partitionId, partitionKey, message);
-    IOutbound IOutbound.LogToEventHub(string loggerId, string? partitionId, string? partitionKey, PolicyExpression<string> message)
-        => LogToEventHub(loggerId, partitionId, partitionKey, message);
-    IOnError IOnError.LogToEventHub(string loggerId, string? partitionId, string? partitionKey, PolicyExpression<string> message)
-        => LogToEventHub(loggerId, partitionId, partitionKey, message);
-    private PolicyDocument LogToEventHub(string loggerId, string? partitionId, string? partitionKey, PolicyExpression<string> message)
+    internal PolicyDocumentBase LogToEventHub(string loggerId, string? partitionId, string? partitionKey, PolicyExpression<string> message)
     {
-        AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
         var idEmpty = String.IsNullOrEmpty(partitionId);
         var keyEmpty = String.IsNullOrEmpty(partitionKey);
         if (idEmpty && keyEmpty) throw new ArgumentException($"Either {nameof(partitionId)} or {nameof(partitionKey)} has to be filled.", $"{nameof(partitionId)}+{nameof(partitionKey)}");
@@ -80,16 +62,8 @@ partial class PolicyDocument
         return this;
     }
 
-    IInbound IInbound.Trace(string source, PolicyExpression<string> message, TraceSeverity severity, string? metadataName, string? metadataValue)
-        => Trace(source, message, severity, metadataName, metadataValue);
-    IBackend IBackend.Trace(string source, PolicyExpression<string> message, TraceSeverity severity, string? metadataName, string? metadataValue)
-        => Trace(source, message, severity, metadataName, metadataValue);
-    IOutbound IOutbound.Trace(string source, PolicyExpression<string> message, TraceSeverity severity, string? metadataName, string? metadataValue)
-        => Trace(source, message, severity, metadataName, metadataValue);
-    private PolicyDocument Trace(string source, PolicyExpression<string> message, TraceSeverity severity = TraceSeverity.Verbose, string? metadataName = null, string? metadataValue = null)
+    internal PolicyDocumentBase Trace(string source, PolicyExpression<string> message, TraceSeverity severity = TraceSeverity.Verbose, string? metadataName = null, string? metadataValue = null)
     {
-        AssertSection([PolicySection.Inbound, PolicySection.Outbound, PolicySection.Backend]);
-        AssertScopes(PolicyScopes.All);
         if (((metadataName is null && metadataValue is not null) ||
              (metadataName is not null && metadataValue is null)))
             throw new ArgumentException($"Both {nameof(metadataName)} and {metadataValue} must be filled or null.", $"{nameof(metadataName)}+{metadataValue}");
@@ -105,6 +79,89 @@ partial class PolicyDocument
                 TraceSeverity.Error => "error",
                 _ => "verbose"
             };
+    }
+}
+
+partial class PolicyDocument
+{
+    IInbound IInbound.EmitMetric(string name, string? @namespace, string? value, Action<IEmitMetricDimensions> dimensions)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        EmitMetric(name, @namespace, value, dimensions);
+        return this;
+    }
+    IBackend IBackend.EmitMetric(string name, string? @namespace, string? value, Action<IEmitMetricDimensions> dimensions)
+    {
+        AssertSection(PolicySection.Backend);
+        AssertScopes(PolicyScopes.All);
+        EmitMetric(name, @namespace, value, dimensions);
+        return this;
+    }
+    IOutbound IOutbound.EmitMetric(string name, string? @namespace, string? value, Action<IEmitMetricDimensions> dimensions)
+    {
+        AssertSection(PolicySection.Outbound);
+        AssertScopes(PolicyScopes.All);
+        EmitMetric(name, @namespace, value, dimensions);
+        return this;
+    }
+    IOnError IOnError.EmitMetric(string name, string? @namespace, string? value, Action<IEmitMetricDimensions> dimensions)
+    {
+        AssertSection(PolicySection.OnError);
+        AssertScopes(PolicyScopes.All);
+        EmitMetric(name, @namespace, value, dimensions);
+        return this;
+    }
+
+    IInbound IInbound.LogToEventHub(string loggerId, string? partitionId, string? partitionKey, PolicyExpression<string> message)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
+        LogToEventHub(loggerId, partitionId, partitionKey, message);
+        return this;
+    }
+    IBackend IBackend.LogToEventHub(string loggerId, string? partitionId, string? partitionKey, PolicyExpression<string> message)
+    {
+        AssertSection(PolicySection.Backend);
+        AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
+        LogToEventHub(loggerId, partitionId, partitionKey, message);
+        return this;
+    }
+    IOutbound IOutbound.LogToEventHub(string loggerId, string? partitionId, string? partitionKey, PolicyExpression<string> message)
+    {
+        AssertSection(PolicySection.Outbound);
+        AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
+        LogToEventHub(loggerId, partitionId, partitionKey, message);
+        return this;
+    }
+    IOnError IOnError.LogToEventHub(string loggerId, string? partitionId, string? partitionKey, PolicyExpression<string> message)
+    {
+        AssertSection(PolicySection.OnError);
+        AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
+        LogToEventHub(loggerId, partitionId, partitionKey, message);
+        return this;
+    }
+
+    IInbound IInbound.Trace(string source, PolicyExpression<string> message, TraceSeverity severity, string? metadataName, string? metadataValue)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        Trace(source, message, severity, metadataName, metadataValue);
+        return this;
+    }
+    IBackend IBackend.Trace(string source, PolicyExpression<string> message, TraceSeverity severity, string? metadataName, string? metadataValue)
+    {
+        AssertSection(PolicySection.Backend);
+        AssertScopes(PolicyScopes.All);
+        Trace(source, message, severity, metadataName, metadataValue);
+        return this;
+    }
+    IOutbound IOutbound.Trace(string source, PolicyExpression<string> message, TraceSeverity severity, string? metadataName, string? metadataValue)
+    {
+        AssertSection(PolicySection.Outbound);
+        AssertScopes(PolicyScopes.All);
+        Trace(source, message, severity, metadataName, metadataValue);
+        return this;
     }
 }
 

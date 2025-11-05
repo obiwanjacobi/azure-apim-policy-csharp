@@ -28,11 +28,10 @@ public enum HttpVersion
     Http2_1 = 0x03
 }
 
-partial class PolicyDocument
+partial class PolicyDocumentBase
 {
-    IBackend IBackend.ForwardRequest(HttpVersion? httpVersion, PolicyExpression<int>? timeoutSeconds, PolicyExpression<int>? timeoutMilliseconds, PolicyExpression<int>? continueTimeout, bool? followRedirects, bool? bufferRequestBody, bool? bufferResponse, bool? failOnErrorStatusCode)
+    internal PolicyDocumentBase ForwardRequest(HttpVersion? httpVersion, PolicyExpression<int>? timeoutSeconds, PolicyExpression<int>? timeoutMilliseconds, PolicyExpression<int>? continueTimeout, bool? followRedirects, bool? bufferRequestBody, bool? bufferResponse, bool? failOnErrorStatusCode)
     {
-        AssertSection(PolicySection.Backend);
         Writer.ForwardRequest(HttpVersionToString(httpVersion), timeoutSeconds, timeoutMilliseconds, continueTimeout,
             followRedirects, bufferRequestBody, bufferResponse, failOnErrorStatusCode);
         return this;
@@ -47,34 +46,69 @@ partial class PolicyDocument
             };
     }
 
-    IInbound IInbound.Proxy(PolicyExpression<string> url, PolicyExpression<string>? username, PolicyExpression<string>? password)
+    internal PolicyDocumentBase Proxy(PolicyExpression<string> url, PolicyExpression<string>? username, PolicyExpression<string>? password)
     {
-        AssertSection(PolicySection.Inbound);
-        AssertScopes(PolicyScopes.All);
         Writer.Proxy(url, username, password);
         return this;
     }
 
-    IInbound IInbound.SetBackendService(PolicyExpression<string> baseUrl)
-        => SetBackendService(baseUrl);
-    IBackend IBackend.SetBackendService(PolicyExpression<string> baseUrl)
-        => SetBackendService(baseUrl);
-    private PolicyDocument SetBackendService(PolicyExpression<string> baseUrl)
+    internal PolicyDocumentBase SetBackendService(PolicyExpression<string> baseUrl)
     {
-        AssertSection([PolicySection.Inbound, PolicySection.Backend]);
-        AssertScopes(PolicyScopes.All);
         Writer.SetBackendService(baseUrl);
         return this;
     }
-    IInbound IInbound.SetBackendService(PolicyExpression<string> backendId, PolicyExpression<string>? sfResolveCondition, PolicyExpression<string>? sfServiceInstanceName, PolicyExpression<string>? sfPartitionKey, PolicyExpression<string>? sfListenerName)
-        => SetBackendService(backendId, sfResolveCondition, sfServiceInstanceName, sfPartitionKey, sfListenerName);
-    IBackend IBackend.SetBackendService(PolicyExpression<string> backendId, PolicyExpression<string>? sfResolveCondition, PolicyExpression<string>? sfServiceInstanceName, PolicyExpression<string>? sfPartitionKey, PolicyExpression<string>? sfListenerName)
-        => SetBackendService(backendId, sfResolveCondition, sfServiceInstanceName, sfPartitionKey, sfListenerName);
-    private PolicyDocument SetBackendService(PolicyExpression<string> backendId, PolicyExpression<string>? sfResolveCondition = null, PolicyExpression<string>? sfServiceInstanceName = null, PolicyExpression<string>? sfPartitionKey = null, PolicyExpression<string>? sfListenerName = null)
+
+    internal PolicyDocumentBase SetBackendService(PolicyExpression<string> backendId, PolicyExpression<string>? sfResolveCondition = null, PolicyExpression<string>? sfServiceInstanceName = null, PolicyExpression<string>? sfPartitionKey = null, PolicyExpression<string>? sfListenerName = null)
     {
-        AssertSection([PolicySection.Inbound, PolicySection.Backend]);
-        AssertScopes(PolicyScopes.All);
         Writer.SetBackendService(backendId, sfResolveCondition, sfServiceInstanceName, sfPartitionKey, sfListenerName);
+        return this;
+    }
+}
+
+partial class PolicyDocument
+{
+    IBackend IBackend.ForwardRequest(HttpVersion? httpVersion, PolicyExpression<int>? timeoutSeconds, PolicyExpression<int>? timeoutMilliseconds, PolicyExpression<int>? continueTimeout, bool? followRedirects, bool? bufferRequestBody, bool? bufferResponse, bool? failOnErrorStatusCode)
+    {
+        AssertSection(PolicySection.Backend);
+        ForwardRequest(httpVersion, timeoutSeconds, timeoutMilliseconds, continueTimeout, followRedirects, bufferRequestBody, bufferResponse, failOnErrorStatusCode);
+        return this;
+    }
+
+    IInbound IInbound.Proxy(PolicyExpression<string> url, PolicyExpression<string>? username, PolicyExpression<string>? password)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        Proxy(url, username, password);
+        return this;
+    }
+
+    IInbound IInbound.SetBackendService(PolicyExpression<string> baseUrl)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        SetBackendService(baseUrl);
+        return this;
+    }
+    IBackend IBackend.SetBackendService(PolicyExpression<string> baseUrl)
+    {
+        AssertSection(PolicySection.Backend);
+        AssertScopes(PolicyScopes.All);
+        SetBackendService(baseUrl);
+        return this;
+    }
+
+    IInbound IInbound.SetBackendService(PolicyExpression<string> backendId, PolicyExpression<string>? sfResolveCondition, PolicyExpression<string>? sfServiceInstanceName, PolicyExpression<string>? sfPartitionKey, PolicyExpression<string>? sfListenerName)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        SetBackendService(backendId, sfResolveCondition, sfServiceInstanceName, sfPartitionKey, sfListenerName);
+        return this;
+    }
+    IBackend IBackend.SetBackendService(PolicyExpression<string> backendId, PolicyExpression<string>? sfResolveCondition, PolicyExpression<string>? sfServiceInstanceName, PolicyExpression<string>? sfPartitionKey, PolicyExpression<string>? sfListenerName)
+    {
+        AssertSection(PolicySection.Backend);
+        AssertScopes(PolicyScopes.All);
+        SetBackendService(backendId, sfResolveCondition, sfServiceInstanceName, sfPartitionKey, sfListenerName);
         return this;
     }
 }

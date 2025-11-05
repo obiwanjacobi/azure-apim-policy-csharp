@@ -74,7 +74,10 @@ internal sealed partial class PolicyXmlWriter : IDisposable
     }
 
     public void Dispose()
-        => _xmlWriter.Dispose();
+    {
+        Close();
+        _xmlWriter.Dispose();
+    }
 
     private void StartSection(string name)
     {

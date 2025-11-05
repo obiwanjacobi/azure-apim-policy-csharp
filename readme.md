@@ -174,4 +174,5 @@ For transparency:
 - [ ] Int32: validate non-negative or use uint.
 - [ ] Fragment scope: unclear what policies can (not) go in fragments
 - [ ] XslTransform: represent the xslt as something else than a plain string?
+- [ ] Keep track of the number of policy uses per document (for instance: cors can only be used once).
 - [ ] 

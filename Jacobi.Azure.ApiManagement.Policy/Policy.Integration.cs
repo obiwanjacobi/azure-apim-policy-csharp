@@ -38,34 +38,21 @@ public interface ISendServiceBusMessageProperties
     ISendServiceBusMessageProperties Add(string name, string value);
 }
 
-partial class PolicyDocument
+partial class PolicyDocumentBase
 {
-    IInbound IInbound.PublishToDapr(PolicyExpression<string> message, PolicyExpression<string> topic, PolicyExpression<string>? pubSubName, PolicyVariable? responseVariableName, PolicyExpression<int>? timeoutSeconds, string? contentType, bool? ignoreError)
+    internal PolicyDocumentBase PublishToDapr(PolicyExpression<string> message, PolicyExpression<string> topic, PolicyExpression<string>? pubSubName, PolicyVariable? responseVariableName, PolicyExpression<int>? timeoutSeconds, string? contentType, bool? ignoreError)
     {
-        AssertSection(PolicySection.Inbound);
-        AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
         Writer.PublishToDapr(message, topic, null, pubSubName, responseVariableName, timeoutSeconds, contentType, ignoreError);
         return this;
     }
-    IInbound IInbound.PublishToDapr(LiquidTemplate template, PolicyExpression<string> topic, PolicyExpression<string>? pubSubName, PolicyVariable? responseVariableName, PolicyExpression<int>? timeoutSeconds, string? contentType, bool? ignoreError)
+    internal PolicyDocumentBase PublishToDapr(LiquidTemplate template, PolicyExpression<string> topic, PolicyExpression<string>? pubSubName, PolicyVariable? responseVariableName, PolicyExpression<int>? timeoutSeconds, string? contentType, bool? ignoreError)
     {
-        AssertSection(PolicySection.Inbound);
-        AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
         Writer.PublishToDapr(template, topic, "Liquid", pubSubName, responseVariableName, timeoutSeconds, contentType, ignoreError);
         return this;
     }
 
-    IInbound IInbound.SendOneWayRequest(Action<ISendRequestActions> request, PolicyExpression<string>? mode, PolicyExpression<int>? timeoutSeconds)
-        => SendOneWayRequest(request, mode, timeoutSeconds);
-    IBackend IBackend.SendOneWayRequest(Action<ISendRequestActions> request, PolicyExpression<string>? mode, PolicyExpression<int>? timeoutSeconds)
-        => SendOneWayRequest(request, mode, timeoutSeconds);
-    IOutbound IOutbound.SendOneWayRequest(Action<ISendRequestActions> request, PolicyExpression<string>? mode, PolicyExpression<int>? timeoutSeconds)
-        => SendOneWayRequest(request, mode, timeoutSeconds);
-    IOnError IOnError.SendOneWayRequest(Action<ISendRequestActions> request, PolicyExpression<string>? mode, PolicyExpression<int>? timeoutSeconds)
-        => SendOneWayRequest(request, mode, timeoutSeconds);
-    private PolicyDocument SendOneWayRequest(Action<ISendRequestActions> request, PolicyExpression<string>? mode = null, PolicyExpression<int>? timeoutSeconds = null)
+    internal PolicyDocumentBase SendOneWayRequest(Action<ISendRequestActions> request, PolicyExpression<string>? mode = null, PolicyExpression<int>? timeoutSeconds = null)
     {
-        AssertScopes(PolicyScopes.All);
         Writer.SendOneWayRequest(mode, timeoutSeconds, () => request(new SendRequestActions(this, Writer)));
         return this;
     }
@@ -73,8 +60,8 @@ partial class PolicyDocument
     private sealed class SendRequestActions : ISendRequestActions
     {
         private readonly PolicyXmlWriter _writer;
-        private readonly PolicyDocument _document;
-        public SendRequestActions(PolicyDocument document, PolicyXmlWriter writer)
+        private readonly PolicyDocumentBase _document;
+        public SendRequestActions(PolicyDocumentBase document, PolicyXmlWriter writer)
         {
             _writer = writer;
             _document = document;
@@ -106,13 +93,13 @@ partial class PolicyDocument
 
         public ISendRequestActions AuthenticationCertificate(PolicyExpression<string> thumbprint, PolicyExpression<string> certificate, PolicyExpression<string>? body = null, PolicyExpression<string>? password = null)
         {
-            _document.AuthenticationCertificateInternal(thumbprint, certificate, body, password);
+            _document.AuthenticationCertificate(thumbprint, certificate, body, password);
             return this;
         }
 
         public ISendRequestActions AuthenticationManagedIdentity(PolicyExpression<string> resource, string? clientId = null, PolicyVariable? outputTokenVariableName = null, bool? ignoreError = false)
         {
-            _document.AuthenticationManagedIdentityInternal(resource, clientId, outputTokenVariableName, ignoreError);
+            _document.AuthenticationManagedIdentity(resource, clientId, outputTokenVariableName, ignoreError);
             return this;
         }
 
@@ -123,16 +110,8 @@ partial class PolicyDocument
         }
     }
 
-    IInbound IInbound.SendServiceBusMessage(PolicyExpression<string> @namespace, PolicyExpression<string> message, Action<ISendServiceBusMessageProperties>? messageProperties, PolicyExpression<string>? queueName, PolicyExpression<string>? topicName, PolicyExpression<string>? clientId)
-        => SendServiceBusMessage(@namespace, message, messageProperties, queueName, topicName, clientId);
-    IOutbound IOutbound.SendServiceBusMessage(PolicyExpression<string> @namespace, PolicyExpression<string> message, Action<ISendServiceBusMessageProperties>? messageProperties, PolicyExpression<string>? queueName, PolicyExpression<string>? topicName, PolicyExpression<string>? clientId)
-        => SendServiceBusMessage(@namespace, message, messageProperties, queueName, topicName, clientId);
-    IOnError IOnError.SendServiceBusMessage(PolicyExpression<string> @namespace, PolicyExpression<string> message, Action<ISendServiceBusMessageProperties>? messageProperties, PolicyExpression<string>? queueName, PolicyExpression<string>? topicName, PolicyExpression<string>? clientId)
-        => SendServiceBusMessage(@namespace, message, messageProperties, queueName, topicName, clientId);
-    private PolicyDocument SendServiceBusMessage(PolicyExpression<string> @namespace, PolicyExpression<string> message, Action<ISendServiceBusMessageProperties>? messageProperties, PolicyExpression<string>? queueName = null, PolicyExpression<string>? topicName = null, PolicyExpression<string>? clientId = null)
+    internal PolicyDocumentBase SendServiceBusMessage(PolicyExpression<string> @namespace, PolicyExpression<string> message, Action<ISendServiceBusMessageProperties>? messageProperties, PolicyExpression<string>? queueName = null, PolicyExpression<string>? topicName = null, PolicyExpression<string>? clientId = null)
     {
-        AssertSection([PolicySection.Inbound, PolicySection.Outbound, PolicySection.OnError]);
-        AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
         if (queueName is null && topicName is null)
             throw new ArgumentException($"Either {nameof(queueName)} or {nameof(topicName)} must be filled.", $"{nameof(queueName)}+{nameof(topicName)}");
         if (queueName is not null && topicName is not null)
@@ -155,18 +134,113 @@ partial class PolicyDocument
         }
     }
 
-    IInbound IInbound.SendRequest(PolicyExpression<string> responseVariableName, Action<ISendRequestActions> request, PolicyExpression<string>? mode, PolicyExpression<int>? timeoutSeconds, bool? ignoreError)
-        => SendRequest(responseVariableName, request, mode, timeoutSeconds, ignoreError);
-    IBackend IBackend.SendRequest(PolicyExpression<string> responseVariableName, Action<ISendRequestActions> request, PolicyExpression<string>? mode, PolicyExpression<int>? timeoutSeconds, bool? ignoreError)
-        => SendRequest(responseVariableName, request, mode, timeoutSeconds, ignoreError);
-    IOutbound IOutbound.SendRequest(PolicyExpression<string> responseVariableName, Action<ISendRequestActions> request, PolicyExpression<string>? mode, PolicyExpression<int>? timeoutSeconds, bool? ignoreError)
-        => SendRequest(responseVariableName, request, mode, timeoutSeconds, ignoreError);
-    IOnError IOnError.SendRequest(PolicyExpression<string> responseVariableName, Action<ISendRequestActions> request, PolicyExpression<string>? mode, PolicyExpression<int>? timeoutSeconds, bool? ignoreError)
-        => SendRequest(responseVariableName, request, mode, timeoutSeconds, ignoreError);
-    private PolicyDocument SendRequest(PolicyExpression<string> responseVariableName, Action<ISendRequestActions> request, PolicyExpression<string>? mode = null, PolicyExpression<int>? timeoutSeconds = null, bool? ignoreError = null)
+    internal PolicyDocumentBase SendRequest(PolicyExpression<string> responseVariableName, Action<ISendRequestActions> request, PolicyExpression<string>? mode = null, PolicyExpression<int>? timeoutSeconds = null, bool? ignoreError = null)
     {
-        AssertScopes(PolicyScopes.All);
         Writer.SendRequest(responseVariableName, mode, timeoutSeconds, ignoreError, () => request(new SendRequestActions(this, Writer)));
+        return this;
+    }
+
+    internal PolicyDocumentBase SetBackendService(PolicyExpression<string> daprAppId, PolicyExpression<string> daprMethod, PolicyExpression<string>? daprNamespace)
+    {
+        Writer.SetBackendService(daprAppId, daprMethod, daprNamespace);
+        return this;
+    }
+}
+
+partial class PolicyDocument
+{
+    IInbound IInbound.PublishToDapr(PolicyExpression<string> message, PolicyExpression<string> topic, PolicyExpression<string>? pubSubName, PolicyVariable? responseVariableName, PolicyExpression<int>? timeoutSeconds, string? contentType, bool? ignoreError)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
+        PublishToDapr(message, topic, pubSubName, responseVariableName, timeoutSeconds, contentType, ignoreError);
+        return this;
+    }
+    IInbound IInbound.PublishToDapr(LiquidTemplate template, PolicyExpression<string> topic, PolicyExpression<string>? pubSubName, PolicyVariable? responseVariableName, PolicyExpression<int>? timeoutSeconds, string? contentType, bool? ignoreError)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
+        PublishToDapr(template, topic, pubSubName, responseVariableName, timeoutSeconds, contentType, ignoreError);
+        return this;
+    }
+
+    IInbound IInbound.SendOneWayRequest(Action<ISendRequestActions> request, PolicyExpression<string>? mode, PolicyExpression<int>? timeoutSeconds)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        SendOneWayRequest(request, mode, timeoutSeconds);
+        return this;
+    }
+    IBackend IBackend.SendOneWayRequest(Action<ISendRequestActions> request, PolicyExpression<string>? mode, PolicyExpression<int>? timeoutSeconds)
+    {
+        AssertSection(PolicySection.Backend);
+        AssertScopes(PolicyScopes.All);
+        SendOneWayRequest(request, mode, timeoutSeconds);
+        return this;
+    }
+    IOutbound IOutbound.SendOneWayRequest(Action<ISendRequestActions> request, PolicyExpression<string>? mode, PolicyExpression<int>? timeoutSeconds)
+    {
+        AssertSection(PolicySection.Outbound);
+        AssertScopes(PolicyScopes.All);
+        SendOneWayRequest(request, mode, timeoutSeconds);
+        return this;
+    }
+    IOnError IOnError.SendOneWayRequest(Action<ISendRequestActions> request, PolicyExpression<string>? mode, PolicyExpression<int>? timeoutSeconds)
+    {
+        AssertSection(PolicySection.OnError);
+        AssertScopes(PolicyScopes.All);
+        SendOneWayRequest(request, mode, timeoutSeconds);
+        return this;
+    }
+
+    IInbound IInbound.SendServiceBusMessage(PolicyExpression<string> @namespace, PolicyExpression<string> message, Action<ISendServiceBusMessageProperties>? messageProperties, PolicyExpression<string>? queueName, PolicyExpression<string>? topicName, PolicyExpression<string>? clientId)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
+        SendServiceBusMessage(@namespace, message, messageProperties, queueName, topicName, clientId);
+        return this;
+    }
+    IOutbound IOutbound.SendServiceBusMessage(PolicyExpression<string> @namespace, PolicyExpression<string> message, Action<ISendServiceBusMessageProperties>? messageProperties, PolicyExpression<string>? queueName, PolicyExpression<string>? topicName, PolicyExpression<string>? clientId)
+    {
+        AssertSection(PolicySection.Outbound);
+        AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
+        SendServiceBusMessage(@namespace, message, messageProperties, queueName, topicName, clientId);
+        return this;
+    }
+    IOnError IOnError.SendServiceBusMessage(PolicyExpression<string> @namespace, PolicyExpression<string> message, Action<ISendServiceBusMessageProperties>? messageProperties, PolicyExpression<string>? queueName, PolicyExpression<string>? topicName, PolicyExpression<string>? clientId)
+    {
+        AssertSection(PolicySection.OnError);
+        AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
+        SendServiceBusMessage(@namespace, message, messageProperties, queueName, topicName, clientId);
+        return this;
+    }
+
+    IInbound IInbound.SendRequest(PolicyExpression<string> responseVariableName, Action<ISendRequestActions> request, PolicyExpression<string>? mode, PolicyExpression<int>? timeoutSeconds, bool? ignoreError)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        SendRequest(responseVariableName, request, mode, timeoutSeconds, ignoreError);
+        return this;
+    }
+    IBackend IBackend.SendRequest(PolicyExpression<string> responseVariableName, Action<ISendRequestActions> request, PolicyExpression<string>? mode, PolicyExpression<int>? timeoutSeconds, bool? ignoreError)
+    {
+        AssertSection(PolicySection.Backend);
+        AssertScopes(PolicyScopes.All);
+        SendRequest(responseVariableName, request, mode, timeoutSeconds, ignoreError);
+        return this;
+    }
+    IOutbound IOutbound.SendRequest(PolicyExpression<string> responseVariableName, Action<ISendRequestActions> request, PolicyExpression<string>? mode, PolicyExpression<int>? timeoutSeconds, bool? ignoreError)
+    {
+        AssertSection(PolicySection.Outbound);
+        AssertScopes(PolicyScopes.All);
+        SendRequest(responseVariableName, request, mode, timeoutSeconds, ignoreError);
+        return this;
+    }
+    IOnError IOnError.SendRequest(PolicyExpression<string> responseVariableName, Action<ISendRequestActions> request, PolicyExpression<string>? mode, PolicyExpression<int>? timeoutSeconds, bool? ignoreError)
+    {
+        AssertSection(PolicySection.OnError);
+        AssertScopes(PolicyScopes.All);
+        SendRequest(responseVariableName, request, mode, timeoutSeconds, ignoreError);
         return this;
     }
 
@@ -174,7 +248,7 @@ partial class PolicyDocument
     {
         AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.Global | PolicyScopes.Product | PolicyScopes.Api | PolicyScopes.Operation);
-        Writer.SetBackendService(daprAppId, daprMethod, daprNamespace);
+        SetBackendService(daprAppId, daprMethod, daprNamespace);
         return this;
     }
 }

@@ -56,12 +56,10 @@ public enum CrossDomainPolicies
     None, All, ByContentType, ByFtpFilename, MasterOnly
 }
 
-partial class PolicyDocument
+partial class PolicyDocumentBase
 {
-    IInbound IInbound.Cors(Action<ICorsActions> actions, bool? allowCredentials, bool? terminateUnmatchedRequests)
+    internal PolicyDocumentBase Cors(Action<ICorsActions> actions, bool? allowCredentials, bool? terminateUnmatchedRequests)
     {
-        AssertSection(PolicySection.Inbound);
-        AssertScopes(PolicyScopes.All);
         Writer.Cors(() => actions(new CorsActions(Writer)), allowCredentials, terminateUnmatchedRequests);
         return this;
     }
@@ -145,10 +143,8 @@ partial class PolicyDocument
         }
     }
 
-    IInbound IInbound.CrossDomain(Action<ICrossDomainActions> actions, CrossDomainPolicies? permittedCrossDomainPolicies)
+    internal PolicyDocumentBase CrossDomain(Action<ICrossDomainActions> actions, CrossDomainPolicies? permittedCrossDomainPolicies)
     {
-        AssertSection(PolicySection.Inbound);
-        AssertScopes(PolicyScopes.Global);
         Writer.CrossDomain(() => actions(new CrossDomainActions(Writer)), CrossDomainPoliciesToString(permittedCrossDomainPolicies));
         return this;
 
@@ -190,6 +186,25 @@ partial class PolicyDocument
             _AllowAccessFromIdentityCalled = true;
             return this;
         }
+    }
+}
+
+partial class PolicyDocument
+{
+    IInbound IInbound.Cors(Action<ICorsActions> actions, bool? allowCredentials, bool? terminateUnmatchedRequests)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        Cors(actions, allowCredentials, terminateUnmatchedRequests);
+        return this;
+    }
+
+    IInbound IInbound.CrossDomain(Action<ICrossDomainActions> actions, CrossDomainPolicies? permittedCrossDomainPolicies)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.Global);
+        CrossDomain(actions, permittedCrossDomainPolicies);
+        return this;
     }
 }
 

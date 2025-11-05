@@ -69,18 +69,10 @@ public interface IValidateStatusCodes
     IValidateStatusCodes Add(int statusCode, PolicyExpression<string> action);
 }
 
-partial class PolicyDocument
+partial class PolicyDocumentBase
 {
-    IInbound IInbound.ValidateContent(PolicyExpression<string> unspecifiedContentTypeAction, PolicyExpression<int> maxSizeBytes, PolicyExpression<string> sizeExceedAction, PolicyVariable? errorsVariableName, Action<IValidateContentActions>? validateActions)
-        => ValidateContent(unspecifiedContentTypeAction, maxSizeBytes, sizeExceedAction, errorsVariableName, validateActions);
-    IOutbound IOutbound.ValidateContent(PolicyExpression<string> unspecifiedContentTypeAction, PolicyExpression<int> maxSizeBytes, PolicyExpression<string> sizeExceedAction, PolicyVariable? errorsVariableName, Action<IValidateContentActions>? validateActions)
-        => ValidateContent(unspecifiedContentTypeAction, maxSizeBytes, sizeExceedAction, errorsVariableName, validateActions);
-    IOnError IOnError.ValidateContent(PolicyExpression<string> unspecifiedContentTypeAction, PolicyExpression<int> maxSizeBytes, PolicyExpression<string> sizeExceedAction, PolicyVariable? errorsVariableName, Action<IValidateContentActions>? validateActions)
-        => ValidateContent(unspecifiedContentTypeAction, maxSizeBytes, sizeExceedAction, errorsVariableName, validateActions);
-    private PolicyDocument ValidateContent(PolicyExpression<string> unspecifiedContentTypeAction, PolicyExpression<int> maxSizeBytes, PolicyExpression<string> sizeExceedAction, PolicyVariable? errorsVariableName = null, Action<IValidateContentActions>? validateActions = null)
+    internal PolicyDocumentBase ValidateContent(PolicyExpression<string> unspecifiedContentTypeAction, PolicyExpression<int> maxSizeBytes, PolicyExpression<string> sizeExceedAction, PolicyVariable? errorsVariableName = null, Action<IValidateContentActions>? validateActions = null)
     {
-        AssertSection([PolicySection.Inbound, PolicySection.Outbound, PolicySection.OnError]);
-        AssertScopes(PolicyScopes.All);
         Action? writeActions = validateActions is null ? null : () => validateActions(new ValidateContentActions(Writer));
         Writer.ValidateContent(unspecifiedContentTypeAction, maxSizeBytes, sizeExceedAction, errorsVariableName, writeActions);
         return this;
@@ -130,14 +122,8 @@ partial class PolicyDocument
         }
     }
 
-    IOutbound IOutbound.ValidateHeaders(PolicyExpression<string> specifiedHeaderAction, PolicyExpression<string> unspecifiedHeaderAction, PolicyVariable? errorsVariableName, Action<IValidateHeaderActions>? headers)
-        => ValidateHeaders(specifiedHeaderAction, unspecifiedHeaderAction, errorsVariableName, headers);
-    IOnError IOnError.ValidateHeaders(PolicyExpression<string> specifiedHeaderAction, PolicyExpression<string> unspecifiedHeaderAction, PolicyVariable? errorsVariableName, Action<IValidateHeaderActions>? headers)
-        => ValidateHeaders(specifiedHeaderAction, unspecifiedHeaderAction, errorsVariableName, headers);
-    private PolicyDocument ValidateHeaders(PolicyExpression<string> specifiedHeaderAction, PolicyExpression<string> unspecifiedHeaderAction, PolicyVariable? errorsVariableName = null, Action<IValidateHeaderActions>? headers = null)
+    internal PolicyDocumentBase ValidateHeaders(PolicyExpression<string> specifiedHeaderAction, PolicyExpression<string> unspecifiedHeaderAction, PolicyVariable? errorsVariableName = null, Action<IValidateHeaderActions>? headers = null)
     {
-        AssertSection([PolicySection.Outbound, PolicySection.OnError]);
-        AssertScopes(PolicyScopes.All);
         Action? writeHeaders = headers is null ? null : () => headers(new ValidateHeaderActions(Writer));
         Writer.ValidateHeaders(specifiedHeaderAction, unspecifiedHeaderAction, errorsVariableName, writeHeaders);
         return this;
@@ -155,18 +141,14 @@ partial class PolicyDocument
         }
     }
 
-    IInbound IInbound.ValidateODataRequest(PolicyVariable? errorVariableName, string? defaultODataVersion, string? minODataVersion, string? maxODataVersion, int? maxSizeBytes)
+    internal PolicyDocumentBase ValidateODataRequest(PolicyVariable? errorVariableName, string? defaultODataVersion, string? minODataVersion, string? maxODataVersion, int? maxSizeBytes)
     {
-        AssertSection(PolicySection.Inbound);
-        AssertScopes(PolicyScopes.Global | PolicyScopes.Workspace | PolicyScopes.Product | PolicyScopes.Api);
         Writer.ValidateODataRequest(errorVariableName, defaultODataVersion, minODataVersion, maxODataVersion, maxSizeBytes.ToString());
         return this;
     }
 
-    IInbound IInbound.ValidateParameters(PolicyExpression<string> specifiedParameterAction, PolicyExpression<string> unspecifiedParameterAction, PolicyVariable? errorVariableName, Action<IValidateParameterActions>? parameterActions)
+    internal PolicyDocumentBase ValidateParameters(PolicyExpression<string> specifiedParameterAction, PolicyExpression<string> unspecifiedParameterAction, PolicyVariable? errorVariableName, Action<IValidateParameterActions>? parameterActions)
     {
-        AssertSection(PolicySection.Inbound);
-        AssertScopes(PolicyScopes.All);
         Action? writeActions = parameterActions is null ? null : () => parameterActions(new ValidateParameterActions(Writer));
         Writer.ValidateParameters(specifiedParameterAction, unspecifiedParameterAction, errorVariableName, writeActions);
         return this;
@@ -217,14 +199,8 @@ partial class PolicyDocument
         }
     }
 
-    IOutbound IOutbound.ValidateStatusCode(PolicyExpression<string> unspecifiedStatusCodeAction, PolicyVariable? errorVariableName, Action<IValidateStatusCodes>? statusCodes)
-        => ValidateStatusCode(unspecifiedStatusCodeAction, errorVariableName, statusCodes);
-    IOnError IOnError.ValidateStatusCode(PolicyExpression<string> unspecifiedStatusCodeAction, PolicyVariable? errorVariableName, Action<IValidateStatusCodes>? statusCodes)
-        => ValidateStatusCode(unspecifiedStatusCodeAction, errorVariableName, statusCodes);
-    private PolicyDocument ValidateStatusCode(PolicyExpression<string> unspecifiedStatusCodeAction, PolicyVariable? errorVariableName = null, Action<IValidateStatusCodes>? statusCodes = null)
+    internal PolicyDocumentBase ValidateStatusCode(PolicyExpression<string> unspecifiedStatusCodeAction, PolicyVariable? errorVariableName = null, Action<IValidateStatusCodes>? statusCodes = null)
     {
-        AssertSection([PolicySection.Outbound, PolicySection.OnError]);
-        AssertScopes(PolicyScopes.All);
         Action? writeStatusCodes = statusCodes is null ? null : () => statusCodes(new ValidateStatusCodes(Writer));
         Writer.ValidateStatusCode(unspecifiedStatusCodeAction, errorVariableName, writeStatusCodes);
         return this;
@@ -240,6 +216,77 @@ partial class PolicyDocument
             _writer.ValidateStatusCodesAdd(statusCode.ToString(), action);
             return this;
         }
+    }
+}
+
+partial class PolicyDocument
+{
+    IInbound IInbound.ValidateContent(PolicyExpression<string> unspecifiedContentTypeAction, PolicyExpression<int> maxSizeBytes, PolicyExpression<string> sizeExceedAction, PolicyVariable? errorsVariableName, Action<IValidateContentActions>? validateActions)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        ValidateContent(unspecifiedContentTypeAction, maxSizeBytes, sizeExceedAction, errorsVariableName, validateActions);
+        return this;
+    }
+    IOutbound IOutbound.ValidateContent(PolicyExpression<string> unspecifiedContentTypeAction, PolicyExpression<int> maxSizeBytes, PolicyExpression<string> sizeExceedAction, PolicyVariable? errorsVariableName, Action<IValidateContentActions>? validateActions)
+    {
+        AssertSection(PolicySection.Outbound);
+        AssertScopes(PolicyScopes.All);
+        ValidateContent(unspecifiedContentTypeAction, maxSizeBytes, sizeExceedAction, errorsVariableName, validateActions);
+        return this;
+    }
+    IOnError IOnError.ValidateContent(PolicyExpression<string> unspecifiedContentTypeAction, PolicyExpression<int> maxSizeBytes, PolicyExpression<string> sizeExceedAction, PolicyVariable? errorsVariableName, Action<IValidateContentActions>? validateActions)
+    {
+        AssertSection(PolicySection.OnError);
+        AssertScopes(PolicyScopes.All);
+        ValidateContent(unspecifiedContentTypeAction, maxSizeBytes, sizeExceedAction, errorsVariableName, validateActions);
+        return this;
+    }
+
+    IOutbound IOutbound.ValidateHeaders(PolicyExpression<string> specifiedHeaderAction, PolicyExpression<string> unspecifiedHeaderAction, PolicyVariable? errorsVariableName, Action<IValidateHeaderActions>? headers)
+    {
+        AssertSection(PolicySection.Outbound);
+        AssertScopes(PolicyScopes.All);
+        ValidateHeaders(specifiedHeaderAction, unspecifiedHeaderAction, errorsVariableName, headers);
+        return this;
+    }
+    IOnError IOnError.ValidateHeaders(PolicyExpression<string> specifiedHeaderAction, PolicyExpression<string> unspecifiedHeaderAction, PolicyVariable? errorsVariableName, Action<IValidateHeaderActions>? headers)
+    {
+        AssertSection(PolicySection.OnError);
+        AssertScopes(PolicyScopes.All);
+        ValidateHeaders(specifiedHeaderAction, unspecifiedHeaderAction, errorsVariableName, headers);
+        return this;
+    }
+
+    IInbound IInbound.ValidateODataRequest(PolicyVariable? errorVariableName, string? defaultODataVersion, string? minODataVersion, string? maxODataVersion, int? maxSizeBytes)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.Global | PolicyScopes.Workspace | PolicyScopes.Product | PolicyScopes.Api);
+        ValidateODataRequest(errorVariableName, defaultODataVersion, minODataVersion, maxODataVersion, maxSizeBytes);
+        return this;
+    }
+
+    IInbound IInbound.ValidateParameters(PolicyExpression<string> specifiedParameterAction, PolicyExpression<string> unspecifiedParameterAction, PolicyVariable? errorVariableName, Action<IValidateParameterActions>? parameterActions)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        ValidateParameters(specifiedParameterAction, unspecifiedParameterAction, errorVariableName, parameterActions);
+        return this;
+    }
+
+    IOutbound IOutbound.ValidateStatusCode(PolicyExpression<string> unspecifiedStatusCodeAction, PolicyVariable? errorVariableName, Action<IValidateStatusCodes>? statusCodes)
+    {
+        AssertSection(PolicySection.Outbound);
+        AssertScopes(PolicyScopes.All);
+        ValidateStatusCode(unspecifiedStatusCodeAction, errorVariableName, statusCodes);
+        return this;
+    }
+    IOnError IOnError.ValidateStatusCode(PolicyExpression<string> unspecifiedStatusCodeAction, PolicyVariable? errorVariableName, Action<IValidateStatusCodes>? statusCodes)
+    {
+        AssertSection(PolicySection.OnError);
+        AssertScopes(PolicyScopes.All);
+        ValidateStatusCode(unspecifiedStatusCodeAction, errorVariableName, statusCodes);
+        return this;
     }
 }
 

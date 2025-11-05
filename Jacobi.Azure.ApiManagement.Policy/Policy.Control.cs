@@ -30,34 +30,15 @@ public interface IWaitActions<DocumentT>
     IWaitActions<DocumentT> SendRequest(PolicyExpression<string> responseVariableName, Action<ISendRequestActions> request, PolicyExpression<string>? mode = null, PolicyExpression<int>? timeoutSeconds = null, bool? ignoreError = null);
 }
 
-partial class PolicyDocument
+partial class PolicyDocumentBase
 {
-    IInbound IInbound.Choose(Action<IChooseActions<IInbound>> choose)
+    internal PolicyDocumentBase Choose(Action<IChooseActions<PolicyDocumentBase>> choose)
     {
-        AssertScopes(PolicyScopes.All);
-        Writer.Choose(() => choose(new ChooseActions<IInbound>(this, Writer)));
-        return this;
-    }
-    IBackend IBackend.Choose(Action<IChooseActions<IBackend>> choose)
-    {
-        AssertScopes(PolicyScopes.All);
-        Writer.Choose(() => choose(new ChooseActions<IBackend>(this, Writer)));
-        return this;
-    }
-    IOutbound IOutbound.Choose(Action<IChooseActions<IOutbound>> choose)
-    {
-        AssertScopes(PolicyScopes.All);
-        Writer.Choose(() => choose(new ChooseActions<IOutbound>(this, Writer)));
-        return this;
-    }
-    IOnError IOnError.Choose(Action<IChooseActions<IOnError>> choose)
-    {
-        AssertScopes(PolicyScopes.All);
-        Writer.Choose(() => choose(new ChooseActions<IOnError>(this, Writer)));
+        Writer.Choose(() => choose(new ChooseActions<PolicyDocumentBase>(this, Writer)));
         return this;
     }
 
-    private sealed class ChooseActions<DocumentT> : IChooseActions<DocumentT>
+    internal sealed class ChooseActions<DocumentT> : IChooseActions<DocumentT>
     {
         private bool _otherwiseCalled = false;
         private readonly DocumentT _document;
@@ -85,50 +66,153 @@ partial class PolicyDocument
         }
     }
 
-    IInbound IInbound.IncludeFragment(string fragmentId)
-        => IncludeFragment(fragmentId);
-    IBackend IBackend.IncludeFragment(string fragmentId)
-        => IncludeFragment(fragmentId);
-    IOutbound IOutbound.IncludeFragment(string fragmentId)
-        => IncludeFragment(fragmentId);
-    IOnError IOnError.IncludeFragment(string fragmentId)
-        => IncludeFragment(fragmentId);
-    private PolicyDocument IncludeFragment(string fragmentId)
+    internal PolicyDocumentBase IncludeFragment(string fragmentId)
     {
-        AssertScopes(PolicyScopes.All);
         Writer.IncludeFragment(fragmentId);
         return this;
     }
 
-    IInbound IInbound.Retry(PolicyExpression<string> condition, PolicyExpression<int> numberOfRetries, PolicyExpression<int> intervalSeconds, PolicyExpression<int>? maxIntervalSeconds, int? deltaSeconds, PolicyExpression<bool>? firstFastRetry)
-        => Retry(condition, numberOfRetries, intervalSeconds, maxIntervalSeconds, deltaSeconds, firstFastRetry);
-    IBackend IBackend.Retry(PolicyExpression<string> condition, PolicyExpression<int> numberOfRetries, PolicyExpression<int> intervalSeconds, PolicyExpression<int>? maxIntervalSeconds, int? deltaSeconds, PolicyExpression<bool>? firstFastRetry)
-        => Retry(condition, numberOfRetries, intervalSeconds, maxIntervalSeconds, deltaSeconds, firstFastRetry);
-    IOutbound IOutbound.Retry(PolicyExpression<string> condition, PolicyExpression<int> numberOfRetries, PolicyExpression<int> intervalSeconds, PolicyExpression<int>? maxIntervalSeconds, int? deltaSeconds, PolicyExpression<bool>? firstFastRetry)
-        => Retry(condition, numberOfRetries, intervalSeconds, maxIntervalSeconds, deltaSeconds, firstFastRetry);
-    IOnError IOnError.Retry(PolicyExpression<string> condition, PolicyExpression<int> numberOfRetries, PolicyExpression<int> intervalSeconds, PolicyExpression<int>? maxIntervalSeconds, int? deltaSeconds, PolicyExpression<bool>? firstFastRetry)
-        => Retry(condition, numberOfRetries, intervalSeconds, maxIntervalSeconds, deltaSeconds, firstFastRetry);
-    private PolicyDocument Retry(PolicyExpression<string> condition, PolicyExpression<int> numberOfRetries, PolicyExpression<int> intervalSeconds, PolicyExpression<int>? maxIntervalSeconds = null, int? deltaSeconds = null, PolicyExpression<bool>? firstFastRetry = null)
+    internal PolicyDocumentBase Retry(PolicyExpression<string> condition, PolicyExpression<int> numberOfRetries, PolicyExpression<int> intervalSeconds, PolicyExpression<int>? maxIntervalSeconds = null, int? deltaSeconds = null, PolicyExpression<bool>? firstFastRetry = null)
     {
-        AssertScopes(PolicyScopes.All);
         Writer.Retry(condition, numberOfRetries, intervalSeconds, maxIntervalSeconds, deltaSeconds.ToString(), firstFastRetry);
+        return this;
+    }
+
+    internal PolicyDocumentBase Wait(Action<IWaitActions<PolicyDocumentBase>> actions, PolicyExpression<string>? waitFor)
+    {
+        Writer.Wait(waitFor, () => actions(new WaitActions(this)));
+        return this;
+    }
+
+    private sealed class WaitActions : IWaitActions<PolicyDocumentBase>
+    {
+        private readonly PolicyDocumentBase _document;
+        public WaitActions(PolicyDocumentBase document) { _document = document; }
+
+        IWaitActions<PolicyDocumentBase> IWaitActions<PolicyDocumentBase>.Choose(Action<IChooseActions<PolicyDocumentBase>> choose)
+        {
+            _document.Choose(choose);
+            return this;
+        }
+        IWaitActions<PolicyDocumentBase> IWaitActions<PolicyDocumentBase>.CacheLookupValue(string variableName, PolicyExpression<string> key, PolicyExpression<string>? defaultValue, CacheType? cacheType)
+        {
+            _document.CacheLookupValue(variableName, key, defaultValue, cacheType);
+            return this;
+        }
+        IWaitActions<PolicyDocumentBase> IWaitActions<PolicyDocumentBase>.SendRequest(PolicyExpression<string> responseVariableName, Action<ISendRequestActions> request, PolicyExpression<string>? mode, PolicyExpression<int>? timeoutSeconds, bool? ignoreError)
+        {
+            _document.SendRequest(responseVariableName, request, mode, timeoutSeconds, ignoreError);
+            return this;
+        }
+    }
+}
+
+partial class PolicyDocument
+{
+    IInbound IInbound.Choose(Action<IChooseActions<IInbound>> choose)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        Writer.Choose(() => choose(new ChooseActions<IInbound>(this, Writer)));
+        return this;
+    }
+    IBackend IBackend.Choose(Action<IChooseActions<IBackend>> choose)
+    {
+        AssertSection(PolicySection.Backend);
+        AssertScopes(PolicyScopes.All);
+        Writer.Choose(() => choose(new ChooseActions<IBackend>(this, Writer)));
+        return this;
+    }
+    IOutbound IOutbound.Choose(Action<IChooseActions<IOutbound>> choose)
+    {
+        AssertSection(PolicySection.Outbound);
+        AssertScopes(PolicyScopes.All);
+        Writer.Choose(() => choose(new ChooseActions<IOutbound>(this, Writer)));
+        return this;
+    }
+    IOnError IOnError.Choose(Action<IChooseActions<IOnError>> choose)
+    {
+        AssertSection(PolicySection.OnError);
+        AssertScopes(PolicyScopes.All);
+        Writer.Choose(() => choose(new ChooseActions<IOnError>(this, Writer)));
+        return this;
+    }
+
+    IInbound IInbound.IncludeFragment(string fragmentId)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        IncludeFragment(fragmentId);
+        return this;
+    }
+    IBackend IBackend.IncludeFragment(string fragmentId)
+    {
+        AssertSection(PolicySection.Backend);
+        AssertScopes(PolicyScopes.All);
+        IncludeFragment(fragmentId);
+        return this;
+    }
+    IOutbound IOutbound.IncludeFragment(string fragmentId)
+    {
+        AssertSection(PolicySection.Outbound);
+        AssertScopes(PolicyScopes.All);
+        IncludeFragment(fragmentId);
+        return this;
+    }
+    IOnError IOnError.IncludeFragment(string fragmentId)
+    {
+        AssertSection(PolicySection.OnError);
+        AssertScopes(PolicyScopes.All);
+        IncludeFragment(fragmentId);
+        return this;
+    }
+
+    IInbound IInbound.Retry(PolicyExpression<string> condition, PolicyExpression<int> numberOfRetries, PolicyExpression<int> intervalSeconds, PolicyExpression<int>? maxIntervalSeconds, int? deltaSeconds, PolicyExpression<bool>? firstFastRetry)
+    {
+        AssertSection(PolicySection.Inbound);
+        AssertScopes(PolicyScopes.All);
+        Retry(condition, numberOfRetries, intervalSeconds, maxIntervalSeconds, deltaSeconds, firstFastRetry);
+        return this;
+    }
+    IBackend IBackend.Retry(PolicyExpression<string> condition, PolicyExpression<int> numberOfRetries, PolicyExpression<int> intervalSeconds, PolicyExpression<int>? maxIntervalSeconds, int? deltaSeconds, PolicyExpression<bool>? firstFastRetry)
+    {
+        AssertSection(PolicySection.Backend);
+        AssertScopes(PolicyScopes.All);
+        Retry(condition, numberOfRetries, intervalSeconds, maxIntervalSeconds, deltaSeconds, firstFastRetry);
+        return this;
+    }
+    IOutbound IOutbound.Retry(PolicyExpression<string> condition, PolicyExpression<int> numberOfRetries, PolicyExpression<int> intervalSeconds, PolicyExpression<int>? maxIntervalSeconds, int? deltaSeconds, PolicyExpression<bool>? firstFastRetry)
+    {
+        AssertSection(PolicySection.Outbound);
+        AssertScopes(PolicyScopes.All);
+        Retry(condition, numberOfRetries, intervalSeconds, maxIntervalSeconds, deltaSeconds, firstFastRetry);
+        return this;
+    }
+    IOnError IOnError.Retry(PolicyExpression<string> condition, PolicyExpression<int> numberOfRetries, PolicyExpression<int> intervalSeconds, PolicyExpression<int>? maxIntervalSeconds, int? deltaSeconds, PolicyExpression<bool>? firstFastRetry)
+    {
+        AssertSection(PolicySection.OnError);
+        AssertScopes(PolicyScopes.All);
+        Retry(condition, numberOfRetries, intervalSeconds, maxIntervalSeconds, deltaSeconds, firstFastRetry);
         return this;
     }
 
     IInbound IInbound.Wait(Action<IWaitActions<IInbound>> actions, PolicyExpression<string>? waitFor)
     {
+        AssertSection(PolicySection.Inbound);
         AssertScopes(PolicyScopes.All);
         Writer.Wait(waitFor, () => actions(new WaitActions(this)));
         return this;
     }
     IBackend IBackend.Wait(Action<IWaitActions<IBackend>> actions, PolicyExpression<string>? waitFor)
     {
+        AssertSection(PolicySection.Backend);
         AssertScopes(PolicyScopes.All);
         Writer.Wait(waitFor, () => actions(new WaitActions(this)));
         return this;
     }
     IOutbound IOutbound.Wait(Action<IWaitActions<IOutbound>> actions, PolicyExpression<string>? waitFor)
     {
+        AssertSection(PolicySection.Outbound);
         AssertScopes(PolicyScopes.All);
         Writer.Wait(waitFor, () => actions(new WaitActions(this)));
         return this;
