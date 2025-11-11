@@ -56,7 +56,7 @@ public sealed class MyFragment : Jacobi.Azure.ApiManagement.Policy.PolicyFragmen
       // no need to call the base
     }
 }
-
+```
 
 When the project is built (successfully) a Policy XML file will be generated for each class - with the same file name (.xml) as the class.
 
